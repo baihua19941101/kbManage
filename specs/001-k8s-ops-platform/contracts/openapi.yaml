@@ -1,0 +1,575 @@
+openapi: 3.1.0
+info:
+  title: kbManage Platform API
+  version: 0.1.0
+  description: >-
+    多集群 Kubernetes 可视化管理平台核心 API 契约，覆盖认证、集群接入、
+    工作空间/项目权限、资源浏览、运维操作与审计查询。
+servers:
+  - url: /api/v1
+paths:
+  /auth/login:
+    post:
+      summary: 用户名密码登录
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: 用户名或密码错误
+  /auth/refresh:
+    post:
+      summary: 刷新访问令牌
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: 刷新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+  /clusters:
+    get:
+      summary: 获取集群列表
+      operationId: listClusters
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+        - in: query
+          name: workspaceId
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 集群列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Cluster'
+    post:
+      summary: 接入新集群
+      operationId: createCluster
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateClusterRequest'
+      responses:
+        '201':
+          description: 集群创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cluster'
+  /clusters/{clusterId}/resources:
+    get:
+      summary: 按集群筛选资源索引
+      operationId: listClusterResources
+      parameters:
+        - $ref: '#/components/parameters/ClusterId'
+        - in: query
+          name: workspaceId
+          schema:
+            type: string
+        - in: query
+          name: projectId
+          schema:
+            type: string
+        - in: query
+          name: kind
+          schema:
+            type: string
+        - in: query
+          name: namespace
+          schema:
+            type: string
+        - in: query
+          name: keyword
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 资源列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ResourceInventory'
+  /workspaces:
+    get:
+      summary: 获取工作空间列表
+      operationId: listWorkspaces
+      responses:
+        '200':
+          description: 工作空间列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Workspace'
+    post:
+      summary: 创建工作空间
+      operationId: createWorkspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkspaceRequest'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+  /workspaces/{workspaceId}/projects:
+    get:
+      summary: 获取项目列表
+      operationId: listProjects
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+      responses:
+        '200':
+          description: 项目列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Project'
+    post:
+      summary: 创建项目
+      operationId: createProject
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectRequest'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+  /role-bindings:
+    post:
+      summary: 创建角色绑定
+      operationId: createRoleBinding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoleBindingRequest'
+      responses:
+        '201':
+          description: 绑定成功
+  /operations:
+    post:
+      summary: 发起资源操作
+      operationId: createOperation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOperationRequest'
+      responses:
+        '202':
+          description: 操作已入队
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationRequest'
+  /operations/{operationId}:
+    get:
+      summary: 查询操作状态
+      operationId: getOperation
+      parameters:
+        - $ref: '#/components/parameters/OperationId'
+      responses:
+        '200':
+          description: 操作详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationRequest'
+  /audit-events:
+    get:
+      summary: 查询审计事件
+      operationId: listAuditEvents
+      parameters:
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: actorUserId
+          schema:
+            type: string
+        - in: query
+          name: clusterId
+          schema:
+            type: string
+        - in: query
+          name: result
+          schema:
+            type: string
+        - in: query
+          name: eventType
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 审计事件列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuditEvent'
+  /audit-events/export:
+    post:
+      summary: 导出审计事件
+      operationId: exportAuditEvents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuditExportRequest'
+      responses:
+        '202':
+          description: 导出任务已创建
+components:
+  parameters:
+    ClusterId:
+      in: path
+      name: clusterId
+      required: true
+      schema:
+        type: string
+    WorkspaceId:
+      in: path
+      name: workspaceId
+      required: true
+      schema:
+        type: string
+    OperationId:
+      in: path
+      name: operationId
+      required: true
+      schema:
+        type: string
+  schemas:
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+    LoginResponse:
+      type: object
+      required: [accessToken, refreshToken, user]
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+        user:
+          $ref: '#/components/schemas/UserProfile'
+    UserProfile:
+      type: object
+      required: [id, username, displayName, status]
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        displayName:
+          type: string
+        status:
+          type: string
+        platformRoles:
+          type: array
+          items:
+            type: string
+    CreateClusterRequest:
+      type: object
+      required: [name, apiServer, credentialType, credentialPayload]
+      properties:
+        name:
+          type: string
+        displayName:
+          type: string
+        description:
+          type: string
+        apiServer:
+          type: string
+        environment:
+          type: string
+        credentialType:
+          type: string
+          enum: [kubeconfig, token, service-account]
+        credentialPayload:
+          type: string
+    Cluster:
+      type: object
+      required: [id, name, status]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        displayName:
+          type: string
+        environment:
+          type: string
+        status:
+          type: string
+        k8sVersion:
+          type: string
+        lastSyncAt:
+          type: string
+          format: date-time
+    CreateWorkspaceRequest:
+      type: object
+      required: [name, code]
+      properties:
+        name:
+          type: string
+        code:
+          type: string
+        description:
+          type: string
+    Workspace:
+      type: object
+      required: [id, name, code, status]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        code:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+    CreateProjectRequest:
+      type: object
+      required: [name, code]
+      properties:
+        name:
+          type: string
+        code:
+          type: string
+        description:
+          type: string
+    Project:
+      type: object
+      required: [id, workspaceId, name, code, status]
+      properties:
+        id:
+          type: string
+        workspaceId:
+          type: string
+        name:
+          type: string
+        code:
+          type: string
+        status:
+          type: string
+    CreateRoleBindingRequest:
+      type: object
+      required: [subjectType, subjectId, scopeType, roleKey]
+      properties:
+        subjectType:
+          type: string
+          enum: [user, group]
+        subjectId:
+          type: string
+        scopeType:
+          type: string
+          enum: [platform, workspace, project]
+        scopeId:
+          type: string
+        roleKey:
+          type: string
+    ResourceInventory:
+      type: object
+      required: [resourceUid, clusterId, resourceKind, name]
+      properties:
+        resourceUid:
+          type: string
+        clusterId:
+          type: string
+        workspaceId:
+          type: string
+        projectId:
+          type: string
+        resourceKind:
+          type: string
+        namespace:
+          type: string
+        name:
+          type: string
+        statusSummary:
+          type: string
+        lastObservedAt:
+          type: string
+          format: date-time
+    CreateOperationRequest:
+      type: object
+      required: [clusterId, resourceKind, operationType]
+      properties:
+        clusterId:
+          type: string
+        workspaceId:
+          type: string
+        projectId:
+          type: string
+        resourceUid:
+          type: string
+        resourceKind:
+          type: string
+        namespace:
+          type: string
+        name:
+          type: string
+        operationType:
+          type: string
+        riskLevel:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+    OperationRequest:
+      type: object
+      required: [id, clusterId, operationType, status, createdAt]
+      properties:
+        id:
+          type: string
+        clusterId:
+          type: string
+        workspaceId:
+          type: string
+        projectId:
+          type: string
+        operationType:
+          type: string
+        riskLevel:
+          type: string
+        status:
+          type: string
+        failureReason:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+    AuditEvent:
+      type: object
+      required: [id, eventType, result, occurredAt]
+      properties:
+        id:
+          type: string
+        eventType:
+          type: string
+        actorUserId:
+          type: string
+        clusterId:
+          type: string
+        scopeType:
+          type: string
+        scopeId:
+          type: string
+        resourceKind:
+          type: string
+        resourceNamespace:
+          type: string
+        resourceName:
+          type: string
+        result:
+          type: string
+        occurredAt:
+          type: string
+          format: date-time
+    AuditExportRequest:
+      type: object
+      required: [from, to]
+      properties:
+        from:
+          type: string
+          format: date-time
+        to:
+          type: string
+          format: date-time
+        actorUserId:
+          type: string
+        clusterId:
+          type: string
+        result:
+          type: string
+        eventType:
+          type: string
