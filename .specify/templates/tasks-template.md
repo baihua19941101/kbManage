@@ -12,6 +12,10 @@ description: "Task list template for feature implementation"
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
+**Constitutional Gates**: Feature branch verification, database backup evidence, China mirror or
+proxy configuration for dependency installation, Chinese PR artifacts, GitHub push, and explicit
+user approval before merge are mandatory whenever applicable.
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependencies)
@@ -24,6 +28,15 @@ description: "Task list template for feature implementation"
 - **Web app**: `backend/src/`, `frontend/src/`
 - **Mobile**: `api/src/`, `ios/src/` or `android/src/`
 - Paths shown below assume single project - adjust based on plan.md structure
+
+## Phase 0: Governance Gates
+
+**Purpose**: Complete constitution-mandated checks before setup or implementation starts
+
+- [ ] G001 Verify the current branch is a dedicated feature branch; create or switch if needed
+- [ ] G002 Record a pre-development database backup from container `mysql8` and store the artifact path
+- [ ] G003 Configure package-manager mirrors or proxies for domestic dependency installation
+- [ ] G004 Confirm GitHub remote, PR workflow, professional commit-message standard, and subagent model
 
 <!-- 
   ============================================================================
@@ -49,7 +62,7 @@ description: "Task list template for feature implementation"
 **Purpose**: Project initialization and basic structure
 
 - [ ] T001 Create project structure per implementation plan
-- [ ] T002 Initialize [language] project with [framework] dependencies
+- [ ] T002 Initialize [language] project with [framework] dependencies using the documented mirror or proxy
 - [ ] T003 [P] Configure linting and formatting tools
 
 ---
@@ -151,6 +164,9 @@ Examples of foundational tasks (adjust based on your project):
 **Purpose**: Improvements that affect multiple user stories
 
 - [ ] TXXX [P] Documentation updates in docs/
+- [ ] TXXX [P] Prepare a Chinese PR summary with backup evidence, testing notes, and risk assessment
+- [ ] TXXX Push the feature branch to the GitHub remote and open or update the PR
+- [ ] TXXX Record explicit user approval before merge
 - [ ] TXXX Code cleanup and refactoring
 - [ ] TXXX Performance optimization across all stories
 - [ ] TXXX [P] Additional unit tests (if requested) in tests/unit/
@@ -163,12 +179,14 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Phase Dependencies
 
-- **Setup (Phase 1)**: No dependencies - can start immediately
+- **Governance Gates (Phase 0)**: No dependencies - MUST complete before Setup
+- **Setup (Phase 1)**: Depends on Governance Gates completion
 - **Foundational (Phase 2)**: Depends on Setup completion - BLOCKS all user stories
 - **User Stories (Phase 3+)**: All depend on Foundational phase completion
   - User stories can then proceed in parallel (if staffed)
   - Or sequentially in priority order (P1 → P2 → P3)
 - **Polish (Final Phase)**: Depends on all desired user stories being complete
+- **Release / Merge**: Depends on GitHub push, PR update, review completion, and explicit user approval
 
 ### User Story Dependencies
 
@@ -213,30 +231,32 @@ Task: "Create [Entity2] model in src/models/[entity2].py"
 
 ### MVP First (User Story 1 Only)
 
-1. Complete Phase 1: Setup
-2. Complete Phase 2: Foundational (CRITICAL - blocks all stories)
-3. Complete Phase 3: User Story 1
-4. **STOP and VALIDATE**: Test User Story 1 independently
-5. Deploy/demo if ready
+1. Complete Phase 0: Governance Gates
+2. Complete Phase 1: Setup
+3. Complete Phase 2: Foundational (CRITICAL - blocks all stories)
+4. Complete Phase 3: User Story 1
+5. **STOP and VALIDATE**: Test User Story 1 independently
+6. Push or update the PR if ready
 
 ### Incremental Delivery
 
-1. Complete Setup + Foundational → Foundation ready
+1. Complete Governance Gates + Setup + Foundational → Foundation ready
 2. Add User Story 1 → Test independently → Deploy/Demo (MVP!)
 3. Add User Story 2 → Test independently → Deploy/Demo
 4. Add User Story 3 → Test independently → Deploy/Demo
-5. Each story adds value without breaking previous stories
+5. Update the GitHub PR and wait for explicit user approval before merge or the next feature
 
 ### Parallel Team Strategy
 
 With multiple developers:
 
-1. Team completes Setup + Foundational together
+1. Team completes Governance Gates + Setup + Foundational together
 2. Once Foundational is done:
    - Developer A: User Story 1
    - Developer B: User Story 2
    - Developer C: User Story 3
 3. Stories complete and integrate independently
+4. If agent delegation is used, every subagent MUST use `gpt-5.3-codex`
 
 ---
 
@@ -246,6 +266,7 @@ With multiple developers:
 - [Story] label maps task to specific user story for traceability
 - Each user story should be independently completable and testable
 - Verify tests fail before implementing
-- Commit after each task or logical group
+- Commit after each task or logical group with a professional, descriptive message
+- Add tasks in the final phase for GitHub push, Chinese PR summary, and explicit user approval before merge
 - Stop at any checkpoint to validate story independently
 - Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence

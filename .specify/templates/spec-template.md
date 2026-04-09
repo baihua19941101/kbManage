@@ -95,6 +95,22 @@
 - **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
 - **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
 
+## Governance & Delivery Constraints *(mandatory)*
+
+- **GC-001**: Feature work MUST occur on a dedicated feature branch; direct development on
+  `master` or `main` is forbidden.
+- **GC-002**: All user-facing communication, approval records, PR summaries, and delivery notes
+  MUST be written in Chinese.
+- **GC-003**: Any dependency or framework installation MUST document the China mirror or proxy
+  configuration that will be used during implementation.
+- **GC-004**: Before implementation begins, the feature specification or plan MUST record a
+  database backup executed from container `mysql8` using `localhost:3306` and credentials
+  `admin/123456`, or explicitly justify why the backup requirement is not applicable.
+- **GC-005**: Delivery MUST include pushing the feature branch to the GitHub remote and opening or
+  updating a PR; the next feature MUST NOT start until the current PR flow is complete.
+- **GC-006**: Merge to the mainline branch MUST NOT occur without explicit user approval.
+- **GC-007**: If subagents are used for implementation, they MUST use `gpt-5.3-codex`.
+
 ### Key Entities *(include if feature involves data)*
 
 - **[Entity 1]**: [What it represents, key attributes without implementation]

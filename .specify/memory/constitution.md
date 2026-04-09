@@ -1,50 +1,93 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+Version change: template -> 1.0.0
+Modified principles:
+- placeholder PRINCIPLE_1_NAME -> I. 中文协作与可审计决策
+- placeholder PRINCIPLE_2_NAME -> II. 国内依赖源与受控安装
+- placeholder PRINCIPLE_3_NAME -> III. 分支优先与 PR 准入
+- placeholder PRINCIPLE_4_NAME -> IV. 先备份数据库再开发
+- placeholder PRINCIPLE_5_NAME -> V. 受控自动化与子代理约束
+Added sections:
+- Additional Constraints
+- Development Workflow
+Removed sections:
+- None
+Templates requiring updates:
+- ✅ .specify/templates/plan-template.md
+- ✅ .specify/templates/spec-template.md
+- ✅ .specify/templates/tasks-template.md
+Follow-up TODOs:
+- None
+Additional validation notes:
+- `.specify/templates/commands/` 目录不存在，无需同步更新命令模板
+- `README.md` 不存在，无需同步更新运行时说明
+-->
+
+# kbManage Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. 中文协作与可审计决策
+与用户的沟通、需求确认、风险说明、审批记录、交付总结、PR 摘要和合并结论
+必须使用中文，并且必须保留在规格、计划、任务、PR 或其他可追溯载体中。任何偏离既定
+方案的决定都必须记录原因、影响范围和批准人。理由：减少沟通歧义，确保后续审计、交接
+和问题追踪可以复盘。
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. 国内依赖源与受控安装
+所有语言、框架、工具链及其依赖安装必须优先使用国内镜像源或经批准的代理方案；禁止在
+未说明镜像或代理配置的情况下直接使用默认境外源。计划和任务文档必须写明所用镜像、代
+理或环境变量。理由：降低网络不稳定带来的交付风险，并保证构建过程可重复。
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. 分支优先与 PR 准入
+所有新功能开发必须在独立功能分支上进行，禁止直接在 `master` 或 `main` 分支开发。
+功能完成后，变更必须推送到远程 GitHub 仓库，并创建或更新 PR；在该 PR 的评审流转完成
+前，不得开始下一项功能开发。任何合并操作都必须先取得用户明确同意。所有提交信息必须
+包含专业、清晰、可审计的说明，准确描述变更目的与范围。理由：保证变更隔离、评审闭环
+和发布可控。
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. 先备份数据库再开发
+开始任何新功能开发前，必须先完成数据库备份，并记录备份时间、执行命令和产物位置。备
+份必须通过容器 `mysql8` 内部命令执行，连接信息固定为 `localhost:3306`、
+`admin/123456`；禁止以未记录来源的其他方式替代。若功能涉及数据库结构或关键数据变更，
+计划中还必须定义恢复验证方法。理由：确保需求试错和结构调整不会使现有数据不可恢复。
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. 受控自动化与子代理约束
+自动化流程、脚本和代理协作不得绕过本宪章中的分支、备份、PR、审批和提交要求。若使用
+子代理或并行代理执行任务，模型必须统一使用 `gpt-5.3-codex`，并在计划或执行记录中标
+明负责范围。理由：保证自动化行为可预测、结果可复核、责任边界可界定。
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Additional Constraints
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- 任何实现计划都必须在进入研究或设计阶段前完成宪章合规检查，并明确记录分支名称、备
+  份证据、依赖源配置、远程仓库目标和 PR 策略。
+- 数据库备份产物必须可定位、可读取、可在需要时用于恢复验证；仅口头说明“已备份”不视
+  为合规。
+- PR 描述必须以中文说明目标、范围、测试结果、数据库备份情况和潜在风险。
+- 未取得用户明确同意前，任何人或自动化流程都不得执行分支合并、主干发布或删除远程功
+  能分支。
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## Development Workflow
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+1. 创建或切换到独立功能分支，并确认当前工作不在 `master` 或 `main`。
+2. 在开始开发前完成数据库备份，记录容器内执行命令、时间戳和备份文件路径。
+3. 若需要安装依赖，先配置国内镜像或代理，再执行安装，并在计划或任务中记录配置方式。
+4. 在功能分支上实现、测试并以专业提交说明持续提交变更；如使用子代理，统一使用
+   `gpt-5.3-codex`。
+5. 功能完成后推送分支到远程 GitHub，创建或更新中文 PR，并附上测试与备份证据。
+6. 等待评审与用户明确同意；未经同意不得合并。
+7. 仅在当前 PR 流程完成后，才可开始下一项功能开发。
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+本宪章高于本仓库中的局部习惯、临时流程和未记录约定。任何规格、计划、任务、脚本、PR
+或自动化执行步骤都必须显式检查并满足本宪章。
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+宪章修订必须同时更新受影响的模板与运行时指导文件，并在变更说明中记录影响范围。版本号
+遵循语义化规则：删除或重新定义原则导致不兼容治理变化时升级 MAJOR；新增原则或新增强
+制章节时升级 MINOR；措辞澄清、文字修正和不改变治理语义的调整时升级 PATCH。
+
+每次计划评审、任务生成、PR 审查和合并前都必须执行合规复核，至少覆盖以下项目：中文协
+作记录、国内依赖源配置、功能分支状态、数据库备份证据、GitHub PR 状态、用户合并授权
+以及子代理模型约束。未通过复核的变更不得合并，也不得作为下一项功能开发的起点。
+
+**Version**: 1.0.0 | **Ratified**: 2026-04-09 | **Last Amended**: 2026-04-09
