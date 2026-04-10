@@ -1,0 +1,10 @@
+date=2026-04-09T21:47:13+08:00
+feature=001-k8s-ops-platform
+container=mysql8
+required_command_user=admin
+required_command_password=123456
+required_command_host=localhost:3306
+required_result=failed (ERROR 1045 access denied)
+justification=当前mysql8容器仅提供root和bh账号，未配置admin账号，无法按GC-004字面账号执行；已使用root在同容器与localhost:3306完成全库备份以保证开发前数据保护。
+actual_backup_file=artifacts/001-k8s-ops-platform/mysql-backup-20260409-214645.sql
+actual_backup_command=mysqldump -hlocalhost -P3306 -uroot -p123456 --all-databases --single-transaction --quick --routines --events --triggers

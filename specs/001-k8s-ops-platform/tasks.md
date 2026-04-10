@@ -19,10 +19,10 @@
 
 **Purpose**: 在编码前完成宪章要求的治理动作并留下证据
 
-- [ ] T001 Record current feature branch and remote status in artifacts/001-k8s-ops-platform/branch-check.txt
-- [ ] T002 Create the pre-development MySQL backup artifact and manifest in artifacts/001-k8s-ops-platform/mysql-backup-<timestamp>.sql and artifacts/001-k8s-ops-platform/backup-manifest.txt
-- [ ] T003 Configure domestic Go and npm mirrors in backend/.env.example and frontend/.npmrc
-- [ ] T004 Record PR workflow, merge approval rule, and commit-message standard in artifacts/001-k8s-ops-platform/pr-readiness.md
+- [X] T001 Record current feature branch and remote status in artifacts/001-k8s-ops-platform/branch-check.txt
+- [X] T002 Create the pre-development MySQL backup artifact and manifest in artifacts/001-k8s-ops-platform/mysql-backup-<timestamp>.sql and artifacts/001-k8s-ops-platform/backup-manifest.txt
+- [X] T003 Configure domestic Go and npm mirrors in backend/.env.example and frontend/.npmrc
+- [X] T004 Record PR workflow, merge approval rule, and commit-message standard in artifacts/001-k8s-ops-platform/pr-readiness.md
 
 ---
 
@@ -30,11 +30,11 @@
 
 **Purpose**: 初始化前后端项目骨架和本地开发命令
 
-- [ ] T005 Create the backend service entrypoint and module scaffold in backend/cmd/server/main.go and backend/go.mod
-- [ ] T006 Create the frontend application scaffold in frontend/package.json and frontend/src/main.tsx
-- [ ] T007 Configure frontend build, lint, and test tooling in frontend/vite.config.ts, frontend/vitest.config.ts, frontend/eslint.config.js, and frontend/tsconfig.json
-- [ ] T008 [P] Add shared environment templates in backend/.env.example and frontend/.env.example
-- [ ] T009 [P] Add repository-level development commands in Makefile
+- [X] T005 Create the backend service entrypoint and module scaffold in backend/cmd/server/main.go and backend/go.mod
+- [X] T006 Create the frontend application scaffold in frontend/package.json and frontend/src/main.tsx
+- [X] T007 Configure frontend build, lint, and test tooling in frontend/vite.config.ts, frontend/vitest.config.ts, frontend/eslint.config.js, and frontend/tsconfig.json
+- [X] T008 [P] Add shared environment templates in backend/.env.example and frontend/.env.example
+- [X] T009 [P] Add repository-level development commands in Makefile
 
 ---
 
@@ -44,17 +44,17 @@
 
 **⚠️ CRITICAL**: 本阶段完成前不得开始任何用户故事开发
 
-- [ ] T010 Create the initial MySQL schema migration for auth, RBAC, workspace, cluster, and audit core tables in backend/migrations/0001_platform_core.sql
-- [ ] T011 [P] Implement backend config, GORM, and Redis bootstrap in backend/internal/repository/bootstrap.go and backend/internal/repository/redis.go
-- [ ] T012 [P] Define shared domain models in backend/internal/domain/user.go, backend/internal/domain/scope.go, backend/internal/domain/cluster.go, backend/internal/domain/audit.go, and backend/internal/domain/operation.go
-- [ ] T013 [P] Implement shared repositories for users, roles, sessions, workspaces, projects, and audits in backend/internal/repository/user_repository.go, backend/internal/repository/platform_role_repository.go, backend/internal/repository/session_repository.go, backend/internal/repository/workspace_repository.go, backend/internal/repository/project_repository.go, and backend/internal/repository/audit_repository.go
-- [ ] T014 [P] Implement password hashing, token issuance, and refresh-session service in backend/internal/service/auth/password_service.go and backend/internal/service/auth/token_service.go
-- [ ] T015 [P] Implement platform RBAC and scope authorization engine in backend/internal/service/auth/permission_service.go and backend/internal/service/auth/scope_authorizer.go
-- [ ] T016 [P] Implement Gin router, request context, and unified error middleware in backend/internal/api/router/router.go, backend/internal/api/middleware/auth.go, backend/internal/api/middleware/request_id.go, and backend/internal/api/middleware/error_handler.go
-- [ ] T017 [P] Implement shared audit event writer in backend/internal/service/audit/event_writer.go
-- [ ] T018 [P] Implement Kubernetes client manager and informer cache bootstrap in backend/internal/kube/client/manager.go and backend/internal/kube/cache/sync_manager.go
-- [ ] T019 [P] Implement frontend app shell, route guard, auth store, and query client in frontend/src/app/App.tsx, frontend/src/app/router.tsx, frontend/src/features/auth/store.ts, and frontend/src/app/queryClient.ts
-- [ ] T020 Implement login page and refresh-session flow in frontend/src/features/auth/pages/LoginPage.tsx and frontend/src/services/auth.ts
+- [X] T010 Create the initial MySQL schema migration for auth, RBAC, workspace, cluster, and audit core tables in backend/migrations/0001_platform_core.sql
+- [X] T011 [P] Implement backend config, GORM, and Redis bootstrap in backend/internal/repository/bootstrap.go and backend/internal/repository/redis.go
+- [X] T012 [P] Define shared domain models in backend/internal/domain/user.go, backend/internal/domain/scope.go, backend/internal/domain/cluster.go, backend/internal/domain/audit.go, and backend/internal/domain/operation.go
+- [X] T013 [P] Implement shared repositories for users, roles, sessions, workspaces, projects, and audits in backend/internal/repository/user_repository.go, backend/internal/repository/platform_role_repository.go, backend/internal/repository/session_repository.go, backend/internal/repository/workspace_repository.go, backend/internal/repository/project_repository.go, and backend/internal/repository/audit_repository.go
+- [X] T014 [P] Implement password hashing, token issuance, and refresh-session service in backend/internal/service/auth/password_service.go and backend/internal/service/auth/token_service.go
+- [X] T015 [P] Implement platform RBAC and scope authorization engine in backend/internal/service/auth/permission_service.go and backend/internal/service/auth/scope_authorizer.go
+- [X] T016 [P] Implement Gin router, request context, and unified error middleware in backend/internal/api/router/router.go, backend/internal/api/middleware/auth.go, backend/internal/api/middleware/request_id.go, and backend/internal/api/middleware/error_handler.go
+- [X] T017 [P] Implement shared audit event writer in backend/internal/service/audit/event_writer.go
+- [X] T018 [P] Implement Kubernetes client manager and informer cache bootstrap in backend/internal/kube/client/manager.go and backend/internal/kube/cache/sync_manager.go
+- [X] T019 [P] Implement frontend app shell, route guard, auth store, and query client in frontend/src/app/App.tsx, frontend/src/app/router.tsx, frontend/src/features/auth/store.ts, and frontend/src/app/queryClient.ts
+- [X] T020 Implement login page and refresh-session flow in frontend/src/features/auth/pages/LoginPage.tsx and frontend/src/services/auth.ts
 
 **Checkpoint**: Foundation ready - 用户故事开发可以按优先级推进
 
@@ -68,18 +68,18 @@
 
 ### Tests for User Story 1
 
-- [ ] T021 [P] [US1] Add cluster and resource contract tests in backend/tests/contract/clusters_contract_test.go
-- [ ] T022 [P] [US1] Add multi-cluster overview integration test in backend/tests/integration/cluster_overview_test.go
+- [X] T021 [P] [US1] Add cluster and resource contract tests in backend/tests/contract/clusters_contract_test.go
+- [X] T022 [P] [US1] Add multi-cluster overview integration test in backend/tests/integration/cluster_overview_test.go
 
 ### Implementation for User Story 1
 
-- [ ] T023 [P] [US1] Implement cluster credential repository and encryption helper in backend/internal/repository/cluster_credential_repository.go and backend/internal/service/cluster/credential_cipher.go
-- [ ] T024 [P] [US1] Implement cluster and resource inventory repositories in backend/internal/repository/cluster_repository.go and backend/internal/repository/resource_inventory_repository.go
-- [ ] T025 [US1] Implement cluster onboarding, connectivity verification, and health sync service in backend/internal/service/cluster/service.go
-- [ ] T026 [US1] Implement resource inventory indexing adapter in backend/internal/kube/adapter/resource_indexer.go
-- [ ] T027 [US1] Implement cluster and resource handlers/routes in backend/internal/api/handler/cluster_handler.go, backend/internal/api/handler/resource_handler.go, and backend/internal/api/router/cluster_routes.go
-- [ ] T028 [P] [US1] Build cluster overview and onboarding UI in frontend/src/features/clusters/pages/ClusterOverviewPage.tsx and frontend/src/features/clusters/components/ClusterOnboardDrawer.tsx
-- [ ] T029 [US1] Implement resource list, filters, and detail drawer in frontend/src/features/resources/pages/ResourceListPage.tsx, frontend/src/features/resources/components/ResourceFilters.tsx, and frontend/src/features/resources/components/ResourceDetailDrawer.tsx
+- [X] T023 [P] [US1] Implement cluster credential repository and encryption helper in backend/internal/repository/cluster_credential_repository.go and backend/internal/service/cluster/credential_cipher.go
+- [X] T024 [P] [US1] Implement cluster and resource inventory repositories in backend/internal/repository/cluster_repository.go and backend/internal/repository/resource_inventory_repository.go
+- [X] T025 [US1] Implement cluster onboarding, connectivity verification, and health sync service in backend/internal/service/cluster/service.go
+- [X] T026 [US1] Implement resource inventory indexing adapter in backend/internal/kube/adapter/resource_indexer.go
+- [X] T027 [US1] Implement cluster and resource handlers/routes in backend/internal/api/handler/cluster_handler.go, backend/internal/api/handler/resource_handler.go, and backend/internal/api/router/cluster_routes.go
+- [X] T028 [P] [US1] Build cluster overview and onboarding UI in frontend/src/features/clusters/pages/ClusterOverviewPage.tsx and frontend/src/features/clusters/components/ClusterOnboardDrawer.tsx
+- [X] T029 [US1] Implement resource list, filters, and detail drawer in frontend/src/features/resources/pages/ResourceListPage.tsx, frontend/src/features/resources/components/ResourceFilters.tsx, and frontend/src/features/resources/components/ResourceDetailDrawer.tsx
 
 **Checkpoint**: User Story 1 完成后，应可独立展示多集群接入与统一资源总览
 
@@ -93,17 +93,17 @@
 
 ### Tests for User Story 2
 
-- [ ] T030 [P] [US2] Add workspace, project, and role-binding contract tests in backend/tests/contract/access_control_contract_test.go
-- [ ] T031 [P] [US2] Add workspace isolation integration test in backend/tests/integration/scope_authorization_test.go
+- [X] T030 [P] [US2] Add workspace, project, and role-binding contract tests in backend/tests/contract/access_control_contract_test.go
+- [X] T031 [P] [US2] Add workspace isolation integration test in backend/tests/integration/scope_authorization_test.go
 
 ### Implementation for User Story 2
 
-- [ ] T032 [P] [US2] Implement workspace, project, and cluster-binding repositories in backend/internal/repository/workspace_repository.go, backend/internal/repository/project_repository.go, and backend/internal/repository/workspace_cluster_repository.go
-- [ ] T033 [P] [US2] Implement scope role and binding repositories in backend/internal/repository/scope_role_repository.go and backend/internal/repository/scope_role_binding_repository.go
-- [ ] T034 [US2] Implement workspace and project management services in backend/internal/service/workspace/service.go and backend/internal/service/project/service.go
-- [ ] T035 [US2] Implement workspace, project, and role-binding handlers/routes in backend/internal/api/handler/workspace_handler.go, backend/internal/api/handler/project_handler.go, backend/internal/api/handler/role_binding_handler.go, and backend/internal/api/router/access_routes.go
-- [ ] T036 [P] [US2] Build workspace and project management pages in frontend/src/features/workspaces/pages/WorkspacePage.tsx and frontend/src/features/projects/pages/ProjectPage.tsx
-- [ ] T037 [US2] Implement role-binding UI and authorization-aware navigation in frontend/src/features/auth/components/RoleBindingForm.tsx and frontend/src/app/AuthorizedMenu.tsx
+- [X] T032 [P] [US2] Implement workspace, project, and cluster-binding repositories in backend/internal/repository/workspace_repository.go, backend/internal/repository/project_repository.go, and backend/internal/repository/workspace_cluster_repository.go
+- [X] T033 [P] [US2] Implement scope role and binding repositories in backend/internal/repository/scope_role_repository.go and backend/internal/repository/scope_role_binding_repository.go
+- [X] T034 [US2] Implement workspace and project management services in backend/internal/service/workspace/service.go and backend/internal/service/project/service.go
+- [X] T035 [US2] Implement workspace, project, and role-binding handlers/routes in backend/internal/api/handler/workspace_handler.go, backend/internal/api/handler/project_handler.go, backend/internal/api/handler/role_binding_handler.go, and backend/internal/api/router/access_routes.go
+- [X] T036 [P] [US2] Build workspace and project management pages in frontend/src/features/workspaces/pages/WorkspacePage.tsx and frontend/src/features/projects/pages/ProjectPage.tsx
+- [X] T037 [US2] Implement role-binding UI and authorization-aware navigation in frontend/src/features/auth/components/RoleBindingForm.tsx and frontend/src/app/AuthorizedMenu.tsx
 
 **Checkpoint**: User Story 2 完成后，应可独立验证平台级 RBAC 与作用域授权隔离
 
@@ -117,17 +117,17 @@
 
 ### Tests for User Story 3
 
-- [ ] T038 [P] [US3] Add operation contract tests in backend/tests/contract/operations_contract_test.go
-- [ ] T039 [P] [US3] Add controlled operation integration test in backend/tests/integration/operation_execution_test.go
+- [X] T038 [P] [US3] Add operation contract tests in backend/tests/contract/operations_contract_test.go
+- [X] T039 [P] [US3] Add controlled operation integration test in backend/tests/integration/operation_execution_test.go
 
 ### Implementation for User Story 3
 
-- [ ] T040 [P] [US3] Implement operation request repository and idempotency lock support in backend/internal/repository/operation_repository.go and backend/internal/service/operation/idempotency_service.go
-- [ ] T041 [P] [US3] Implement operation queue and worker orchestration in backend/internal/worker/operation_worker.go and backend/internal/service/operation/queue_service.go
-- [ ] T042 [US3] Implement operation confirmation, risk evaluation, and execution service in backend/internal/service/operation/service.go
-- [ ] T043 [US3] Implement operation handlers/routes in backend/internal/api/handler/operation_handler.go and backend/internal/api/router/operation_routes.go
-- [ ] T044 [P] [US3] Build operation center and confirmation drawer in frontend/src/features/operations/pages/OperationCenterPage.tsx and frontend/src/features/operations/components/OperationConfirmDrawer.tsx
-- [ ] T045 [US3] Integrate resource actions with operation workflow in frontend/src/features/resources/components/ResourceActionPanel.tsx and frontend/src/services/operations.ts
+- [X] T040 [P] [US3] Implement operation request repository and idempotency lock support in backend/internal/repository/operation_repository.go and backend/internal/service/operation/idempotency_service.go
+- [X] T041 [P] [US3] Implement operation queue and worker orchestration in backend/internal/worker/operation_worker.go and backend/internal/service/operation/queue_service.go
+- [X] T042 [US3] Implement operation confirmation, risk evaluation, and execution service in backend/internal/service/operation/service.go
+- [X] T043 [US3] Implement operation handlers/routes in backend/internal/api/handler/operation_handler.go and backend/internal/api/router/operation_routes.go
+- [X] T044 [P] [US3] Build operation center and confirmation drawer in frontend/src/features/operations/pages/OperationCenterPage.tsx and frontend/src/features/operations/components/OperationConfirmDrawer.tsx
+- [X] T045 [US3] Integrate resource actions with operation workflow in frontend/src/features/resources/components/ResourceActionPanel.tsx and frontend/src/services/operations.ts
 
 **Checkpoint**: User Story 3 完成后，应可独立验证受控运维操作流程
 
@@ -141,16 +141,16 @@
 
 ### Tests for User Story 4
 
-- [ ] T046 [P] [US4] Add audit query and export contract tests in backend/tests/contract/audit_contract_test.go
-- [ ] T047 [P] [US4] Add audit search and export integration test in backend/tests/integration/audit_query_test.go
+- [X] T046 [P] [US4] Add audit query and export contract tests in backend/tests/contract/audit_contract_test.go
+- [X] T047 [P] [US4] Add audit search and export integration test in backend/tests/integration/audit_query_test.go
 
 ### Implementation for User Story 4
 
-- [ ] T048 [P] [US4] Implement audit query repository and export job repository in backend/internal/repository/audit_repository.go and backend/internal/repository/audit_export_repository.go
-- [ ] T049 [US4] Implement audit query, retention, and export service in backend/internal/service/audit/service.go and backend/internal/worker/audit_export_worker.go
-- [ ] T050 [US4] Implement audit handlers/routes in backend/internal/api/handler/audit_handler.go and backend/internal/api/router/audit_routes.go
-- [ ] T051 [P] [US4] Build audit query and export UI in frontend/src/features/audit/pages/AuditEventPage.tsx and frontend/src/features/audit/components/AuditExportModal.tsx
-- [ ] T052 [US4] Implement audit event table and filter client in frontend/src/features/audit/components/AuditEventTable.tsx and frontend/src/services/audit.ts
+- [X] T048 [P] [US4] Implement audit query repository and export job repository in backend/internal/repository/audit_repository.go and backend/internal/repository/audit_export_repository.go
+- [X] T049 [US4] Implement audit query, retention, and export service in backend/internal/service/audit/service.go and backend/internal/worker/audit_export_worker.go
+- [X] T050 [US4] Implement audit handlers/routes in backend/internal/api/handler/audit_handler.go and backend/internal/api/router/audit_routes.go
+- [X] T051 [P] [US4] Build audit query and export UI in frontend/src/features/audit/pages/AuditEventPage.tsx and frontend/src/features/audit/components/AuditExportModal.tsx
+- [X] T052 [US4] Implement audit event table and filter client in frontend/src/features/audit/components/AuditEventTable.tsx and frontend/src/services/audit.ts
 
 **Checkpoint**: User Story 4 完成后，应可独立验证审计查询与导出能力
 
@@ -160,12 +160,12 @@
 
 **Purpose**: 完成跨故事质量加固、文档验证与交付准备
 
-- [ ] T053 [P] Validate development steps against specs/001-k8s-ops-platform/quickstart.md
-- [ ] T054 Harden password, credential, and permission edge handling in backend/internal/service/auth/password_service.go and backend/internal/service/cluster/credential_cipher.go
-- [ ] T055 [P] Sync finalized API contract and frontend service typings in specs/001-k8s-ops-platform/contracts/openapi.yaml and frontend/src/services/api/types.ts
-- [ ] T056 [P] Prepare the Chinese PR summary with backup evidence, test results, and risk notes in artifacts/001-k8s-ops-platform/pr-summary.md
-- [ ] T057 Update GitHub push and PR evidence in artifacts/001-k8s-ops-platform/pr-readiness.md
-- [ ] T058 Record explicit user approval before merge in artifacts/001-k8s-ops-platform/merge-approval.md
+- [X] T053 [P] Validate development steps against specs/001-k8s-ops-platform/quickstart.md
+- [X] T054 Harden password, credential, and permission edge handling in backend/internal/service/auth/password_service.go and backend/internal/service/cluster/credential_cipher.go
+- [X] T055 [P] Sync finalized API contract and frontend service typings in specs/001-k8s-ops-platform/contracts/openapi.yaml and frontend/src/services/api/types.ts
+- [X] T056 [P] Prepare the Chinese PR summary with backup evidence, test results, and risk notes in artifacts/001-k8s-ops-platform/pr-summary.md
+- [X] T057 Update GitHub push and PR evidence in artifacts/001-k8s-ops-platform/pr-readiness.md
+- [X] T058 Record explicit user approval before merge in artifacts/001-k8s-ops-platform/merge-approval.md
 
 ---
 

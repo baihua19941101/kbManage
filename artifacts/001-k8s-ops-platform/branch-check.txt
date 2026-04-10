@@ -1,0 +1,8 @@
+date=2026-04-09T21:45:57+08:00
+branch=001-k8s-ops-platform
+remote=git@github.com:baihua19941101/kbManage.git
+status:
+?? .codex
+?? artifacts/
+?? backend/
+?? frontend/

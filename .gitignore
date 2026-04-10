@@ -1,0 +1,28 @@
+# Node/TS
+node_modules/
+dist/
+build/
+*.log
+
+# Go
+*.exe
+*.test
+*.out
+vendor/
+
+# Env and secrets
+.env
+.env.*
+!.env.example
+!frontend/.env.development
+
+# IDE/OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.tmp
+
+# Artifacts
+coverage/

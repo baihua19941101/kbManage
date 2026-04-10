@@ -238,23 +238,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationRequest'
-  /audit-events:
+  /audits/events:
     get:
       summary: 查询审计事件
       operationId: listAuditEvents
       parameters:
         - in: query
-          name: from
+          name: startAt
           schema:
             type: string
             format: date-time
         - in: query
-          name: to
+          name: endAt
           schema:
             type: string
             format: date-time
         - in: query
-          name: actorUserId
+          name: actorId
           schema:
             type: string
         - in: query
@@ -262,11 +262,11 @@ paths:
           schema:
             type: string
         - in: query
-          name: result
+          name: outcome
           schema:
             type: string
         - in: query
-          name: eventType
+          name: action
           schema:
             type: string
       responses:
@@ -281,7 +281,7 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/AuditEvent'
-  /audit-events/export:
+  /audits/exports:
     post:
       summary: 导出审计事件
       operationId: exportAuditEvents
@@ -294,6 +294,27 @@ paths:
       responses:
         '202':
           description: 导出任务已创建
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditExportTask'
+  /audits/exports/{taskId}:
+    get:
+      summary: 查询审计导出任务状态
+      operationId: getAuditExportTask
+      parameters:
+        - in: path
+          name: taskId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 导出任务状态
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditExportTask'
 components:
   parameters:
     ClusterId:
@@ -499,6 +520,10 @@ components:
           type: string
         riskLevel:
           type: string
+        idempotencyKey:
+          type: string
+        riskConfirmed:
+          type: boolean
         payload:
           type: object
           additionalProperties: true
@@ -557,19 +582,40 @@ components:
           format: date-time
     AuditExportRequest:
       type: object
-      required: [from, to]
+      required: [startAt, endAt]
       properties:
-        from:
+        startAt:
           type: string
           format: date-time
-        to:
+        endAt:
           type: string
           format: date-time
-        actorUserId:
+        actorId:
           type: string
-        clusterId:
+        outcome:
           type: string
-        result:
+        action:
           type: string
-        eventType:
+    AuditExportTask:
+      type: object
+      required: [taskId, status, createdAt]
+      properties:
+        taskId:
           type: string
+        status:
+          type: string
+          enum: [pending, running, succeeded, failed]
+        operatorId:
+          type: string
+        resultTotal:
+          type: integer
+        downloadUrl:
+          type: string
+        errorMessage:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
