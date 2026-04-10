@@ -1,0 +1,62 @@
+# kbManage 后端开发配置（默认文件）
+# 使用方式：
+#   1) 在 backend 目录运行：go run ./cmd/server
+#   2) 如需指定其他配置：CONFIG_FILE=/path/to/config.yaml go run ./cmd/server
+
+server:
+  # HTTP 监听地址
+  # 示例：":8080" 或 "0.0.0.0:8080"
+  http_addr: "0.0.0.0:8888"
+
+mysql:
+  # MySQL 连接信息
+  host: "127.0.0.1"
+  port: 3306
+  user: "root"
+  password: "123456"
+  database: "kb_manage"
+  # 是否在 DSN 中启用 parseTime
+  parse_time: true
+
+redis:
+  # Redis 连接信息
+  addr: "127.0.0.1:6379"
+  password: ""
+  db: 2
+
+security:
+  # JWT 签名密钥（开发环境示例值，生产必须替换）
+  jwt_secret: "dev-secret-change-me"
+  # 访问令牌过期时间（Go duration 格式）
+  access_token_ttl: "15m"
+  # 刷新令牌过期时间（Go duration 格式）
+  refresh_token_ttl: "168h"
+
+bootstrap:
+  admin:
+    # 是否默认初始化管理员账号（开发环境建议开启）
+    enabled: true
+    # 默认管理员用户名
+    username: "admin"
+    # 默认管理员密码（请按需修改）
+    password: "Admin@123456"
+    # 默认管理员显示名
+    display_name: "Administrator"
+    # 默认管理员邮箱
+    email: "admin@kbmanage.local"
+
+cors:
+  # 允许跨域来源（建议按实际前端地址维护）
+  allow_origins:
+    - "http://127.0.0.1:5000"
+    - "http://localhost:5000"
+  # 允许的 HTTP 方法
+  allow_methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+  # 允许的请求头
+  allow_headers: ["Authorization", "Content-Type", "X-Request-Id"]
+  # 暴露给浏览器的响应头
+  expose_headers: ["X-Request-Id"]
+  # 是否允许携带 Cookie/认证头
+  allow_credentials: true
+  # 预检请求缓存秒数
+  max_age_seconds: 600
