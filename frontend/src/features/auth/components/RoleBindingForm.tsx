@@ -1,9 +1,11 @@
 import { Button, Form, Input, Select, Space } from 'antd';
 
 export type RoleBindingPayload = {
-  user: string;
-  role: string;
-  scope: string;
+  subjectType: 'user' | 'group';
+  subjectId: string;
+  scopeType: 'workspace' | 'project';
+  scopeId: string;
+  roleKey: string;
 };
 
 type RoleBindingFormProps = {
@@ -12,10 +14,10 @@ type RoleBindingFormProps = {
 };
 
 const roleOptions = [
-  { label: '平台管理员', value: 'platform-admin' },
-  { label: '工作空间管理员', value: 'workspace-admin' },
-  { label: '开发者', value: 'developer' },
-  { label: '只读用户', value: 'viewer' }
+  { label: 'Workspace Owner', value: 'workspace-owner' },
+  { label: 'Workspace Viewer', value: 'workspace-viewer' },
+  { label: 'Project Owner', value: 'project-owner' },
+  { label: 'Project Viewer', value: 'project-viewer' }
 ];
 
 export const RoleBindingForm = ({ loading = false, onSubmit }: RoleBindingFormProps) => {
@@ -23,9 +25,11 @@ export const RoleBindingForm = ({ loading = false, onSubmit }: RoleBindingFormPr
 
   const handleFinish = (values: RoleBindingPayload) => {
     const payload: RoleBindingPayload = {
-      user: values.user.trim(),
-      role: values.role,
-      scope: values.scope.trim()
+      subjectType: values.subjectType,
+      subjectId: values.subjectId.trim(),
+      scopeType: values.scopeType,
+      scopeId: values.scopeId.trim(),
+      roleKey: values.roleKey
     };
 
     onSubmit?.(payload);
@@ -35,27 +39,55 @@ export const RoleBindingForm = ({ loading = false, onSubmit }: RoleBindingFormPr
   return (
     <Form<RoleBindingPayload> form={form} layout="vertical" onFinish={handleFinish}>
       <Form.Item
-        label="用户"
-        name="user"
+        label="主体类型"
+        name="subjectType"
+        initialValue="user"
+        rules={[{ required: true, message: '请选择主体类型' }]}
+      >
+        <Select
+          options={[
+            { label: '用户', value: 'user' },
+            { label: '用户组', value: 'group' }
+          ]}
+        />
+      </Form.Item>
+
+      <Form.Item
+        label="主体 ID"
+        name="subjectId"
         rules={[{ required: true, message: '请输入用户标识' }]}
       >
-        <Input placeholder="例如：alice" maxLength={64} />
+        <Input placeholder="例如：1001" maxLength={64} />
       </Form.Item>
 
       <Form.Item
         label="角色"
-        name="role"
+        name="roleKey"
         rules={[{ required: true, message: '请选择角色' }]}
       >
         <Select options={roleOptions} placeholder="选择角色" />
       </Form.Item>
 
       <Form.Item
-        label="授权范围"
-        name="scope"
+        label="范围类型"
+        name="scopeType"
+        initialValue="workspace"
+        rules={[{ required: true, message: '请选择范围类型' }]}
+      >
+        <Select
+          options={[
+            { label: '工作空间', value: 'workspace' },
+            { label: '项目', value: 'project' }
+          ]}
+        />
+      </Form.Item>
+
+      <Form.Item
+        label="范围 ID"
+        name="scopeId"
         rules={[{ required: true, message: '请输入 scope' }]}
       >
-        <Input placeholder="例如：workspace:dev-team 或 project:billing-api" />
+        <Input placeholder="例如：2001" />
       </Form.Item>
 
       <Space>

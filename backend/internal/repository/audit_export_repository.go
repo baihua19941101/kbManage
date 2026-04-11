@@ -32,21 +32,31 @@ type AuditExportTask struct {
 	CompletedAt  *time.Time `json:"completedAt,omitempty"`
 }
 
+type AuditExportArtifact struct {
+	TaskID      string
+	FileName    string
+	ContentType string
+	Data        []byte
+	GeneratedAt time.Time
+}
+
 type AuditExportRepository struct {
 	db *gorm.DB
 
-	mu     sync.RWMutex
-	nextID uint64
-	tasks  map[string]AuditExportTask
-	queue  chan string
+	mu        sync.RWMutex
+	nextID    uint64
+	tasks     map[string]AuditExportTask
+	artifacts map[string]AuditExportArtifact
+	queue     chan string
 }
 
 func NewAuditExportRepository(db *gorm.DB) *AuditExportRepository {
 	return &AuditExportRepository{
-		db:     db,
-		nextID: 1,
-		tasks:  make(map[string]AuditExportTask),
-		queue:  make(chan string, 256),
+		db:        db,
+		nextID:    1,
+		tasks:     make(map[string]AuditExportTask),
+		artifacts: make(map[string]AuditExportArtifact),
+		queue:     make(chan string, 256),
 	}
 }
 
@@ -141,6 +151,40 @@ func (r *AuditExportRepository) MarkSucceeded(ctx context.Context, taskID string
 	task.UpdatedAt = now
 	r.tasks[taskID] = task
 	return nil
+}
+
+func (r *AuditExportRepository) SaveArtifact(ctx context.Context, taskID, fileName, contentType string, data []byte) error {
+	_ = ctx
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if _, ok := r.tasks[taskID]; !ok {
+		return gorm.ErrRecordNotFound
+	}
+	r.artifacts[taskID] = AuditExportArtifact{
+		TaskID:      taskID,
+		FileName:    fileName,
+		ContentType: contentType,
+		Data:        append([]byte(nil), data...),
+		GeneratedAt: time.Now(),
+	}
+	return nil
+}
+
+func (r *AuditExportRepository) GetArtifact(ctx context.Context, taskID string) (*AuditExportArtifact, error) {
+	_ = ctx
+
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	item, ok := r.artifacts[taskID]
+	if !ok {
+		return nil, gorm.ErrRecordNotFound
+	}
+	copyItem := item
+	copyItem.Data = append([]byte(nil), item.Data...)
+	return &copyItem, nil
 }
 
 func (r *AuditExportRepository) MarkFailed(ctx context.Context, taskID string, message string) error {

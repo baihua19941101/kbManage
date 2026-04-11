@@ -17,9 +17,11 @@ import (
 func RegisterAuthRoutes(group *gin.RouterGroup, db *gorm.DB, tokenSvc *auth.TokenService, cfg repository.Config) {
 	userRepo := repository.NewUserRepository(db)
 	sessionRepo := repository.NewSessionRepository(db)
+	roleRepo := repository.NewPlatformRoleRepository(db)
 	loginSvc := auth.NewLoginService(
 		userRepo,
 		sessionRepo,
+		roleRepo,
 		auth.NewPasswordService(0),
 		tokenSvc,
 		auth.DefaultAdminSeed{
@@ -33,7 +35,12 @@ func RegisterAuthRoutes(group *gin.RouterGroup, db *gorm.DB, tokenSvc *auth.Toke
 	h := handler.NewAuthHandler(loginSvc)
 
 	if db != nil {
-		if err := db.WithContext(context.Background()).AutoMigrate(&domain.User{}, &domain.Session{}); err != nil {
+		if err := db.WithContext(context.Background()).AutoMigrate(
+			&domain.User{},
+			&domain.Session{},
+			&domain.PlatformRole{},
+			&domain.UserPlatformRole{},
+		); err != nil {
 			log.Printf("auth auto-migrate failed: %v", err)
 		}
 	}

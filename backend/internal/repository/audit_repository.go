@@ -21,12 +21,17 @@ type AuditRepository struct {
 }
 
 type AuditQuery struct {
-	StartAt *time.Time
-	EndAt   *time.Time
-	ActorID *uint64
-	Action  string
-	Outcome string
-	Limit   int
+	StartAt     *time.Time
+	EndAt       *time.Time
+	ActorID     *uint64
+	ClusterID   *uint64
+	WorkspaceID *uint64
+	ProjectID   *uint64
+	Action      string
+	Outcome     string
+	Result      string
+	Resource    string
+	Limit       int
 }
 
 func NewAuditRepository(db *gorm.DB) *AuditRepository {
@@ -66,7 +71,11 @@ func (r *AuditRepository) Query(ctx context.Context, q AuditQuery) ([]domain.Aud
 		limit = 100
 	}
 	action := strings.TrimSpace(q.Action)
-	outcome := strings.TrimSpace(strings.ToLower(q.Outcome))
+	outcome := strings.TrimSpace(strings.ToLower(q.Result))
+	if outcome == "" {
+		outcome = strings.TrimSpace(strings.ToLower(q.Outcome))
+	}
+	resource := strings.TrimSpace(strings.ToLower(q.Resource))
 
 	if r.db != nil {
 		tx := r.db.WithContext(ctx).Model(&domain.AuditEvent{})
@@ -79,11 +88,28 @@ func (r *AuditRepository) Query(ctx context.Context, q AuditQuery) ([]domain.Aud
 		if q.ActorID != nil {
 			tx = tx.Where("actor_id = ?", *q.ActorID)
 		}
+		if q.ClusterID != nil {
+			tx = tx.Where("cluster_id = ?", *q.ClusterID)
+		}
+		if q.WorkspaceID != nil {
+			tx = tx.Where("workspace_id = ?", *q.WorkspaceID)
+		}
+		if q.ProjectID != nil {
+			tx = tx.Where("project_id = ?", *q.ProjectID)
+		}
 		if action != "" {
 			tx = tx.Where("action = ?", action)
 		}
 		if outcome != "" {
 			tx = tx.Where("outcome = ?", outcome)
+		}
+		if resource != "" {
+			like := "%" + resource + "%"
+			detailsExpr := "LOWER(CAST(details AS TEXT))"
+			if r.db.Dialector != nil && strings.EqualFold(r.db.Dialector.Name(), "mysql") {
+				detailsExpr = "LOWER(CAST(details AS CHAR))"
+			}
+			tx = tx.Where("(LOWER(resource_type) LIKE ? OR LOWER(resource_id) LIKE ? OR "+detailsExpr+" LIKE ?)", like, like, like)
 		}
 
 		var events []domain.AuditEvent
@@ -109,11 +135,33 @@ func (r *AuditRepository) Query(ctx context.Context, q AuditQuery) ([]domain.Aud
 				continue
 			}
 		}
+		if q.ClusterID != nil {
+			if event.ClusterID == nil || *event.ClusterID != *q.ClusterID {
+				continue
+			}
+		}
+		if q.WorkspaceID != nil {
+			if event.WorkspaceID == nil || *event.WorkspaceID != *q.WorkspaceID {
+				continue
+			}
+		}
+		if q.ProjectID != nil {
+			if event.ProjectID == nil || *event.ProjectID != *q.ProjectID {
+				continue
+			}
+		}
 		if action != "" && event.Action != action {
 			continue
 		}
 		if outcome != "" && string(event.Outcome) != outcome {
 			continue
+		}
+		if resource != "" {
+			if !strings.Contains(strings.ToLower(strings.TrimSpace(event.ResourceType)), resource) &&
+				!strings.Contains(strings.ToLower(strings.TrimSpace(event.ResourceID)), resource) &&
+				!strings.Contains(strings.ToLower(strings.TrimSpace(string(event.Details))), resource) {
+				continue
+			}
 		}
 
 		events = append(events, event)
@@ -134,4 +182,28 @@ func (r *AuditRepository) QueryByTimeRange(ctx context.Context, start, end time.
 		EndAt:   &end,
 		Limit:   limit,
 	})
+}
+
+func (r *AuditRepository) DeleteOlderThan(ctx context.Context, cutoff time.Time) (int64, error) {
+	if r.db != nil {
+		res := r.db.WithContext(ctx).
+			Where("created_at < ?", cutoff).
+			Delete(&domain.AuditEvent{})
+		return res.RowsAffected, res.Error
+	}
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	filtered := r.events[:0]
+	var deleted int64
+	for _, event := range r.events {
+		if event.CreatedAt.Before(cutoff) {
+			deleted++
+			continue
+		}
+		filtered = append(filtered, event)
+	}
+	r.events = filtered
+	return deleted, nil
 }

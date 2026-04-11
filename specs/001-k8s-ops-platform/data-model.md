@@ -32,13 +32,15 @@
 - Purpose: 平台级 RBAC 角色，描述全局治理能力。
 - Key Fields:
   - `id`
-  - `role_key`: 唯一键，例如 `platform-admin`、`audit-admin`
+  - `role_key`: 唯一键，首批固定为 `platform-admin`、`ops-operator`、`audit-reader`、`readonly`
   - `name`
   - `description`
   - `is_system`: 是否系统内置
 - Relationships:
   - 与 `PlatformPermission` 多对多
   - 通过 `PlatformRoleBinding` 绑定到用户或用户组
+- Validation Rules:
+  - 首期仅允许上述 4 个系统内置角色键，新增角色需后续版本扩展
 
 ## 4. PlatformPermission
 - Purpose: 平台级权限点，例如集群接入、平台用户管理、全局审计查看。
@@ -188,6 +190,7 @@
   - `last_observed_at`
 - Validation Rules:
   - `cluster_id + resource_uid` 唯一
+  - `resource_kind` 首期仅允许 `Deployment`、`StatefulSet`、`DaemonSet`、`Pod`、`Service`、`Ingress`、`Node`、`Namespace`
   - 仅存索引用于列表和筛选，详情页实时拉取最新资源
 
 ## 15. OperationRequest
@@ -202,7 +205,7 @@
   - `operation_type`: `create | update | delete | scale | restart | cordon | drain | custom`
   - `risk_level`: `low | medium | high | critical`
   - `requested_by`
-  - `approved_by`: 可为空
+  - `approved_by`: 预留字段，首期固定为空（不启用他人审批流）
   - `request_payload_json`
   - `status`: `pending_confirm | queued | running | succeeded | failed | canceled`
   - `failure_reason`
@@ -213,6 +216,7 @@
   - `running -> succeeded | failed`
 - Validation Rules:
   - 高风险动作必须经过二次确认后才能从 `pending_confirm` 进入 `queued`
+  - 首期流程为“二次确认即执行”，不允许引入审批人或审批节点
 
 ## 16. AuditEvent
 - Purpose: 审计记录，覆盖访问、授权变更、资源操作和结果。
@@ -235,6 +239,7 @@
 - Validation Rules:
   - `occurred_at` 必须可排序并支持按时间范围检索
   - `detail_json` 仅保存审计必要信息，不保存敏感明文
+  - 首期导出格式仅支持 CSV，且导出前必须对敏感字段脱敏（至少包含访问凭据、令牌、密钥、密码、手机号、邮箱）
 
 ## 17. RefreshSession
 - Purpose: 管理刷新令牌与会话失效。

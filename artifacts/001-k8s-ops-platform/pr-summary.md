@@ -1,26 +1,30 @@
-# PR Summary - 001-k8s-ops-platform
+# PR Summary - 001-k8s-ops-platform-followup
 
 ## 变更概述
-本次实现完成多集群平台从 Governance 到 US4 的主要开发任务，包含前后端骨架、集群资源总览、工作空间/项目授权、受控运维操作与审计查询导出能力。
+- 本轮在 follow-up 分支上完成了规格决策落库、后端权限闭环、前端审计去 mock、操作中心接真实 API、前后端契约对齐，以及测试基线收紧。
+- 重点覆盖 US1 + US2 的可用闭环，并推进 US3/US4 的关键链路可验证性。
 
 ## 关键完成项
-- 完成任务：T001-T057（T058 待用户明确合并批准）
-- 后端：Gin + GORM + Redis 基础能力、US1/US2/US3/US4 API 与服务层
-- 前端：登录壳层、集群/资源页、工作空间/项目页、操作中心、审计页
-- 配置规范：后端单 YAML 配置文件；前端 env 配置与端口可配置
+- 规格文档同步：固定首期资源 Kind、角色矩阵、高风险二次确认即执行、审计 CSV-only + 脱敏、性能证据要求。
+- 后端权限：新增 scope 授权中间件与 scope access service，工作空间/角色绑定接口强制授权，移除 role auto-create fallback。
+- 前端审计：移除 fallback mock，导出状态对齐契约，导出格式收敛为 CSV。
+- 前端操作：去除本地 seed/random 状态流，改为真实提交与查询。
+- 契约对齐：资源接口支持 `/clusters/:id/resources`，集群接入请求体对齐 `credentialType/credentialPayload`。
+- 性能优化：前端已完成路由级 code splitting（懒加载路由模块）。
 
-## 治理与备份证据
+## 治理与证据
 - 分支检查：`artifacts/001-k8s-ops-platform/branch-check.txt`
-- 备份文件：`artifacts/001-k8s-ops-platform/mysql-backup-20260409-214645.sql`
+- 备份文件：`artifacts/001-k8s-ops-platform/mysql-backup-20260410-112728.sql`
 - 备份说明：`artifacts/001-k8s-ops-platform/backup-manifest.txt`
-- Quickstart 校验：`artifacts/001-k8s-ops-platform/quickstart-validation.md`
+- 验证基线：`artifacts/001-k8s-ops-platform/verification.md`
 
 ## 测试结果
 - `cd backend && go test ./...`：通过
 - `cd frontend && npm run lint`：通过
-- `cd frontend && npm test`：通过（当前无测试文件，passWithNoTests）
+- `cd frontend && npm run test -- --run`：通过（4 文件 / 7 用例）
+- `cd frontend && npm run build`：通过
 
-## 风险与后续
-- 登录/刷新接口仍需补齐真实实现与初始化账号策略。
-- 部分集成测试为骨架 + Skip 路径，后续可随接口稳定逐步收紧断言。
-- 审计导出当前为最小实现（任务状态可查），可后续扩展真实文件生成与下载链接签发。
+## 已知风险与后续
+- 前端已完成路由级拆包，但仍有 `client` chunk 约 503k，高于默认阈值；后续可继续拆分共享依赖与低频模块。
+- 审计导出当前已完成任务流与状态查询，后续可增强真实文件生成、下载鉴权和清理策略。
+- 资源与集群接口已完成首轮契约对齐，建议在下一轮补充服务层契约测试覆盖更多异常分支。

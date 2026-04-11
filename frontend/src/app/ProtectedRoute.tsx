@@ -5,7 +5,7 @@ import { useAuthStore } from '@/features/auth/store';
 import { refreshSession } from '@/services/auth';
 
 export const ProtectedRoute = () => {
-  const { isAuthenticated, refreshToken, clearSession, setSession, user } =
+  const { isAuthenticated, accessToken, refreshToken, clearSession, setSession, user } =
     useAuthStore();
   const [refreshChecked, setRefreshChecked] = useState(false);
 
@@ -13,7 +13,10 @@ export const ProtectedRoute = () => {
     let cancelled = false;
 
     const runRefresh = async () => {
-      if (!isAuthenticated || !refreshToken) {
+      // Avoid eager refresh when access token is already present.
+      // In React StrictMode (dev), effects can run twice and aggressive refresh
+      // may revoke the just-issued refresh token, forcing users to login again.
+      if (!isAuthenticated || !refreshToken || accessToken) {
         setRefreshChecked(true);
         return;
       }
@@ -43,7 +46,7 @@ export const ProtectedRoute = () => {
     return () => {
       cancelled = true;
     };
-  }, [clearSession, isAuthenticated, refreshToken, setSession, user]);
+  }, [accessToken, clearSession, isAuthenticated, refreshToken, setSession, user]);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;

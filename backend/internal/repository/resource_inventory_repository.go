@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"time"
 
@@ -21,13 +22,21 @@ type ResourceInventory struct {
 }
 
 type ResourceListFilter struct {
+	ClusterID  uint64
+	ClusterIDs []uint64
+	Namespace  string
+	Kind       string
+	Health     string
+	Keyword    string
+	Limit      int
+	Offset     int
+}
+
+type ResourceDetailFilter struct {
 	ClusterID uint64
 	Namespace string
 	Kind      string
-	Health    string
-	Keyword   string
-	Limit     int
-	Offset    int
+	Name      string
 }
 
 type ResourceInventoryRepository struct {
@@ -42,6 +51,8 @@ func (r *ResourceInventoryRepository) List(ctx context.Context, filter ResourceL
 	q := r.db.WithContext(ctx).Model(&ResourceInventory{})
 	if filter.ClusterID > 0 {
 		q = q.Where("cluster_id = ?", filter.ClusterID)
+	} else if len(filter.ClusterIDs) > 0 {
+		q = q.Where("cluster_id IN ?", filter.ClusterIDs)
 	}
 	if filter.Namespace != "" {
 		q = q.Where("namespace = ?", filter.Namespace)
@@ -90,4 +101,65 @@ func (r *ResourceInventoryRepository) CountByHealth(ctx context.Context, cluster
 		counts[strings.ToLower(item.Health)] = item.Total
 	}
 	return counts, nil
+}
+
+func (r *ResourceInventoryRepository) GetDetail(ctx context.Context, filter ResourceDetailFilter) (*ResourceInventory, error) {
+	if filter.ClusterID == 0 {
+		return nil, errors.New("clusterID is required")
+	}
+	if strings.TrimSpace(filter.Kind) == "" {
+		return nil, errors.New("kind is required")
+	}
+	if strings.TrimSpace(filter.Name) == "" {
+		return nil, errors.New("name is required")
+	}
+
+	var item ResourceInventory
+	err := r.db.WithContext(ctx).
+		Model(&ResourceInventory{}).
+		Where("cluster_id = ? AND namespace = ? AND kind = ? AND name = ?",
+			filter.ClusterID,
+			strings.TrimSpace(filter.Namespace),
+			strings.TrimSpace(filter.Kind),
+			strings.TrimSpace(filter.Name),
+		).
+		First(&item).Error
+	if err != nil {
+		return nil, err
+	}
+	return &item, nil
+}
+
+// ReplaceClusterSnapshot atomically replaces all indexed resources for a cluster.
+func (r *ResourceInventoryRepository) ReplaceClusterSnapshot(ctx context.Context, clusterID uint64, items []ResourceInventory) error {
+	if clusterID == 0 {
+		return errors.New("clusterID is required")
+	}
+
+	tx := r.db.WithContext(ctx).Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	if err := tx.Where("cluster_id = ?", clusterID).Delete(&ResourceInventory{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if len(items) > 0 {
+		for i := range items {
+			items[i].ID = 0
+			items[i].ClusterID = clusterID
+			items[i].Health = strings.ToLower(strings.TrimSpace(items[i].Health))
+			if items[i].Health == "" {
+				items[i].Health = "unknown"
+			}
+		}
+		if err := tx.CreateInBatches(items, 200).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	return tx.Commit().Error
 }

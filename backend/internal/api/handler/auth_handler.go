@@ -29,9 +29,10 @@ type refreshRequest struct {
 }
 
 type authUserResponse struct {
-	ID          string `json:"id"`
-	Username    string `json:"username"`
-	DisplayName string `json:"displayName,omitempty"`
+	ID            string   `json:"id"`
+	Username      string   `json:"username"`
+	DisplayName   string   `json:"displayName,omitempty"`
+	PlatformRoles []string `json:"platformRoles,omitempty"`
 }
 
 type loginResponse struct {
@@ -86,9 +87,10 @@ func toLoginResponse(result *authSvc.LoginResult) loginResponse {
 		RefreshToken: result.RefreshToken,
 		ExpiresIn:    result.ExpiresIn,
 		User: authUserResponse{
-			ID:          result.User.ID,
-			Username:    result.User.Username,
-			DisplayName: result.User.DisplayName,
+			ID:            result.User.ID,
+			Username:      result.User.Username,
+			DisplayName:   result.User.DisplayName,
+			PlatformRoles: result.User.PlatformRoles,
 		},
 	}
 }

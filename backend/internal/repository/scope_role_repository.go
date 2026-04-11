@@ -9,14 +9,15 @@ import (
 
 // ScopeRole defines a role in workspace/project scope.
 type ScopeRole struct {
-	ID          uint64    `json:"id" gorm:"primaryKey"`
-	ScopeType   string    `json:"scopeType" gorm:"size:32;not null;uniqueIndex:uk_scope_role"`
-	RoleKey     string    `json:"roleKey" gorm:"size:128;not null;uniqueIndex:uk_scope_role"`
-	Name        string    `json:"name" gorm:"size:128;not null"`
-	Description string    `json:"description" gorm:"size:512"`
-	IsSystem    bool      `json:"isSystem" gorm:"not null;default:false"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
+	ID           uint64    `json:"id" gorm:"primaryKey"`
+	ScopeType    string    `json:"scopeType" gorm:"size:32;not null;uniqueIndex:uk_scope_role"`
+	RoleKey      string    `json:"roleKey" gorm:"size:128;not null;uniqueIndex:uk_scope_role"`
+	Name         string    `json:"name" gorm:"size:128;not null"`
+	Description  string    `json:"description" gorm:"size:512"`
+	MetadataJSON string    `json:"metadataJson,omitempty" gorm:"type:json"`
+	IsSystem     bool      `json:"isSystem" gorm:"not null;default:false"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
 }
 
 func (ScopeRole) TableName() string { return "scope_roles" }
@@ -70,6 +71,15 @@ func (r *ScopeRoleRepository) EnsureDefaults(ctx context.Context) error {
 	}
 
 	defaults := []ScopeRole{
+		{ScopeType: "workspace", RoleKey: "platform-admin", Name: "Platform Admin", Description: "Workspace scoped super access", MetadataJSON: `{"matrix":"v1","tier":"core"}`, IsSystem: true},
+		{ScopeType: "workspace", RoleKey: "ops-operator", Name: "Ops Operator", Description: "Workspace scoped operations access", MetadataJSON: `{"matrix":"v1","tier":"core"}`, IsSystem: true},
+		{ScopeType: "workspace", RoleKey: "audit-reader", Name: "Audit Reader", Description: "Workspace scoped audit read access", MetadataJSON: `{"matrix":"v1","tier":"core"}`, IsSystem: true},
+		{ScopeType: "workspace", RoleKey: "readonly", Name: "Read Only", Description: "Workspace scoped read-only access", MetadataJSON: `{"matrix":"v1","tier":"core"}`, IsSystem: true},
+		{ScopeType: "project", RoleKey: "platform-admin", Name: "Platform Admin", Description: "Project scoped super access", MetadataJSON: `{"matrix":"v1","tier":"core"}`, IsSystem: true},
+		{ScopeType: "project", RoleKey: "ops-operator", Name: "Ops Operator", Description: "Project scoped operations access", MetadataJSON: `{"matrix":"v1","tier":"core"}`, IsSystem: true},
+		{ScopeType: "project", RoleKey: "audit-reader", Name: "Audit Reader", Description: "Project scoped audit read access", MetadataJSON: `{"matrix":"v1","tier":"core"}`, IsSystem: true},
+		{ScopeType: "project", RoleKey: "readonly", Name: "Read Only", Description: "Project scoped read-only access", MetadataJSON: `{"matrix":"v1","tier":"core"}`, IsSystem: true},
+		// Backward-compatible aliases kept for current handlers and contract tests.
 		{ScopeType: "workspace", RoleKey: "workspace-owner", Name: "Workspace Owner", Description: "Workspace full access", IsSystem: true},
 		{ScopeType: "workspace", RoleKey: "workspace-viewer", Name: "Workspace Viewer", Description: "Workspace read-only", IsSystem: true},
 		{ScopeType: "project", RoleKey: "project-owner", Name: "Project Owner", Description: "Project full access", IsSystem: true},

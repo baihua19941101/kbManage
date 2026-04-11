@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"kbmanage/backend/internal/domain"
 	"kbmanage/backend/internal/repository"
+	auditSvc "kbmanage/backend/internal/service/audit"
 
 	"gorm.io/gorm"
 )
@@ -40,6 +42,7 @@ type Service struct {
 	repo        *repository.OperationRepository
 	idempotency *IdempotencyService
 	queue       QueueService
+	auditWriter *auditSvc.EventWriter
 }
 
 func NewService(repo *repository.OperationRepository, idempotency *IdempotencyService, queue QueueService) *Service {
@@ -50,6 +53,13 @@ func NewService(repo *repository.OperationRepository, idempotency *IdempotencySe
 		queue = NewQueueService(nil)
 	}
 	return &Service{repo: repo, idempotency: idempotency, queue: queue}
+}
+
+func (s *Service) SetAuditWriter(writer *auditSvc.EventWriter) {
+	if s == nil {
+		return
+	}
+	s.auditWriter = writer
 }
 
 func (s *Service) Submit(ctx context.Context, operatorID uint64, req SubmitOperationRequest) (*domain.OperationRequest, bool, error) {
@@ -99,12 +109,13 @@ func (s *Service) Submit(ctx context.Context, operatorID uint64, req SubmitOpera
 	}
 
 	item := &domain.OperationRequest{
-		RequestID:     requestID,
-		OperatorID:    operatorID,
-		OperationType: operationType,
-		TargetRef:     buildTargetRef(req),
-		Status:        domain.OperationStatusPending,
-		RiskLevel:     riskLevel,
+		RequestID:       requestID,
+		OperatorID:      operatorID,
+		OperationType:   operationType,
+		TargetRef:       buildTargetRef(req),
+		Status:          domain.OperationStatusPending,
+		RiskLevel:       riskLevel,
+		ProgressMessage: "operation submitted and waiting in queue",
 	}
 	if err := s.repo.Create(ctx, item); err != nil {
 		return nil, false, err
@@ -112,6 +123,7 @@ func (s *Service) Submit(ctx context.Context, operatorID uint64, req SubmitOpera
 	if err := s.queue.Enqueue(ctx, item.ID); err != nil {
 		return nil, false, err
 	}
+	_ = s.writeSubmitAuditEvent(ctx, item)
 
 	return item, false, nil
 }
@@ -148,6 +160,12 @@ func buildTargetRef(req SubmitOperationRequest) string {
 	parts := []string{
 		fmt.Sprintf("cluster:%d", req.ClusterID),
 	}
+	if req.WorkspaceID != 0 {
+		parts = append(parts, fmt.Sprintf("workspace:%d", req.WorkspaceID))
+	}
+	if req.ProjectID != 0 {
+		parts = append(parts, fmt.Sprintf("project:%d", req.ProjectID))
+	}
 	if ns := strings.TrimSpace(req.Namespace); ns != "" {
 		parts = append(parts, "ns:"+ns)
 	}
@@ -161,4 +179,27 @@ func buildTargetRef(req SubmitOperationRequest) string {
 		parts = append(parts, "uid:"+uid)
 	}
 	return strings.Join(parts, "/")
+}
+
+func (s *Service) writeSubmitAuditEvent(ctx context.Context, item *domain.OperationRequest) error {
+	if s == nil || s.auditWriter == nil || item == nil {
+		return nil
+	}
+
+	operatorID := item.OperatorID
+	return s.auditWriter.WriteOperationEvent(
+		ctx,
+		item.RequestID,
+		&operatorID,
+		item.ID,
+		auditSvc.OperationAuditActionSubmit,
+		domain.AuditOutcomeSuccess,
+		map[string]any{
+			"operationId":   item.ID,
+			"operationType": item.OperationType,
+			"status":        item.Status,
+			"targetRef":     item.TargetRef,
+			"resourceId":    strconv.FormatUint(item.ID, 10),
+		},
+	)
 }

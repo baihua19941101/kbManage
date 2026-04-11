@@ -1,17 +1,14 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppLayout, Home } from '@/app/App';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
-import { LoginPage } from '@/features/auth/pages/LoginPage';
-import { ClusterOverviewPage } from '@/features/clusters/pages/ClusterOverviewPage';
-import { ProjectPage } from '@/features/projects/pages/ProjectPage';
-import { ResourceListPage } from '@/features/resources/pages/ResourceListPage';
-import { WorkspacePage } from '@/features/workspaces/pages/WorkspacePage';
-import { AuditEventPage } from '@/features/audit/pages/AuditEventPage';
 
 export const router = createBrowserRouter([
   {
     path: '/login',
-    element: <LoginPage />
+    lazy: async () => {
+      const { LoginPage } = await import('@/features/auth/pages/LoginPage');
+      return { Component: LoginPage };
+    }
   },
   {
     element: <ProtectedRoute />,
@@ -26,23 +23,42 @@ export const router = createBrowserRouter([
           },
           {
             path: '/clusters',
-            element: <ClusterOverviewPage />
+            lazy: async () => {
+              const { ClusterOverviewPage } = await import(
+                '@/features/clusters/pages/ClusterOverviewPage'
+              );
+              return { Component: ClusterOverviewPage };
+            }
           },
           {
             path: '/resources',
-            element: <ResourceListPage />
+            lazy: async () => {
+              const { ResourceListPage } = await import(
+                '@/features/resources/pages/ResourceListPage'
+              );
+              return { Component: ResourceListPage };
+            }
           },
           {
             path: '/workspaces',
-            element: <WorkspacePage />
+            lazy: async () => {
+              const { WorkspacePage } = await import('@/features/workspaces/pages/WorkspacePage');
+              return { Component: WorkspacePage };
+            }
           },
           {
             path: '/projects',
-            element: <ProjectPage />
+            lazy: async () => {
+              const { ProjectPage } = await import('@/features/projects/pages/ProjectPage');
+              return { Component: ProjectPage };
+            }
           },
           {
             path: '/audit-events',
-            element: <AuditEventPage />
+            lazy: async () => {
+              const { AuditEventPage } = await import('@/features/audit/pages/AuditEventPage');
+              return { Component: AuditEventPage };
+            }
           }
         ]
       }

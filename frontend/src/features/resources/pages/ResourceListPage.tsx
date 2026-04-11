@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button, Card, Space, Table, Tabs, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { OperationCenterPage } from '@/features/operations/pages/OperationCenterPage';
@@ -7,39 +7,8 @@ import {
   ResourceFilters,
   type ResourceFilterValues
 } from '@/features/resources/components/ResourceFilters';
-
-const mockResources: ResourceItem[] = [
-  {
-    id: 'res-1',
-    cluster: 'prod-cn',
-    namespace: 'payments',
-    resourceType: 'Deployment',
-    name: 'payment-api',
-    status: 'Running',
-    labels: { app: 'payment-api', env: 'prod' },
-    updatedAt: '2026-04-09 11:20'
-  },
-  {
-    id: 'res-2',
-    cluster: 'prod-cn',
-    namespace: 'gateway',
-    resourceType: 'Service',
-    name: 'edge-gateway',
-    status: 'Running',
-    labels: { app: 'gateway', env: 'prod' },
-    updatedAt: '2026-04-09 11:10'
-  },
-  {
-    id: 'res-3',
-    cluster: 'staging-us',
-    namespace: 'payments',
-    resourceType: 'Pod',
-    name: 'payment-api-66d8b87f74-z2vfh',
-    status: 'Pending',
-    labels: { app: 'payment-api', env: 'staging' },
-    updatedAt: '2026-04-09 10:58'
-  }
-];
+import { listResources } from '@/services/resources';
+import type { ResourceListQueryDTO } from '@/services/api/types';
 
 const columns: ColumnsType<ResourceItem> = [
   { title: 'Name', dataIndex: 'name', key: 'name' },
@@ -56,41 +25,89 @@ const columns: ColumnsType<ResourceItem> = [
   }
 ];
 
+const normalizeValue = (value?: string): string | undefined => {
+  const normalized = value?.trim();
+  return normalized && normalized.length > 0 ? normalized : undefined;
+};
+
+const mapFiltersToQuery = (filters: ResourceFilterValues): ResourceListQueryDTO => {
+  const query: ResourceListQueryDTO = {};
+
+  const clusterId = normalizeValue(filters.cluster);
+  if (clusterId) {
+    query.clusterId = clusterId;
+  }
+
+  const namespace = normalizeValue(filters.namespace);
+  if (namespace) {
+    query.namespace = namespace;
+  }
+
+  const kind = normalizeValue(filters.resourceType);
+  if (kind) {
+    query.kind = kind;
+  }
+
+  const keyword = normalizeValue(filters.keyword);
+  if (keyword) {
+    query.keyword = keyword;
+  }
+
+  const health = normalizeValue(filters.health);
+  if (health) {
+    query.health = health;
+  }
+
+  return query;
+};
+
 export const ResourceListPage = () => {
   const [filters, setFilters] = useState<ResourceFilterValues>({});
+  const [resources, setResources] = useState<ResourceItem[]>([]);
+  const [loading, setLoading] = useState(false);
   const [selectedResource, setSelectedResource] = useState<ResourceItem | undefined>();
   const [operationRefreshSignal, setOperationRefreshSignal] = useState(0);
+  const query = useMemo(() => mapFiltersToQuery(filters), [filters]);
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+
+    void listResources(query)
+      .then((items) => {
+        if (!active) {
+          return;
+        }
+        setResources(items);
+      })
+      .catch(() => {
+        if (!active) {
+          return;
+        }
+        setResources([]);
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [query]);
 
   const clusterOptions = useMemo(
-    () => Array.from(new Set(mockResources.map((item) => item.cluster))),
-    []
+    () => Array.from(new Set(resources.map((item) => item.cluster))),
+    [resources]
   );
   const namespaceOptions = useMemo(
-    () => Array.from(new Set(mockResources.map((item) => item.namespace))),
-    []
+    () => Array.from(new Set(resources.map((item) => item.namespace))),
+    [resources]
   );
   const resourceTypeOptions = useMemo(
-    () => Array.from(new Set(mockResources.map((item) => item.resourceType))),
-    []
-  );
-
-  const filteredResources = useMemo(
-    () =>
-      mockResources.filter((item) => {
-        const matchCluster = !filters.cluster || item.cluster === filters.cluster;
-        const matchNamespace = !filters.namespace || item.namespace === filters.namespace;
-        const matchResourceType = !filters.resourceType || item.resourceType === filters.resourceType;
-        const normalizedKeyword = filters.keyword?.trim().toLowerCase() ?? '';
-        const matchKeyword =
-          !normalizedKeyword ||
-          item.name.toLowerCase().includes(normalizedKeyword) ||
-          Object.entries(item.labels).some(([key, value]) =>
-            `${key}=${value}`.toLowerCase().includes(normalizedKeyword)
-          );
-
-        return matchCluster && matchNamespace && matchResourceType && matchKeyword;
-      }),
-    [filters]
+    () => Array.from(new Set(resources.map((item) => item.resourceType))),
+    [resources]
   );
 
   return (
@@ -124,7 +141,8 @@ export const ResourceListPage = () => {
 
               <Table<ResourceItem>
                 rowKey="id"
-                dataSource={filteredResources}
+                dataSource={resources}
+                loading={loading}
                 columns={[
                   ...columns,
                   {
