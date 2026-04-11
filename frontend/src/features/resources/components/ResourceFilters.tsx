@@ -5,6 +5,7 @@ export type ResourceFilterValues = {
   namespace?: string;
   resourceType?: string;
   keyword?: string;
+  health?: string;
 };
 
 type ResourceFiltersProps = {

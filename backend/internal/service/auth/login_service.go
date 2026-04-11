@@ -37,9 +37,10 @@ type RefreshInput struct {
 }
 
 type AuthUser struct {
-	ID          string
-	Username    string
-	DisplayName string
+	ID            string
+	Username      string
+	DisplayName   string
+	PlatformRoles []string
 }
 
 type LoginResult struct {
@@ -52,6 +53,7 @@ type LoginResult struct {
 type LoginService struct {
 	userRepo     *repository.UserRepository
 	sessionRepo  *repository.SessionRepository
+	roleRepo     *repository.PlatformRoleRepository
 	passwordSvc  *PasswordService
 	tokenSvc     *TokenService
 	defaultAdmin DefaultAdminSeed
@@ -60,6 +62,7 @@ type LoginService struct {
 func NewLoginService(
 	userRepo *repository.UserRepository,
 	sessionRepo *repository.SessionRepository,
+	roleRepo *repository.PlatformRoleRepository,
 	passwordSvc *PasswordService,
 	tokenSvc *TokenService,
 	defaultAdmin DefaultAdminSeed,
@@ -67,6 +70,7 @@ func NewLoginService(
 	return &LoginService{
 		userRepo:     userRepo,
 		sessionRepo:  sessionRepo,
+		roleRepo:     roleRepo,
 		passwordSvc:  passwordSvc,
 		tokenSvc:     tokenSvc,
 		defaultAdmin: defaultAdmin,
@@ -135,6 +139,12 @@ func (s *LoginService) Refresh(ctx context.Context, in RefreshInput) (*LoginResu
 }
 
 func (s *LoginService) EnsureDefaultAdmin(ctx context.Context) error {
+	if s.roleRepo != nil {
+		if err := s.roleRepo.EnsureDefaults(ctx); err != nil {
+			return err
+		}
+	}
+
 	if !s.defaultAdmin.Enabled {
 		return nil
 	}
@@ -142,7 +152,10 @@ func (s *LoginService) EnsureDefaultAdmin(ctx context.Context) error {
 		return nil
 	}
 
-	if _, err := s.userRepo.GetByUsername(ctx, s.defaultAdmin.Username); err == nil {
+	if existing, err := s.userRepo.GetByUsername(ctx, s.defaultAdmin.Username); err == nil {
+		if s.roleRepo != nil && existing != nil && existing.ID != 0 {
+			return s.roleRepo.EnsureUserRoleByName(ctx, existing.ID, "platform-admin")
+		}
 		return nil
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
@@ -154,17 +167,31 @@ func (s *LoginService) EnsureDefaultAdmin(ctx context.Context) error {
 	}
 
 	// For development convenience only: bootstrap a default admin account when absent.
-	err = s.userRepo.Create(ctx, &domain.User{
+	admin := &domain.User{
 		Username:     s.defaultAdmin.Username,
 		DisplayName:  s.defaultAdmin.DisplayName,
 		Email:        s.defaultAdmin.Email,
 		PasswordHash: passwordHash,
 		Status:       domain.UserStatusActive,
-	})
-	if err != nil && errors.Is(err, gorm.ErrDuplicatedKey) {
-		return nil
 	}
-	return err
+	err = s.userRepo.Create(ctx, admin)
+	if err != nil && errors.Is(err, gorm.ErrDuplicatedKey) {
+		if s.roleRepo == nil {
+			return nil
+		}
+		existing, getErr := s.userRepo.GetByUsername(ctx, s.defaultAdmin.Username)
+		if getErr != nil {
+			return nil
+		}
+		return s.roleRepo.EnsureUserRoleByName(ctx, existing.ID, "platform-admin")
+	}
+	if err != nil {
+		return err
+	}
+	if s.roleRepo != nil && admin.ID != 0 {
+		return s.roleRepo.EnsureUserRoleByName(ctx, admin.ID, "platform-admin")
+	}
+	return nil
 }
 
 func (s *LoginService) issueAndPersistSession(
@@ -221,6 +248,19 @@ func (s *LoginService) issueAndPersistSession(
 			DisplayName: user.DisplayName,
 		},
 	}
+
+	if s.roleRepo != nil {
+		roles, err := s.roleRepo.ListByUserID(ctx, user.ID)
+		if err == nil {
+			result.User.PlatformRoles = make([]string, 0, len(roles))
+			for _, role := range roles {
+				if strings.TrimSpace(role.Name) != "" {
+					result.User.PlatformRoles = append(result.User.PlatformRoles, role.Name)
+				}
+			}
+		}
+	}
+
 	return result, nil
 }
 

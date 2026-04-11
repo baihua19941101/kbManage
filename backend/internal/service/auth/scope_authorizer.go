@@ -28,7 +28,13 @@ func (a *ScopeAuthorizer) CanAccess(
 	}
 
 	if grantedType == domain.ScopeTypeProject {
-		return targetType == domain.ScopeTypeProject && grantedProjectID != 0 && grantedProjectID == targetProjectID
+		if targetType == domain.ScopeTypeProject {
+			return grantedProjectID != 0 && grantedProjectID == targetProjectID
+		}
+		if targetType == domain.ScopeTypeWorkspace {
+			return grantedWorkspaceID != 0 && grantedWorkspaceID == targetWorkspaceID
+		}
+		return false
 	}
 
 	return false

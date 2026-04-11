@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Button, Card, Space, Table, Tag, Typography } from 'antd';
+import { Alert, Button, Card, Space, Table, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { listOperations, type OperationRecord, type OperationStatus } from '@/services/operations';
 
@@ -39,12 +39,16 @@ type OperationCenterPageProps = {
 export const OperationCenterPage = ({ refreshSignal }: OperationCenterPageProps) => {
   const [data, setData] = useState<OperationRecord[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>();
 
   const reload = useCallback(async () => {
     setLoading(true);
     try {
       const list = await listOperations();
       setData(list);
+      setError(undefined);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '操作状态刷新失败');
     } finally {
       setLoading(false);
     }
@@ -100,6 +104,13 @@ export const OperationCenterPage = ({ refreshSignal }: OperationCenterPageProps)
       ellipsis: true
     },
     {
+      title: '结果',
+      dataIndex: 'resultMessage',
+      key: 'resultMessage',
+      ellipsis: true,
+      render: (value?: string) => value || '-'
+    },
+    {
       title: '创建时间',
       dataIndex: 'createdAt',
       key: 'createdAt',
@@ -123,6 +134,7 @@ export const OperationCenterPage = ({ refreshSignal }: OperationCenterPageProps)
           展示资源操作的最新状态，包含待执行、执行中、成功与失败。
         </Typography.Text>
       </Card>
+      {error ? <Alert type="error" showIcon message="操作中心刷新失败" description={error} /> : null}
       <Table<OperationRecord>
         rowKey="id"
         loading={loading}

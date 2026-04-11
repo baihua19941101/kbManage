@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { Button, Drawer, Form, Input, message } from 'antd';
+import { useMutation } from '@tanstack/react-query';
+import { Alert, Button, Drawer, Form, Input, message } from 'antd';
+import { normalizeErrorMessage } from '@/app/queryClient';
+import { createCluster } from '@/services/clusters';
 
 type ClusterOnboardFormValues = {
   name: string;
@@ -13,31 +16,36 @@ type ClusterOnboardDrawerProps = {
   onSuccess: (clusterName: string) => void;
 };
 
-const mockOnboardCluster = async (payload: ClusterOnboardFormValues) => {
-  await new Promise((resolve) => {
-    setTimeout(resolve, 500);
-  });
-  return {
-    clusterId: `cluster-${Date.now()}`,
-    name: payload.name
-  };
-};
-
 export const ClusterOnboardDrawer = ({ open, onClose, onSuccess }: ClusterOnboardDrawerProps) => {
   const [form] = Form.useForm<ClusterOnboardFormValues>();
-  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const onboardMutation = useMutation({
+    mutationFn: createCluster,
+    onSuccess: (result) => {
+      message.success(`集群 ${result.name} 已提交接入`);
+      onSuccess(result.name);
+      form.resetFields();
+      setSubmitError(null);
+      onClose();
+    },
+    onError: (error) => {
+      setSubmitError(normalizeErrorMessage(error, '接入失败，请稍后重试'));
+    }
+  });
 
   const onSubmit = async () => {
     try {
       const values = await form.validateFields();
-      setSubmitting(true);
-      const result = await mockOnboardCluster(values);
-      message.success(`集群 ${result.name} 已提交接入`);
-      onSuccess(result.name);
-      form.resetFields();
-      onClose();
-    } finally {
-      setSubmitting(false);
+      setSubmitError(null);
+      onboardMutation.mutate({
+        name: values.name,
+        credentialType: 'kubeconfig',
+        credentialPayload: values.kubeconfig,
+        description: values.description
+      });
+    } catch {
+      return;
     }
   };
 
@@ -48,11 +56,18 @@ export const ClusterOnboardDrawer = ({ open, onClose, onSuccess }: ClusterOnboar
       open={open}
       onClose={onClose}
       extra={
-        <Button type="primary" loading={submitting} onClick={() => void onSubmit()}>
+        <Button
+          type="primary"
+          loading={onboardMutation.isPending}
+          onClick={() => void onSubmit()}
+        >
           提交接入
         </Button>
       }
     >
+      {submitError ? (
+        <Alert type="error" showIcon message={submitError} style={{ marginBottom: 16 }} />
+      ) : null}
       <Form
         layout="vertical"
         form={form}

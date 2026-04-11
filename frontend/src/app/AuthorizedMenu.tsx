@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/store';
 
-type MenuRole = 'platform-admin' | 'workspace-admin' | 'developer' | 'viewer';
+type MenuRole = 'platform-admin' | 'ops-operator' | 'audit-reader' | 'readonly';
 
 type MenuItemConfig = {
   key: string;
@@ -14,10 +14,15 @@ type MenuItemConfig = {
 
 const allMenuItems: MenuItemConfig[] = [
   { key: '/', label: '首页' },
-  { key: '/clusters', label: '集群' },
-  { key: '/resources', label: '资源' },
-  { key: '/workspaces', label: '工作空间', requiredRoles: ['platform-admin', 'workspace-admin'] },
-  { key: '/projects', label: '项目', requiredRoles: ['platform-admin', 'workspace-admin', 'developer'] }
+  { key: '/clusters', label: '集群', requiredRoles: ['platform-admin', 'ops-operator', 'readonly'] },
+  {
+    key: '/resources',
+    label: '资源',
+    requiredRoles: ['platform-admin', 'ops-operator', 'readonly']
+  },
+  { key: '/workspaces', label: '工作空间', requiredRoles: ['platform-admin'] },
+  { key: '/projects', label: '项目', requiredRoles: ['platform-admin', 'ops-operator'] },
+  { key: '/audit-events', label: '审计', requiredRoles: ['platform-admin', 'audit-reader'] }
 ];
 
 const findBestSelectedKey = (pathname: string, keys: string[]): string => {
@@ -33,24 +38,15 @@ const findBestSelectedKey = (pathname: string, keys: string[]): string => {
 export const AuthorizedMenu = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const user = useAuthStore((state) => state.user) as
-    | (ReturnType<typeof useAuthStore.getState>['user'] & {
-        roles?: string[];
-        role?: string;
-      })
-    | null;
+  const user = useAuthStore((state) => state.user);
 
   const currentRoles = useMemo(() => {
     if (!user) {
       return [] as string[];
     }
 
-    if (Array.isArray(user.roles) && user.roles.length > 0) {
-      return user.roles;
-    }
-
-    if (typeof user.role === 'string' && user.role.length > 0) {
-      return [user.role];
+    if (Array.isArray(user.platformRoles) && user.platformRoles.length > 0) {
+      return user.platformRoles;
     }
 
     return [];
@@ -64,7 +60,7 @@ export const AuthorizedMenu = () => {
       }
 
       if (!hasRoleData) {
-        return true;
+        return false;
       }
 
       return item.requiredRoles.some((role) => currentRoles.includes(role));

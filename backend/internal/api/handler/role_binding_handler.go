@@ -78,22 +78,12 @@ func (h *RoleBindingHandler) Create(c *gin.Context) {
 
 	role, err := h.roleRepo.GetByScopeAndRoleKey(c.Request.Context(), scopeType, roleKey)
 	if err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			writeAccessError(c, err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("roleKey %q is not defined for scopeType %q", roleKey, scopeType)})
 			return
 		}
-		// Minimal fallback: auto-create role definition if it does not exist.
-		role = &repository.ScopeRole{
-			ScopeType:   scopeType,
-			RoleKey:     roleKey,
-			Name:        roleKey,
-			Description: "auto-created",
-			IsSystem:    false,
-		}
-		if err := h.roleRepo.Create(c.Request.Context(), role); err != nil {
-			writeAccessError(c, err)
-			return
-		}
+		writeAccessError(c, err)
+		return
 	}
 
 	item := &repository.ScopeRoleBinding{

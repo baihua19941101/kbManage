@@ -1,25 +1,31 @@
-import { useMemo, useState } from 'react';
-import { Button, Card, Form, Input, Space, Table, Typography, message } from 'antd';
+import { useMemo } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Alert, Button, Card, Form, Input, Space, Table, Typography, message } from 'antd';
+import { normalizeErrorMessage } from '@/app/queryClient';
+import {
+  createWorkspace,
+  listWorkspaces,
+  type Workspace
+} from '@/services/workspaces';
 
-type Workspace = {
-  key: string;
-  name: string;
-  description: string;
-};
+const WORKSPACES_QUERY_KEY = ['workspaces'] as const;
 
 type WorkspaceFormValues = {
   name: string;
   description?: string;
 };
 
-const initialWorkspaces: Workspace[] = [
-  { key: 'ws-default', name: 'default', description: '默认工作空间' },
-  { key: 'ws-dev', name: 'dev-team', description: '研发团队工作空间' }
-];
-
 export const WorkspacePage = () => {
   const [form] = Form.useForm<WorkspaceFormValues>();
-  const [workspaces, setWorkspaces] = useState<Workspace[]>(initialWorkspaces);
+  const queryClient = useQueryClient();
+
+  const { data, isFetching, error } = useQuery({
+    queryKey: WORKSPACES_QUERY_KEY,
+    queryFn: listWorkspaces,
+    meta: {
+      suppressGlobalError: true
+    }
+  });
 
   const columns = useMemo(
     () => [
@@ -37,23 +43,25 @@ export const WorkspacePage = () => {
     []
   );
 
-  const onCreateWorkspace = (values: WorkspaceFormValues) => {
-    const nextName = values.name.trim();
-    const existed = workspaces.some((item) => item.name === nextName);
-    if (existed) {
-      message.warning('工作空间名称已存在');
-      return;
+  const createWorkspaceMutation = useMutation({
+    mutationFn: createWorkspace,
+    onSuccess: async (workspace) => {
+      form.resetFields();
+      message.success(`工作空间 ${workspace.name} 创建成功`);
+      await queryClient.invalidateQueries({
+        queryKey: WORKSPACES_QUERY_KEY
+      });
+    },
+    onError: (err) => {
+      message.error(normalizeErrorMessage(err, '工作空间创建失败，请稍后重试'));
     }
+  });
 
-    const newItem: Workspace = {
-      key: `ws-${Date.now()}`,
-      name: nextName,
-      description: values.description?.trim() || '-'
-    };
-
-    setWorkspaces((prev) => [newItem, ...prev]);
-    form.resetFields();
-    message.success('工作空间创建成功（mock）');
+  const onCreateWorkspace = (values: WorkspaceFormValues) => {
+    createWorkspaceMutation.mutate({
+      name: values.name,
+      description: values.description
+    });
   };
 
   return (
@@ -81,17 +89,27 @@ export const WorkspacePage = () => {
           <Form.Item label="描述" name="description">
             <Input.TextArea placeholder="可选描述" rows={3} maxLength={200} />
           </Form.Item>
-          <Button type="primary" htmlType="submit">
+          <Button type="primary" htmlType="submit" loading={createWorkspaceMutation.isPending}>
             创建
           </Button>
         </Form>
       </Card>
 
       <Card title="工作空间列表" size="small">
+        {error ? (
+          <Alert
+            type="error"
+            showIcon
+            style={{ marginBottom: 16 }}
+            message="工作空间列表加载失败"
+            description={normalizeErrorMessage(error)}
+          />
+        ) : null}
         <Table<Workspace>
-          rowKey="key"
+          rowKey="id"
           columns={columns}
-          dataSource={workspaces}
+          dataSource={data || []}
+          loading={isFetching}
           pagination={{ pageSize: 5 }}
         />
       </Card>

@@ -1,5 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Card, Form, Input, Select, Space, Table, Typography, message } from 'antd';
+import { normalizeErrorMessage } from '@/app/queryClient';
+import {
+  createProject,
+  listProjectsByWorkspace,
+  listWorkspaces
+} from '@/services/projects';
 
 type Project = {
   key: string;
@@ -14,20 +21,60 @@ type ProjectFormValues = {
   owner: string;
 };
 
-const mockWorkspaceOptions = [
-  { label: 'default', value: 'default' },
-  { label: 'dev-team', value: 'dev-team' },
-  { label: 'ops-team', value: 'ops-team' }
-];
-
-const initialProjects: Project[] = [
-  { key: 'prj-kb', name: 'kb-manage', workspace: 'default', owner: 'admin' },
-  { key: 'prj-console', name: 'cluster-console', workspace: 'dev-team', owner: 'alice' }
-];
-
 export const ProjectPage = () => {
   const [form] = Form.useForm<ProjectFormValues>();
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const queryClient = useQueryClient();
+  const selectedWorkspaceId = Form.useWatch('workspace', form);
+
+  const { data: workspaces = [], isFetching: isWorkspaceFetching } = useQuery({
+    queryKey: ['workspaces'],
+    queryFn: listWorkspaces
+  });
+
+  useEffect(() => {
+    if (selectedWorkspaceId || workspaces.length === 0) {
+      return;
+    }
+    form.setFieldValue('workspace', workspaces[0].id);
+  }, [form, selectedWorkspaceId, workspaces]);
+
+  const workspaceOptions = useMemo(
+    () => workspaces.map((item) => ({ label: item.name, value: item.id })),
+    [workspaces]
+  );
+
+  const workspaceNameMap = useMemo(
+    () => new Map(workspaces.map((item) => [item.id, item.name])),
+    [workspaces]
+  );
+
+  const { data: projectItems = [], isFetching: isProjectFetching } = useQuery({
+    queryKey: ['workspace-projects', selectedWorkspaceId],
+    queryFn: () => listProjectsByWorkspace(String(selectedWorkspaceId)),
+    enabled: typeof selectedWorkspaceId === 'string' && selectedWorkspaceId.trim().length > 0
+  });
+
+  const createProjectMutation = useMutation({
+    mutationFn: (values: ProjectFormValues) =>
+      createProject(values.workspace, {
+        name: values.name,
+        owner: values.owner
+      }),
+    onSuccess: async (_result, variables) => {
+      message.success('项目创建成功');
+      form.setFieldValue('name', '');
+      form.setFieldValue('owner', '');
+      await queryClient.invalidateQueries({
+        queryKey: ['workspace-projects', variables.workspace]
+      });
+    },
+    onError: (error) => {
+      message.error(normalizeErrorMessage(error, '项目创建失败，请稍后重试'));
+    },
+    meta: {
+      suppressGlobalError: true
+    }
+  });
 
   const columns = useMemo(
     () => [
@@ -51,29 +98,27 @@ export const ProjectPage = () => {
   );
 
   const onCreateProject = (values: ProjectFormValues) => {
-    const normalized = values.name.trim();
-    const existed = projects.some(
-      (item) => item.name === normalized && item.workspace === values.workspace
-    );
-
-    if (existed) {
-      message.warning('同一工作空间下项目名称已存在');
-      return;
-    }
-
-    setProjects((prev) => [
-      {
-        key: `prj-${Date.now()}`,
-        name: normalized,
-        workspace: values.workspace,
-        owner: values.owner.trim()
-      },
-      ...prev
-    ]);
-
-    form.resetFields();
-    message.success('项目创建成功（mock）');
+    createProjectMutation.mutate({
+      name: values.name.trim(),
+      workspace: values.workspace,
+      owner: values.owner.trim()
+    });
   };
+
+  const projects = useMemo<Project[]>(
+    () =>
+      projectItems.map((item, index) => ({
+        key: item.id || `${item.workspaceId}-${item.name}-${index}`,
+        name: item.name,
+        workspace:
+          item.workspaceName ||
+          workspaceNameMap.get(item.workspaceId) ||
+          item.workspaceId ||
+          '-',
+        owner: item.owner
+      })),
+    [projectItems, workspaceNameMap]
+  );
 
   return (
     <Space direction="vertical" size={16} style={{ width: '100%' }}>
@@ -103,7 +148,11 @@ export const ProjectPage = () => {
             name="workspace"
             rules={[{ required: true, message: '请选择工作空间' }]}
           >
-            <Select options={mockWorkspaceOptions} placeholder="选择工作空间" />
+            <Select
+              options={workspaceOptions}
+              placeholder="选择工作空间"
+              loading={isWorkspaceFetching}
+            />
           </Form.Item>
 
           <Form.Item
@@ -114,7 +163,12 @@ export const ProjectPage = () => {
             <Input placeholder="例如：admin" maxLength={64} />
           </Form.Item>
 
-          <Button type="primary" htmlType="submit">
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={createProjectMutation.isPending}
+            disabled={workspaceOptions.length === 0}
+          >
             创建
           </Button>
         </Form>
@@ -125,6 +179,7 @@ export const ProjectPage = () => {
           rowKey="key"
           columns={columns}
           dataSource={projects}
+          loading={isProjectFetching}
           pagination={{ pageSize: 5 }}
         />
       </Card>

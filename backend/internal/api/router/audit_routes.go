@@ -2,6 +2,7 @@ package router
 
 import (
 	"context"
+	"strings"
 
 	"kbmanage/backend/internal/api/handler"
 	"kbmanage/backend/internal/domain"
@@ -17,7 +18,7 @@ import (
 func RegisterAuditRoutes(group *gin.RouterGroup, db *gorm.DB) {
 	auditRepo := repository.NewAuditRepository(db)
 	auditExportRepo := repository.NewAuditExportRepository(db)
-	svc := auditSvc.NewService(auditRepo, auditExportRepo)
+	svc := auditSvc.NewService(auditRepo, auditExportRepo, newScopeAccessService(db))
 	h := handler.NewAuditHandler(svc)
 
 	if db != nil {
@@ -26,8 +27,13 @@ func RegisterAuditRoutes(group *gin.RouterGroup, db *gorm.DB) {
 
 	exportWorker := worker.NewAuditExportWorker(svc, auditExportRepo)
 	exportWorker.Start(context.Background())
+	if db == nil || !strings.EqualFold(db.Dialector.Name(), "sqlite") {
+		retentionWorker := worker.NewAuditRetentionWorker(auditRepo)
+		retentionWorker.Start(context.Background())
+	}
 
 	group.GET("/audits/events", h.ListEvents)
 	group.POST("/audits/exports", h.SubmitExport)
 	group.GET("/audits/exports/:taskId", h.GetExportStatus)
+	group.GET("/audits/exports/:taskId/download", h.DownloadExport)
 }

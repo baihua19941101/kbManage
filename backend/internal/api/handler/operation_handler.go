@@ -10,6 +10,7 @@ import (
 
 	"kbmanage/backend/internal/api/middleware"
 	"kbmanage/backend/internal/domain"
+	authSvc "kbmanage/backend/internal/service/auth"
 	operationSvc "kbmanage/backend/internal/service/operation"
 
 	"github.com/gin-gonic/gin"
@@ -17,11 +18,12 @@ import (
 )
 
 type OperationHandler struct {
-	svc *operationSvc.Service
+	svc         *operationSvc.Service
+	scopeAccess *authSvc.ScopeAccessService
 }
 
-func NewOperationHandler(svc *operationSvc.Service) *OperationHandler {
-	return &OperationHandler{svc: svc}
+func NewOperationHandler(svc *operationSvc.Service, scopeAccess *authSvc.ScopeAccessService) *OperationHandler {
+	return &OperationHandler{svc: svc, scopeAccess: scopeAccess}
 }
 
 type createOperationRequest struct {
@@ -94,27 +96,59 @@ func (h *OperationHandler) GetByID(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid operation id"})
 		return
 	}
+	userID := c.GetUint64(middleware.UserIDKey)
+	if userID == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "missing authenticated user"})
+		return
+	}
 
 	item, err := h.svc.GetByID(c.Request.Context(), operationID)
 	if err != nil {
 		writeOperationError(c, err)
 		return
 	}
+	allowed, err := h.canViewOperation(c, userID, item)
+	if err != nil {
+		writeOperationError(c, err)
+		return
+	}
+	if !allowed {
+		writeOperationError(c, gorm.ErrRecordNotFound)
+		return
+	}
 	c.JSON(http.StatusOK, toOperationResponse(item))
+}
+
+func (h *OperationHandler) canViewOperation(c *gin.Context, userID uint64, item *domain.OperationRequest) (bool, error) {
+	if item == nil {
+		return false, gorm.ErrRecordNotFound
+	}
+	if item.OperatorID == userID || h.scopeAccess == nil {
+		return true, nil
+	}
+
+	clusterID, ok := authSvc.ParseClusterIDFromReference(item.TargetRef)
+	if !ok {
+		return false, nil
+	}
+	return h.scopeAccess.CanAccessClusterByPermission(c.Request.Context(), userID, clusterID, middleware.PermissionProjectRead)
 }
 
 func toOperationResponse(item *domain.OperationRequest) gin.H {
 	return gin.H{
-		"id":            item.ID,
-		"requestId":     item.RequestID,
-		"operatorId":    item.OperatorID,
-		"operationType": item.OperationType,
-		"targetRef":     item.TargetRef,
-		"status":        item.Status,
-		"riskLevel":     item.RiskLevel,
-		"resultMessage": item.ResultMessage,
-		"createdAt":     item.CreatedAt,
-		"updatedAt":     item.UpdatedAt,
+		"id":              item.ID,
+		"requestId":       item.RequestID,
+		"operatorId":      item.OperatorID,
+		"operationType":   item.OperationType,
+		"targetRef":       item.TargetRef,
+		"status":          item.Status,
+		"riskLevel":       item.RiskLevel,
+		"progressMessage": item.ProgressMessage,
+		"resultMessage":   item.ResultMessage,
+		"failureReason":   item.FailureReason,
+		"completedAt":     item.CompletedAt,
+		"createdAt":       item.CreatedAt,
+		"updatedAt":       item.UpdatedAt,
 	}
 }
 

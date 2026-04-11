@@ -1,22 +1,62 @@
 import { useState } from 'react';
-import { Button, Card, List, Space, Tag, Typography } from 'antd';
+import { useQuery } from '@tanstack/react-query';
+import { Alert, Button, Card, List, Space, Tag, Typography } from 'antd';
+import { normalizeErrorMessage } from '@/app/queryClient';
 import { ClusterOnboardDrawer } from '@/features/clusters/components/ClusterOnboardDrawer';
+import { listClusters } from '@/services/clusters';
 
 type ClusterSummary = {
   id: string;
   name: string;
-  status: 'Connected' | 'Syncing';
+  status: 'Connected' | 'Syncing' | 'Degraded';
   namespaces: number;
 };
 
-const initialClusters: ClusterSummary[] = [
-  { id: 'c-1', name: 'prod-cn', status: 'Connected', namespaces: 12 },
-  { id: 'c-2', name: 'staging-us', status: 'Syncing', namespaces: 5 }
-];
+const mapStatus = (status: string): ClusterSummary['status'] => {
+  const normalized = status.trim().toLowerCase();
+
+  if (normalized === 'healthy' || normalized === 'connected' || normalized === 'ready') {
+    return 'Connected';
+  }
+
+  if (
+    normalized === 'degraded' ||
+    normalized === 'error' ||
+    normalized === 'failed' ||
+    normalized === 'unhealthy'
+  ) {
+    return 'Degraded';
+  }
+
+  return 'Syncing';
+};
+
+const statusColor = (status: ClusterSummary['status']) => {
+  if (status === 'Connected') {
+    return 'green';
+  }
+  if (status === 'Degraded') {
+    return 'red';
+  }
+  return 'processing';
+};
 
 export const ClusterOverviewPage = () => {
-  const [clusters, setClusters] = useState<ClusterSummary[]>(initialClusters);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { data, isFetching, error, refetch } = useQuery({
+    queryKey: ['clusters'],
+    queryFn: listClusters,
+    meta: {
+      suppressGlobalError: true
+    }
+  });
+
+  const clusters: ClusterSummary[] = (data || []).map((item) => ({
+    id: item.id,
+    name: item.name,
+    status: mapStatus(item.status),
+    namespaces: item.namespaces
+  }));
 
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
@@ -33,7 +73,17 @@ export const ClusterOverviewPage = () => {
       </div>
 
       <Card>
+        {error ? (
+          <Alert
+            type="error"
+            showIcon
+            style={{ marginBottom: 16 }}
+            message="集群列表加载失败"
+            description={normalizeErrorMessage(error)}
+          />
+        ) : null}
         <List
+          loading={isFetching}
           dataSource={clusters}
           rowKey="id"
           renderItem={(item) => (
@@ -42,9 +92,7 @@ export const ClusterOverviewPage = () => {
                 title={
                   <Space>
                     <span>{item.name}</span>
-                    <Tag color={item.status === 'Connected' ? 'green' : 'processing'}>
-                      {item.status}
-                    </Tag>
+                    <Tag color={statusColor(item.status)}>{item.status}</Tag>
                   </Space>
                 }
                 description={`Namespaces: ${item.namespaces}`}
@@ -57,17 +105,9 @@ export const ClusterOverviewPage = () => {
       <ClusterOnboardDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        onSuccess={(clusterName) =>
-          setClusters((previous) => [
-            ...previous,
-            {
-              id: `c-${previous.length + 1}`,
-              name: clusterName,
-              status: 'Syncing',
-              namespaces: 0
-            }
-          ])
-        }
+        onSuccess={() => {
+          void refetch();
+        }}
       />
     </Space>
   );

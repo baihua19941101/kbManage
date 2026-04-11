@@ -12,12 +12,46 @@ func NewPermissionService() *PermissionService {
 			"platform-admin": {
 				"*": {},
 			},
+			"ops-operator": {
+				"resource:read":     {},
+				"operation:execute": {},
+			},
 			"auditor": {
+				"audit:read": {},
+			},
+			"audit-reader": {
 				"audit:read": {},
 			},
 			"operator": {
 				"resource:read":     {},
 				"operation:execute": {},
+			},
+			"readonly": {
+				"resource:read": {},
+				"audit:read":    {},
+			},
+			"workspace-owner": {
+				"access:workspace:read":  {},
+				"access:workspace:write": {},
+				"access:project:read":    {},
+				"access:project:write":   {},
+				"access:binding:read":    {},
+				"access:binding:write":   {},
+			},
+			"workspace-viewer": {
+				"access:workspace:read": {},
+				"access:project:read":   {},
+				"access:binding:read":   {},
+			},
+			"project-owner": {
+				"access:project:read":  {},
+				"access:project:write": {},
+				"access:binding:read":  {},
+				"access:binding:write": {},
+			},
+			"project-viewer": {
+				"access:project:read": {},
+				"access:binding:read": {},
 			},
 		},
 	}

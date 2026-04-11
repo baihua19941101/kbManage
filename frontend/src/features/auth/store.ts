@@ -4,6 +4,7 @@ type AuthUser = {
   id: string;
   username: string;
   displayName?: string;
+  platformRoles?: string[];
 };
 
 type AuthState = {
@@ -103,3 +104,5 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
   }
 }));
+
+export const getAccessToken = (): string | null => useAuthStore.getState().accessToken;

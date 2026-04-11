@@ -6,6 +6,7 @@
 server:
   # HTTP 监听地址
   # 示例：":8080" 或 "0.0.0.0:8080"
+  # 当前与 frontend/.env.development 中 VITE_API_BASE_URL=http://localhost:8888/api/v1 对齐
   http_addr: "0.0.0.0:8888"
 
 mysql:

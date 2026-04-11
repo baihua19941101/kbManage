@@ -1,4 +1,5 @@
-import { Form, Modal, Select, Typography, message } from 'antd';
+import { useEffect, useState } from 'react';
+import { Alert, Form, Modal, Select, Typography, message } from 'antd';
 import { exportAuditEvents, type AuditEventFilters, type AuditExportFormat } from '@/services/audit';
 
 export type AuditExportModalProps = {
@@ -19,34 +20,57 @@ export const AuditExportModal = ({
   onSubmitted
 }: AuditExportModalProps) => {
   const [form] = Form.useForm<ExportFormValues>();
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string>();
 
-  const onSubmit = async () => {
-    const values = await form.validateFields();
-
-    if (!filters.from || !filters.to) {
-      message.warning('请先选择导出时间范围');
+  useEffect(() => {
+    if (!open) {
+      setSubmitError(undefined);
+      setSubmitting(false);
+      form.resetFields();
       return;
     }
+    form.setFieldValue('format', 'csv');
+  }, [form, open]);
 
-    const result = await exportAuditEvents({
-      from: filters.from,
-      to: filters.to,
-      actorUserId: filters.actorUserId,
-      clusterId: filters.clusterId,
-      result: filters.result,
-      eventType: filters.eventType,
-      format: values.format
-    });
+  const mapErrorMessage = (error: unknown): string => {
+    if (error instanceof Error && error.message.trim().length > 0) {
+      return error.message;
+    }
+    return '导出任务提交失败，请稍后重试。';
+  };
 
-    message.success(
-      result.status === 'mocked'
-        ? `导出任务已创建（mock）：${result.taskId}`
-        : `导出任务已提交：${result.taskId}`
-    );
+  const onSubmit = async () => {
+    try {
+      setSubmitError(undefined);
+      const values = await form.validateFields();
 
-    onSubmitted?.(result.taskId);
-    form.resetFields();
-    onCancel();
+      if (!filters.from || !filters.to) {
+        message.warning('请先选择导出时间范围');
+        return;
+      }
+
+      setSubmitting(true);
+      const result = await exportAuditEvents({
+        from: filters.from,
+        to: filters.to,
+        actorUserId: filters.actorUserId,
+        clusterId: filters.clusterId,
+        result: filters.result,
+        eventType: filters.eventType,
+        format: values.format
+      });
+
+      message.success(`导出任务已提交：${result.taskId}`);
+
+      onSubmitted?.(result.taskId);
+      form.resetFields();
+      onCancel();
+    } catch (error) {
+      setSubmitError(mapErrorMessage(error));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -56,6 +80,7 @@ export const AuditExportModal = ({
       onCancel={onCancel}
       onOk={() => void onSubmit()}
       destroyOnHidden
+      confirmLoading={submitting}
       okText="提交导出"
       cancelText="取消"
     >
@@ -74,12 +99,19 @@ export const AuditExportModal = ({
         >
           <Select
             options={[
-              { value: 'csv', label: 'CSV（推荐）' },
-              { value: 'json', label: 'JSON' }
+              { value: 'csv', label: 'CSV（推荐）' }
             ]}
           />
         </Form.Item>
       </Form>
+      {submitError ? (
+        <Alert
+          type="error"
+          showIcon
+          message="导出失败"
+          description={`${submitError} 可直接再次点击“提交导出”重试。`}
+        />
+      ) : null}
     </Modal>
   );
 };

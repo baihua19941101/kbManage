@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -45,6 +46,22 @@ func (h *AuditHandler) ListEvents(c *gin.Context) {
 		actorID = &parsed
 	}
 
+	clusterID, err := parseOptionalQueryUint64(c, "clusterId")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	workspaceID, err := parseOptionalQueryUint64(c, "workspaceId")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	projectID, err := parseOptionalQueryUint64(c, "projectId")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	limit := 100
 	if raw := strings.TrimSpace(c.Query("limit")); raw != "" {
 		n, err := strconv.Atoi(raw)
@@ -56,12 +73,18 @@ func (h *AuditHandler) ListEvents(c *gin.Context) {
 	}
 
 	items, err := h.svc.QueryEvents(c.Request.Context(), auditSvc.QueryEventsRequest{
-		StartAt: startAt,
-		EndAt:   endAt,
-		ActorID: actorID,
-		Action:  strings.TrimSpace(c.Query("action")),
-		Outcome: strings.TrimSpace(c.Query("outcome")),
-		Limit:   limit,
+		StartAt:     startAt,
+		EndAt:       endAt,
+		ActorID:     actorID,
+		ClusterID:   clusterID,
+		WorkspaceID: workspaceID,
+		ProjectID:   projectID,
+		Action:      strings.TrimSpace(c.Query("action")),
+		Outcome:     strings.TrimSpace(c.Query("outcome")),
+		Result:      strings.TrimSpace(c.Query("result")),
+		Resource:    strings.TrimSpace(c.Query("resource")),
+		Limit:       limit,
+		ViewerID:    c.GetUint64(middleware.UserIDKey),
 	})
 	if err != nil {
 		writeAuditError(c, err)
@@ -75,11 +98,16 @@ func (h *AuditHandler) ListEvents(c *gin.Context) {
 }
 
 type submitAuditExportRequest struct {
-	StartAt string `json:"startAt"`
-	EndAt   string `json:"endAt"`
-	ActorID any    `json:"actorId"`
-	Action  string `json:"action"`
-	Outcome string `json:"outcome"`
+	StartAt     string `json:"startAt"`
+	EndAt       string `json:"endAt"`
+	ActorID     any    `json:"actorId"`
+	ClusterID   any    `json:"clusterId"`
+	WorkspaceID any    `json:"workspaceId"`
+	ProjectID   any    `json:"projectId"`
+	Action      string `json:"action"`
+	Outcome     string `json:"outcome"`
+	Result      string `json:"result"`
+	Resource    string `json:"resource"`
 }
 
 func (h *AuditHandler) SubmitExport(c *gin.Context) {
@@ -104,18 +132,50 @@ func (h *AuditHandler) SubmitExport(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	cluster, err := parseUint64(req.ClusterID, false, "clusterId")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	workspace, err := parseUint64(req.WorkspaceID, false, "workspaceId")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	project, err := parseUint64(req.ProjectID, false, "projectId")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	var actorID *uint64
 	if actor != 0 {
 		actorID = &actor
 	}
+	var clusterID *uint64
+	if cluster != 0 {
+		clusterID = &cluster
+	}
+	var workspaceID *uint64
+	if workspace != 0 {
+		workspaceID = &workspace
+	}
+	var projectID *uint64
+	if project != 0 {
+		projectID = &project
+	}
 
 	task, err := h.svc.SubmitExport(c.Request.Context(), c.GetUint64(middleware.UserIDKey), auditSvc.SubmitExportRequest{
-		StartAt: startAt,
-		EndAt:   endAt,
-		ActorID: actorID,
-		Action:  strings.TrimSpace(req.Action),
-		Outcome: strings.TrimSpace(req.Outcome),
+		StartAt:     startAt,
+		EndAt:       endAt,
+		ActorID:     actorID,
+		ClusterID:   clusterID,
+		WorkspaceID: workspaceID,
+		ProjectID:   projectID,
+		Action:      strings.TrimSpace(req.Action),
+		Outcome:     strings.TrimSpace(req.Outcome),
+		Result:      strings.TrimSpace(req.Result),
+		Resource:    strings.TrimSpace(req.Resource),
 	})
 	if err != nil {
 		writeAuditError(c, err)
@@ -132,7 +192,7 @@ func (h *AuditHandler) SubmitExport(c *gin.Context) {
 }
 
 func (h *AuditHandler) GetExportStatus(c *gin.Context) {
-	task, err := h.svc.GetExportTask(c.Request.Context(), c.Param("taskId"))
+	task, err := h.svc.GetExportTaskForViewer(c.Request.Context(), c.Param("taskId"), c.GetUint64(middleware.UserIDKey))
 	if err != nil {
 		writeAuditError(c, err)
 		return
@@ -150,12 +210,36 @@ func (h *AuditHandler) GetExportStatus(c *gin.Context) {
 	})
 }
 
+func (h *AuditHandler) DownloadExport(c *gin.Context) {
+	result, err := h.svc.GetExportDownloadForViewer(c.Request.Context(), c.Param("taskId"), c.GetUint64(middleware.UserIDKey))
+	if err != nil {
+		writeAuditError(c, err)
+		return
+	}
+
+	fileName := strings.TrimSpace(result.FileName)
+	if fileName == "" {
+		fileName = "audit-export.csv"
+	}
+	contentType := strings.TrimSpace(result.ContentType)
+	if contentType == "" {
+		contentType = "text/csv; charset=utf-8"
+	}
+
+	c.Header("Content-Type", contentType)
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%q", fileName))
+	c.Header("Cache-Control", "no-store")
+	c.Data(http.StatusOK, contentType, result.Data)
+}
+
 func writeAuditError(c *gin.Context, err error) {
 	status := http.StatusInternalServerError
 	lower := strings.ToLower(err.Error())
 	switch {
 	case errors.Is(err, gorm.ErrRecordNotFound):
 		status = http.StatusNotFound
+	case strings.Contains(lower, "not ready"):
+		status = http.StatusConflict
 	case strings.Contains(lower, "required"), strings.Contains(lower, "invalid"):
 		status = http.StatusBadRequest
 	}
@@ -172,4 +256,16 @@ func parseOptionalRFC3339(raw, field string) (*time.Time, error) {
 		return nil, errors.New(field + " must be RFC3339 format")
 	}
 	return &t, nil
+}
+
+func parseOptionalQueryUint64(c *gin.Context, field string) (*uint64, error) {
+	raw := strings.TrimSpace(c.Query(field))
+	if raw == "" {
+		return nil, nil
+	}
+	parsed, err := strconv.ParseUint(raw, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("%s must be a positive integer", field)
+	}
+	return &parsed, nil
 }

@@ -1,20 +1,57 @@
-import { Button, Layout, Typography } from 'antd';
+import { useMutation } from '@tanstack/react-query';
+import { Alert, Button, Card, Layout, Typography, message } from 'antd';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { AuthorizedMenu } from '@/app/AuthorizedMenu';
+import { normalizeErrorMessage } from '@/app/queryClient';
+import { RoleBindingForm } from '@/features/auth/components/RoleBindingForm';
 import { useAuthStore } from '@/features/auth/store';
+import { createRoleBinding } from '@/services/roleBindings';
 
 const { Header, Content, Sider } = Layout;
 
-const HomePage = () => (
-  <div style={{ padding: 24, background: '#fff', borderRadius: 8 }}>
-    <Typography.Title level={4} style={{ marginTop: 0 }}>
-      平台首页
-    </Typography.Title>
-    <Typography.Paragraph style={{ marginBottom: 0 }}>
-      前端基础骨架已就绪，可继续接入集群、工作空间和资源模块。
-    </Typography.Paragraph>
-  </div>
-);
+const HomePage = () => {
+  const user = useAuthStore((state) => state.user);
+
+  const canManageBindings = (user?.platformRoles || []).includes('platform-admin');
+
+  const createBindingMutation = useMutation({
+    mutationFn: createRoleBinding,
+    onSuccess: () => {
+      message.success('角色绑定创建成功');
+    },
+    onError: (error) => {
+      message.error(normalizeErrorMessage(error, '角色绑定创建失败'));
+    }
+  });
+
+  return (
+    <div style={{ padding: 24, background: '#fff', borderRadius: 8 }}>
+      <Typography.Title level={4} style={{ marginTop: 0 }}>
+        平台首页
+      </Typography.Title>
+      <Typography.Paragraph>
+        前端基础骨架已就绪，可继续接入集群、工作空间和资源模块。
+      </Typography.Paragraph>
+      {canManageBindings ? (
+        <Card size="small" title="角色绑定管理">
+          <RoleBindingForm
+            loading={createBindingMutation.isPending}
+            onSubmit={(payload) => {
+              createBindingMutation.mutate(payload);
+            }}
+          />
+        </Card>
+      ) : (
+        <Alert
+          type="info"
+          showIcon
+          message="当前账号无角色绑定管理权限"
+          description="仅 platform-admin 可在首页执行角色绑定操作。"
+        />
+      )}
+    </div>
+  );
+};
 
 export const AppLayout = () => {
   const navigate = useNavigate();

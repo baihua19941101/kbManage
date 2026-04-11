@@ -8,19 +8,35 @@ import (
 
 	"kbmanage/backend/internal/domain"
 	"kbmanage/backend/internal/repository"
+	auditSvc "kbmanage/backend/internal/service/audit"
 	operationSvc "kbmanage/backend/internal/service/operation"
 )
 
 // OperationWorker consumes operation queue and updates operation status.
 type OperationWorker struct {
-	repo  *repository.OperationRepository
-	queue operationSvc.QueueService
+	repo       *repository.OperationRepository
+	queue      operationSvc.QueueService
+	executor   operationSvc.Executor
+	auditWrite *auditSvc.EventWriter
 
 	startOnce sync.Once
 }
 
-func NewOperationWorker(repo *repository.OperationRepository, queue operationSvc.QueueService) *OperationWorker {
-	return &OperationWorker{repo: repo, queue: queue}
+func NewOperationWorker(
+	repo *repository.OperationRepository,
+	queue operationSvc.QueueService,
+	executor operationSvc.Executor,
+	auditWriter *auditSvc.EventWriter,
+) *OperationWorker {
+	if executor == nil {
+		executor = operationSvc.NewExecutor(nil)
+	}
+	return &OperationWorker{
+		repo:       repo,
+		queue:      queue,
+		executor:   executor,
+		auditWrite: auditWriter,
+	}
 }
 
 func (w *OperationWorker) Start(ctx context.Context) {
@@ -42,22 +58,135 @@ func (w *OperationWorker) run(ctx context.Context) {
 			continue
 		}
 
-		_ = w.repo.UpdateStatus(ctx, operationID, domain.OperationStatusRunning, "")
 		item, err := w.repo.GetByID(ctx, operationID)
 		if err != nil {
-			_ = w.repo.UpdateStatus(ctx, operationID, domain.OperationStatusFailed, "operation record not found")
 			continue
 		}
 
-		if strings.EqualFold(strings.TrimSpace(item.OperationType), "fail") {
-			_ = w.repo.UpdateStatus(ctx, operationID, domain.OperationStatusFailed, "operation execution failed")
+		runningItem, transitioned, err := w.repo.TransitionStatus(
+			ctx,
+			operationID,
+			[]domain.OperationStatus{domain.OperationStatusPending},
+			domain.OperationStatusRunning,
+			"operation is running",
+			"",
+			"",
+		)
+		if err != nil {
+			continue
+		}
+		if !transitioned {
+			continue
+		}
+		if runningItem != nil {
+			item = runningItem
+		}
+
+		_ = w.writeAuditEvent(ctx, item, auditSvc.OperationAuditActionStart, domain.AuditOutcomeSuccess, map[string]any{
+			"operationType": item.OperationType,
+			"targetRef":     item.TargetRef,
+			"status":        item.Status,
+		})
+
+		result, execErr := w.executor.Execute(ctx, item)
+		if execErr != nil {
+			failureReason := strings.TrimSpace(result.FailureReason)
+			if failureReason == "" {
+				failureReason = strings.TrimSpace(execErr.Error())
+			}
+			progressMessage := strings.TrimSpace(result.ProgressMessage)
+			if progressMessage == "" {
+				progressMessage = "operation execution failed"
+			}
+			resultMessage := strings.TrimSpace(result.ResultMessage)
+			if resultMessage == "" {
+				resultMessage = failureReason
+			}
+
+			failedItem, updated, transitionErr := w.repo.TransitionStatus(
+				ctx,
+				operationID,
+				[]domain.OperationStatus{domain.OperationStatusRunning},
+				domain.OperationStatusFailed,
+				progressMessage,
+				resultMessage,
+				failureReason,
+			)
+			if transitionErr == nil && updated {
+				_ = w.writeAuditEvent(ctx, failedItem, auditSvc.OperationAuditActionFailure, domain.AuditOutcomeFailed, map[string]any{
+					"operationType":  item.OperationType,
+					"targetRef":      item.TargetRef,
+					"status":         domain.OperationStatusFailed,
+					"failureReason":  failureReason,
+					"executorResult": resultMessage,
+				})
+			}
 			continue
 		}
 
-		msg := "operation executed successfully"
-		if item.TargetRef != "" {
-			msg = "operation executed: " + item.TargetRef
+		progressMessage := strings.TrimSpace(result.ProgressMessage)
+		if progressMessage == "" {
+			progressMessage = "operation execution completed"
 		}
-		_ = w.repo.UpdateStatus(ctx, operationID, domain.OperationStatusSucceeded, msg)
+		resultMessage := strings.TrimSpace(result.ResultMessage)
+		if resultMessage == "" {
+			resultMessage = buildDefaultOperationResultMessage(item)
+		}
+
+		succeededItem, updated, transitionErr := w.repo.TransitionStatus(
+			ctx,
+			operationID,
+			[]domain.OperationStatus{domain.OperationStatusRunning},
+			domain.OperationStatusSucceeded,
+			progressMessage,
+			resultMessage,
+			"",
+		)
+		if transitionErr == nil && updated {
+			_ = w.writeAuditEvent(ctx, succeededItem, auditSvc.OperationAuditActionSuccess, domain.AuditOutcomeSuccess, map[string]any{
+				"operationType": item.OperationType,
+				"targetRef":     item.TargetRef,
+				"status":        domain.OperationStatusSucceeded,
+				"resultMessage": resultMessage,
+			})
+		}
 	}
+}
+
+func buildDefaultOperationResultMessage(item *domain.OperationRequest) string {
+	if item == nil {
+		return "operation executed successfully"
+	}
+	if strings.TrimSpace(item.TargetRef) != "" {
+		return "operation executed: " + strings.TrimSpace(item.TargetRef)
+	}
+	return "operation executed successfully"
+}
+
+func (w *OperationWorker) writeAuditEvent(
+	ctx context.Context,
+	item *domain.OperationRequest,
+	action string,
+	outcome domain.AuditOutcome,
+	details map[string]any,
+) error {
+	if w == nil || w.auditWrite == nil || item == nil {
+		return nil
+	}
+	actorID := item.OperatorID
+	if details == nil {
+		details = map[string]any{}
+	}
+	details["operationId"] = item.ID
+	details["requestId"] = item.RequestID
+	details["operationType"] = item.OperationType
+	return w.auditWrite.WriteOperationEvent(
+		ctx,
+		item.RequestID,
+		&actorID,
+		item.ID,
+		action,
+		outcome,
+		details,
+	)
 }

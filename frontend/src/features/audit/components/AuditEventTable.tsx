@@ -1,4 +1,4 @@
-import { Button, Space, Table, Tag, Typography } from 'antd';
+import { Button, Empty, Space, Table, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import type { AuditEvent } from '@/services/audit';
 
@@ -17,8 +17,16 @@ const resultColor: Record<string, string> = {
 
 const normalizeText = (value?: string) => value || '-';
 
-const formatDateTime = (value: string) =>
-  new Date(value).toLocaleString('zh-CN', { hour12: false });
+const formatDateTime = (value?: string) => {
+  if (!value) {
+    return '-';
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return '-';
+  }
+  return parsed.toLocaleString('zh-CN', { hour12: false });
+};
 
 export const AuditEventTable = ({ data, loading, onRefresh }: AuditEventTableProps) => {
   const columns: ColumnsType<AuditEvent> = [
@@ -27,7 +35,7 @@ export const AuditEventTable = ({ data, loading, onRefresh }: AuditEventTablePro
       dataIndex: 'occurredAt',
       key: 'occurredAt',
       width: 188,
-      render: (value: string) => formatDateTime(value)
+      render: (value?: string) => formatDateTime(value)
     },
     {
       title: '操作者',
@@ -85,6 +93,16 @@ export const AuditEventTable = ({ data, loading, onRefresh }: AuditEventTablePro
         dataSource={data}
         columns={columns}
         pagination={{ pageSize: 10 }}
+        locale={{
+          emptyText: (
+            <Empty
+              description={
+                loading ? '正在加载审计事件...' : '暂无审计事件，请调整筛选条件后重试。'
+              }
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+            />
+          )
+        }}
       />
     </Space>
   );

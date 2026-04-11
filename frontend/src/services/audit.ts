@@ -1,3 +1,5 @@
+import { ApiError, fetchJSON } from '@/services/api/client';
+
 export type AuditResult = 'success' | 'failed' | 'denied' | 'pending';
 
 export type AuditEvent = {
@@ -30,7 +32,7 @@ export type ListAuditEventsResponse = {
   items: AuditEvent[];
 };
 
-export type AuditExportFormat = 'csv' | 'json';
+export type AuditExportFormat = 'csv';
 
 export type AuditExportRequest = AuditEventFilters & {
   from: string;
@@ -40,60 +42,62 @@ export type AuditExportRequest = AuditEventFilters & {
 
 export type AuditExportResponse = {
   taskId: string;
-  status: 'queued' | 'mocked';
+  status: 'pending' | 'running' | 'succeeded' | 'failed';
 };
 
-class ApiError extends Error {
-  status: number;
+export type AuditExportTaskStatus = AuditExportResponse['status'];
 
-  constructor(status: number, message: string) {
-    super(message);
-    this.status = status;
-  }
-}
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
-
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const isFallbackStatus = (status: number) =>
-  [404, 405, 500, 501, 502, 503, 504].includes(status);
-
-const shouldUseFallback = (error: unknown): boolean => {
-  if (error instanceof ApiError) {
-    return isFallbackStatus(error.status);
-  }
-
-  return error instanceof TypeError;
+export type AuditExportTask = {
+  taskId: string;
+  status: AuditExportTaskStatus;
+  resultTotal?: number;
+  downloadUrl?: string;
+  errorMessage?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  completedAt?: string;
 };
 
-const fetchJSON = async <T>(path: string, init?: RequestInit): Promise<T> => {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(init?.headers || {})
-    },
-    ...init
-  });
+type UnknownRecord = Record<string, unknown>;
 
-  if (!response.ok) {
-    const text = await response.text();
-    throw new ApiError(
-      response.status,
-      text || `Request failed with status ${response.status}`
-    );
+const toRecord = (value: unknown): UnknownRecord =>
+  typeof value === 'object' && value !== null ? (value as UnknownRecord) : {};
+
+const firstString = (record: UnknownRecord, keys: string[]): string | undefined => {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (trimmed.length > 0) {
+        return trimmed;
+      }
+    }
   }
+  return undefined;
+};
 
-  if (response.status === 204) {
-    return {} as T;
+const firstNumber = (record: UnknownRecord, keys: string[]): number | undefined => {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+    if (typeof value === 'string') {
+      const parsed = Number(value);
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
+    }
   }
+  return undefined;
+};
 
-  const contentType = response.headers.get('content-type') || '';
-  if (!contentType.includes('application/json')) {
-    return {} as T;
+const normalizeExportStatus = (status: unknown): AuditExportTaskStatus | undefined => {
+  if (typeof status !== 'string') {
+    return undefined;
   }
-
-  return (await response.json()) as T;
+  const normalized = status.trim().toLowerCase();
+  return isAuditExportStatus(normalized) ? normalized : undefined;
 };
 
 const buildBackendQuery = (filters: AuditEventFilters): string => {
@@ -109,84 +113,100 @@ const buildBackendQuery = (filters: AuditEventFilters): string => {
   return query ? `?${query}` : '';
 };
 
-const mockAuditEvents: AuditEvent[] = [
-  {
-    id: 'ae-seed-1',
-    eventType: 'operation.restart',
-    actorUserId: 'alice',
-    clusterId: 'prod-cn',
-    scopeType: 'project',
-    scopeId: 'payments',
-    resourceKind: 'Deployment',
-    resourceNamespace: 'payments',
-    resourceName: 'payment-api',
-    result: 'success',
-    occurredAt: '2026-04-09T03:21:00.000Z'
-  },
-  {
-    id: 'ae-seed-2',
-    eventType: 'rbac.role_binding.update',
-    actorUserId: 'admin',
-    clusterId: 'platform',
-    scopeType: 'workspace',
-    scopeId: 'dev-team',
-    result: 'success',
-    occurredAt: '2026-04-09T03:10:00.000Z'
+const isAuditExportStatus = (
+  status: unknown
+): status is AuditExportResponse['status'] =>
+  status === 'pending' ||
+  status === 'running' ||
+  status === 'succeeded' ||
+  status === 'failed';
+
+const mapAuditEvent = (input: unknown): AuditEvent => {
+  const record = toRecord(input);
+  const eventType = firstString(record, ['eventType', 'EventType', 'action', 'Action']);
+  const result = firstString(record, ['result', 'Result', 'outcome', 'Outcome']);
+  const occurredAt = firstString(record, ['occurredAt', 'OccurredAt', 'createdAt', 'CreatedAt']);
+
+  return {
+    id: firstString(record, ['id', 'ID']) || '',
+    eventType,
+    action: firstString(record, ['action', 'Action']),
+    actorUserId: firstString(record, ['actorUserId', 'ActorUserId', 'actorId', 'ActorId']),
+    clusterId: firstString(record, ['clusterId', 'ClusterId', 'clusterID', 'ClusterID']),
+    scopeType: firstString(record, ['scopeType', 'ScopeType']),
+    scopeId: firstString(record, ['scopeId', 'ScopeId', 'scopeID', 'ScopeID']),
+    resourceKind: firstString(record, ['resourceKind', 'ResourceKind']),
+    resourceNamespace: firstString(record, ['resourceNamespace', 'ResourceNamespace']),
+    resourceName: firstString(record, ['resourceName', 'ResourceName']),
+    result,
+    outcome: firstString(record, ['outcome', 'Outcome']),
+    occurredAt,
+    createdAt: firstString(record, ['createdAt', 'CreatedAt', 'occurredAt', 'OccurredAt'])
+  };
+};
+
+const mapAuditExportResponse = (input: unknown): AuditExportResponse => {
+  const record = toRecord(input);
+  const taskId = firstString(record, ['taskId', 'TaskId', 'taskID', 'TaskID']) || '';
+  const status = normalizeExportStatus(record.status ?? record.Status);
+
+  if (!taskId) {
+    throw new ApiError(500, 'Invalid audit export response: missing taskId', {
+      url: '/audits/exports'
+    });
   }
-];
 
-const normalizeForSearch = (value?: string) => value?.trim().toLowerCase() || '';
+  if (!status) {
+    throw new ApiError(500, 'Invalid audit export response: invalid status', {
+      url: '/audits/exports'
+    });
+  }
 
-const applyMockFilters = (filters: AuditEventFilters): AuditEvent[] => {
-  const from = filters.from ? +new Date(filters.from) : Number.NEGATIVE_INFINITY;
-  const to = filters.to ? +new Date(filters.to) : Number.POSITIVE_INFINITY;
-  const actor = normalizeForSearch(filters.actorUserId);
-  const result = normalizeForSearch(filters.result);
-  const eventType = normalizeForSearch(filters.eventType);
+  return { taskId, status };
+};
 
-  return [...mockAuditEvents]
-    .filter((item) => {
-      const occurredAt = +new Date(item.occurredAt || 0);
-      const matchTime = occurredAt >= from && occurredAt <= to;
-      const matchActor = !actor || normalizeForSearch(item.actorUserId).includes(actor);
-      const matchResult = !result || normalizeForSearch(item.result).includes(result);
-      const matchEventType =
-        !eventType || normalizeForSearch(item.eventType).includes(eventType);
+const mapAuditExportTask = (input: unknown, taskId: string): AuditExportTask => {
+  const record = toRecord(input);
+  const mappedTaskId = firstString(record, ['taskId', 'TaskId', 'taskID', 'TaskID']) || taskId;
+  const status = normalizeExportStatus(record.status ?? record.Status);
 
-      return matchTime && matchActor && matchResult && matchEventType;
-    })
-    .sort((a, b) => +new Date(b.occurredAt || 0) - +new Date(a.occurredAt || 0));
+  if (!status) {
+    throw new ApiError(500, 'Invalid audit export task response: invalid status', {
+      url: `/audits/exports/${taskId}`
+    });
+  }
+
+  return {
+    taskId: mappedTaskId,
+    status,
+    resultTotal: firstNumber(record, ['resultTotal', 'ResultTotal']),
+    downloadUrl: firstString(record, ['downloadUrl', 'DownloadUrl', 'DownloadURL']),
+    errorMessage: firstString(record, ['errorMessage', 'ErrorMessage']),
+    createdAt: firstString(record, ['createdAt', 'CreatedAt']),
+    updatedAt: firstString(record, ['updatedAt', 'UpdatedAt']),
+    completedAt: firstString(record, ['completedAt', 'CompletedAt'])
+  };
 };
 
 export const listAuditEvents = async (
   filters: AuditEventFilters = {}
 ): Promise<ListAuditEventsResponse> => {
-  try {
-    const response = await fetchJSON<{ items: AuditEvent[] }>(
-      `/audits/events${buildBackendQuery(filters)}`,
-      {
-        method: 'GET'
-      }
-    );
-
-    return {
-      items: (response.items || []).map((item) => ({
-        ...item,
-        eventType: item.eventType || item.action,
-        result: item.result || item.outcome,
-        occurredAt: item.occurredAt || item.createdAt
-      }))
-    };
-  } catch (error) {
-    if (!shouldUseFallback(error)) {
-      throw error;
+  const response = await fetchJSON<{ items?: unknown[]; Items?: unknown[] }>(
+    `/audits/events${buildBackendQuery(filters)}`,
+    {
+      method: 'GET'
     }
+  );
 
-    await wait(120);
-    return {
-      items: applyMockFilters(filters)
-    };
-  }
+  const items = Array.isArray(response.items)
+    ? response.items
+    : Array.isArray(response.Items)
+      ? response.Items
+      : [];
+
+  return {
+    items: items.map(mapAuditEvent).filter((item) => item.id.length > 0)
+  };
 };
 
 export const exportAuditEvents = async (
@@ -201,28 +221,23 @@ export const exportAuditEvents = async (
     format: payload.format
   };
 
-  try {
-    const response = await fetchJSON<Partial<AuditExportResponse>>('/audits/exports', {
-      method: 'POST',
-      body: JSON.stringify(body)
-    });
+  const response = await fetchJSON<unknown>('/audits/exports', {
+    method: 'POST',
+    body: JSON.stringify(body)
+  });
 
-    return {
-      taskId:
-        typeof response.taskId === 'string' && response.taskId.length > 0
-          ? response.taskId
-          : `audit-export-${Date.now().toString(36)}`,
-      status: 'queued'
-    };
-  } catch (error) {
-    if (!shouldUseFallback(error)) {
-      throw error;
-    }
+  return mapAuditExportResponse(response);
+};
 
-    await wait(120);
-    return {
-      taskId: `audit-export-mock-${Date.now().toString(36)}`,
-      status: 'mocked'
-    };
+export const getAuditExportTask = async (taskId: string): Promise<AuditExportTask> => {
+  const trimmed = taskId.trim();
+  if (!trimmed) {
+    throw new Error('taskId is required');
   }
+
+  const response = await fetchJSON<unknown>(`/audits/exports/${encodeURIComponent(trimmed)}`, {
+    method: 'GET'
+  });
+
+  return mapAuditExportTask(response, trimmed);
 };
