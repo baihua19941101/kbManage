@@ -105,3 +105,16 @@ func (r *WorkspaceClusterRepository) ListByProject(ctx context.Context, projectI
 		Find(&items).Error
 	return items, err
 }
+
+func (r *WorkspaceClusterRepository) ListProjectBindingsByCluster(ctx context.Context, clusterID uint64) ([]ProjectClusterBinding, error) {
+	if r.db == nil {
+		return nil, gorm.ErrInvalidDB
+	}
+
+	var items []ProjectClusterBinding
+	err := r.db.WithContext(ctx).
+		Where("cluster_id = ?", clusterID).
+		Order("id DESC").
+		Find(&items).Error
+	return items, err
+}

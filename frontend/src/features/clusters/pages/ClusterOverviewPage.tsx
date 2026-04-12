@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Alert, Button, Card, List, Space, Tag, Typography } from 'antd';
+import { useNavigate } from 'react-router-dom';
 import { normalizeErrorMessage } from '@/app/queryClient';
 import { ClusterOnboardDrawer } from '@/features/clusters/components/ClusterOnboardDrawer';
 import { listClusters } from '@/services/clusters';
@@ -43,6 +44,7 @@ const statusColor = (status: ClusterSummary['status']) => {
 
 export const ClusterOverviewPage = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const navigate = useNavigate();
   const { data, isFetching, error, refetch } = useQuery({
     queryKey: ['clusters'],
     queryFn: listClusters,
@@ -97,6 +99,56 @@ export const ClusterOverviewPage = () => {
                 }
                 description={`Namespaces: ${item.namespaces}`}
               />
+              <Space wrap>
+                <Button
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      clusterId: item.id,
+                      subjectType: 'cluster',
+                      subjectRef: item.id
+                    });
+                    void navigate(`/observability?${params.toString()}`);
+                  }}
+                >
+                  总览
+                </Button>
+                <Button
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      clusterId: item.id,
+                      subjectType: 'cluster',
+                      subjectRef: item.id
+                    });
+                    void navigate(`/observability/logs?${params.toString()}`);
+                  }}
+                >
+                  日志
+                </Button>
+                <Button
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      clusterId: item.id,
+                      subjectType: 'cluster',
+                      subjectRef: item.id
+                    });
+                    void navigate(`/observability/events?${params.toString()}`);
+                  }}
+                >
+                  事件
+                </Button>
+                <Button
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      clusterId: item.id,
+                      subjectType: 'cluster',
+                      subjectRef: item.id
+                    });
+                    void navigate(`/observability/metrics?${params.toString()}`);
+                  }}
+                >
+                  指标
+                </Button>
+              </Space>
             </List.Item>
           )}
         />

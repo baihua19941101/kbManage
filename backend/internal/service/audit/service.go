@@ -370,6 +370,7 @@ func buildExportCSV(items []domain.AuditEvent) ([]byte, error) {
 	writer := csv.NewWriter(&buf)
 	header := []string{
 		"id", "requestId", "actorId", "clusterId", "workspaceId", "projectId",
+		"auditCategory", "actionScope", "searchTags", "scopeSnapshot",
 		"action", "resourceType", "resourceId", "result", "details", "createdAt",
 	}
 	if err := writer.Write(header); err != nil {
@@ -388,6 +389,10 @@ func buildExportCSV(items []domain.AuditEvent) ([]byte, error) {
 			formatOptionalUint64(item.ClusterID),
 			formatOptionalUint64(item.WorkspaceID),
 			formatOptionalUint64(item.ProjectID),
+			item.AuditCategory,
+			item.ActionScope,
+			item.SearchTags,
+			string(item.ScopeSnapshot),
 			item.Action,
 			item.ResourceType,
 			item.ResourceID,

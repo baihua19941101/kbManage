@@ -13,22 +13,28 @@ func NewPermissionService() *PermissionService {
 				"*": {},
 			},
 			"ops-operator": {
-				"resource:read":     {},
-				"operation:execute": {},
+				"resource:read":       {},
+				"operation:execute":   {},
+				"observability:read":  {},
+				"observability:write": {},
 			},
 			"auditor": {
 				"audit:read": {},
 			},
 			"audit-reader": {
-				"audit:read": {},
+				"audit:read":         {},
+				"observability:read": {},
 			},
 			"operator": {
-				"resource:read":     {},
-				"operation:execute": {},
+				"resource:read":       {},
+				"operation:execute":   {},
+				"observability:read":  {},
+				"observability:write": {},
 			},
 			"readonly": {
-				"resource:read": {},
-				"audit:read":    {},
+				"resource:read":      {},
+				"audit:read":         {},
+				"observability:read": {},
 			},
 			"workspace-owner": {
 				"access:workspace:read":  {},
@@ -37,21 +43,27 @@ func NewPermissionService() *PermissionService {
 				"access:project:write":   {},
 				"access:binding:read":    {},
 				"access:binding:write":   {},
+				"observability:read":     {},
+				"observability:write":    {},
 			},
 			"workspace-viewer": {
 				"access:workspace:read": {},
 				"access:project:read":   {},
 				"access:binding:read":   {},
+				"observability:read":    {},
 			},
 			"project-owner": {
 				"access:project:read":  {},
 				"access:project:write": {},
 				"access:binding:read":  {},
 				"access:binding:write": {},
+				"observability:read":   {},
+				"observability:write":  {},
 			},
 			"project-viewer": {
 				"access:project:read": {},
 				"access:binding:read": {},
+				"observability:read":  {},
 			},
 		},
 	}

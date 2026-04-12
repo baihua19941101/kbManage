@@ -26,3 +26,17 @@ func NewRedisClient(cfg Config) (*redis.Client, error) {
 
 	return client, nil
 }
+
+func ObservabilityCacheKey(parts ...string) string {
+	if len(parts) == 0 {
+		return "observability"
+	}
+	key := "observability"
+	for _, part := range parts {
+		if part == "" {
+			continue
+		}
+		key += ":" + part
+	}
+	return key
+}

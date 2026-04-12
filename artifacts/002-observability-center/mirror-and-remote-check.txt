@@ -1,0 +1,13 @@
+记录时间: 2026-04-11T22:03:00+08:00
+功能标识: 002-observability-center
+
+依赖与镜像源约束:
+- Go 依赖源: GOPROXY=https://goproxy.cn,direct
+- Frontend npm 源: https://registry.npmmirror.com
+- 本地联调观测镜像源: 优先阿里云/DaoCloud/经批准国内代理，禁止未说明代理的默认境外拉取
+
+Git 远程与 PR 流程:
+- 远程仓库: git@github.com:baihua19941101/kbManage.git
+- 分支策略: 002 在功能分支开发，禁止直接在 main 提交
+- PR 约束: 中文 PR、专业提交说明、附测试与备份证据
+- 合并门槛: 必须先获得用户明确同意

@@ -1,0 +1,1035 @@
+openapi: 3.1.0
+info:
+  title: kbManage Observability API
+  version: 0.1.0
+  description: >-
+    002 可观测中心 API 契约，覆盖集群观测配置、统一概览、日志查询、
+    事件时间线、指标趋势、告警中心、规则治理、通知目标和静默窗口。
+servers:
+  - url: /api/v1
+paths:
+  /clusters/{clusterId}/observability-config:
+    get:
+      summary: 获取集群观测配置
+      operationId: getClusterObservabilityConfig
+      parameters:
+        - $ref: '#/components/parameters/ClusterId'
+      responses:
+        '200':
+          description: 集群观测配置
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObservabilityConfig'
+    put:
+      summary: 更新集群观测配置
+      operationId: updateClusterObservabilityConfig
+      parameters:
+        - $ref: '#/components/parameters/ClusterId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateObservabilityConfigRequest'
+      responses:
+        '200':
+          description: 更新后的配置
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObservabilityConfig'
+  /observability/overview:
+    get:
+      summary: 获取统一可观测概览
+      operationId: getObservabilityOverview
+      parameters:
+        - $ref: '#/components/parameters/ClusterIds'
+        - $ref: '#/components/parameters/WorkspaceIds'
+        - $ref: '#/components/parameters/ProjectIds'
+        - $ref: '#/components/parameters/Namespaces'
+        - $ref: '#/components/parameters/TimeRangeStart'
+        - $ref: '#/components/parameters/TimeRangeEnd'
+      responses:
+        '200':
+          description: 概览结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObservabilityOverviewResponse'
+  /observability/logs/query:
+    get:
+      summary: 查询日志
+      operationId: queryLogs
+      parameters:
+        - $ref: '#/components/parameters/ClusterIds'
+        - $ref: '#/components/parameters/WorkspaceIds'
+        - $ref: '#/components/parameters/ProjectIds'
+        - $ref: '#/components/parameters/Namespaces'
+        - in: query
+          name: workload
+          schema:
+            type: string
+        - in: query
+          name: pod
+          schema:
+            type: string
+        - in: query
+          name: container
+          schema:
+            type: string
+        - in: query
+          name: keyword
+          schema:
+            type: string
+        - $ref: '#/components/parameters/TimeRangeStart'
+        - $ref: '#/components/parameters/TimeRangeEnd'
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5000
+      responses:
+        '200':
+          description: 日志结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogQueryResponse'
+  /observability/events:
+    get:
+      summary: 查询事件时间线
+      operationId: listObservabilityEvents
+      parameters:
+        - $ref: '#/components/parameters/ClusterIds'
+        - $ref: '#/components/parameters/WorkspaceIds'
+        - $ref: '#/components/parameters/ProjectIds'
+        - $ref: '#/components/parameters/Namespaces'
+        - in: query
+          name: resourceKind
+          schema:
+            type: string
+        - in: query
+          name: resourceName
+          schema:
+            type: string
+        - in: query
+          name: eventType
+          schema:
+            type: string
+            enum: [normal, warning]
+        - $ref: '#/components/parameters/TimeRangeStart'
+        - $ref: '#/components/parameters/TimeRangeEnd'
+      responses:
+        '200':
+          description: 事件列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventListResponse'
+  /observability/metrics/series:
+    get:
+      summary: 查询指标趋势
+      operationId: queryMetricSeries
+      parameters:
+        - $ref: '#/components/parameters/ClusterIds'
+        - $ref: '#/components/parameters/WorkspaceIds'
+        - $ref: '#/components/parameters/ProjectIds'
+        - $ref: '#/components/parameters/Namespaces'
+        - in: query
+          name: subjectType
+          required: true
+          schema:
+            type: string
+            enum: [cluster, node, namespace, workload, pod]
+        - in: query
+          name: subjectRef
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: metricKey
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/TimeRangeStart'
+        - $ref: '#/components/parameters/TimeRangeEnd'
+        - in: query
+          name: step
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 指标趋势结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricSeriesResponse'
+  /observability/resources/context:
+    get:
+      summary: 获取资源级可观测上下文
+      operationId: getResourceObservabilityContext
+      parameters:
+        - in: query
+          name: clusterId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: namespace
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: resourceKind
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: resourceName
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/TimeRangeStart'
+        - $ref: '#/components/parameters/TimeRangeEnd'
+      responses:
+        '200':
+          description: 资源上下文
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceContextResponse'
+  /observability/alerts:
+    get:
+      summary: 查询告警中心列表
+      operationId: listAlerts
+      parameters:
+        - $ref: '#/components/parameters/ClusterIds'
+        - $ref: '#/components/parameters/WorkspaceIds'
+        - $ref: '#/components/parameters/ProjectIds'
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [firing, acknowledged, silenced, resolved]
+        - in: query
+          name: severity
+          schema:
+            type: string
+            enum: [info, warning, critical]
+        - in: query
+          name: resourceKind
+          schema:
+            type: string
+        - in: query
+          name: handlerId
+          schema:
+            type: string
+        - $ref: '#/components/parameters/TimeRangeStart'
+        - $ref: '#/components/parameters/TimeRangeEnd'
+      responses:
+        '200':
+          description: 告警列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertListResponse'
+  /observability/alerts/{alertId}:
+    get:
+      summary: 获取告警详情
+      operationId: getAlert
+      parameters:
+        - $ref: '#/components/parameters/AlertId'
+      responses:
+        '200':
+          description: 告警详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertIncident'
+  /observability/alerts/{alertId}/acknowledge:
+    post:
+      summary: 确认告警
+      operationId: acknowledgeAlert
+      parameters:
+        - $ref: '#/components/parameters/AlertId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcknowledgeAlertRequest'
+      responses:
+        '200':
+          description: 确认后的告警详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertIncident'
+  /observability/alerts/{alertId}/handling-records:
+    post:
+      summary: 新增告警处理记录
+      operationId: createAlertHandlingRecord
+      parameters:
+        - $ref: '#/components/parameters/AlertId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateHandlingRecordRequest'
+      responses:
+        '201':
+          description: 处理记录已创建
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HandlingRecord'
+  /observability/alert-rules:
+    get:
+      summary: 查询告警规则
+      operationId: listAlertRules
+      parameters:
+        - $ref: '#/components/parameters/ClusterIds'
+        - $ref: '#/components/parameters/WorkspaceIds'
+        - $ref: '#/components/parameters/ProjectIds'
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [enabled, disabled]
+      responses:
+        '200':
+          description: 告警规则列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertRuleListResponse'
+    post:
+      summary: 创建告警规则
+      operationId: createAlertRule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAlertRuleRequest'
+      responses:
+        '201':
+          description: 告警规则已创建
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertRule'
+  /observability/alert-rules/{ruleId}:
+    get:
+      summary: 获取告警规则详情
+      operationId: getAlertRule
+      parameters:
+        - $ref: '#/components/parameters/RuleId'
+      responses:
+        '200':
+          description: 告警规则详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertRule'
+    put:
+      summary: 更新告警规则
+      operationId: updateAlertRule
+      parameters:
+        - $ref: '#/components/parameters/RuleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAlertRuleRequest'
+      responses:
+        '200':
+          description: 更新后的规则
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertRule'
+    delete:
+      summary: 删除告警规则
+      operationId: deleteAlertRule
+      parameters:
+        - $ref: '#/components/parameters/RuleId'
+      responses:
+        '204':
+          description: 删除成功
+  /observability/notification-targets:
+    get:
+      summary: 查询通知目标
+      operationId: listNotificationTargets
+      responses:
+        '200':
+          description: 通知目标列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationTargetListResponse'
+    post:
+      summary: 创建通知目标
+      operationId: createNotificationTarget
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNotificationTargetRequest'
+      responses:
+        '201':
+          description: 通知目标已创建
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationTarget'
+  /observability/notification-targets/{targetId}:
+    get:
+      summary: 获取通知目标详情
+      operationId: getNotificationTarget
+      parameters:
+        - $ref: '#/components/parameters/TargetId'
+      responses:
+        '200':
+          description: 通知目标详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationTarget'
+    put:
+      summary: 更新通知目标
+      operationId: updateNotificationTarget
+      parameters:
+        - $ref: '#/components/parameters/TargetId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNotificationTargetRequest'
+      responses:
+        '200':
+          description: 更新后的通知目标
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationTarget'
+    delete:
+      summary: 删除通知目标
+      operationId: deleteNotificationTarget
+      parameters:
+        - $ref: '#/components/parameters/TargetId'
+      responses:
+        '204':
+          description: 删除成功
+  /observability/silences:
+    get:
+      summary: 查询静默窗口
+      operationId: listSilences
+      parameters:
+        - $ref: '#/components/parameters/ClusterIds'
+        - $ref: '#/components/parameters/WorkspaceIds'
+        - $ref: '#/components/parameters/ProjectIds'
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [scheduled, active, expired, canceled]
+      responses:
+        '200':
+          description: 静默窗口列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SilenceListResponse'
+    post:
+      summary: 创建静默窗口
+      operationId: createSilence
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSilenceRequest'
+      responses:
+        '201':
+          description: 静默窗口已创建
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SilenceWindow'
+  /observability/silences/{silenceId}:
+    delete:
+      summary: 取消静默窗口
+      operationId: cancelSilence
+      parameters:
+        - $ref: '#/components/parameters/SilenceId'
+      responses:
+        '200':
+          description: 已取消的静默窗口
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SilenceWindow'
+
+components:
+  parameters:
+    ClusterId:
+      in: path
+      name: clusterId
+      required: true
+      schema:
+        type: string
+    ClusterIds:
+      in: query
+      name: clusterIds
+      schema:
+        type: array
+        items:
+          type: string
+    WorkspaceIds:
+      in: query
+      name: workspaceIds
+      schema:
+        type: array
+        items:
+          type: string
+    ProjectIds:
+      in: query
+      name: projectIds
+      schema:
+        type: array
+        items:
+          type: string
+    Namespaces:
+      in: query
+      name: namespaces
+      schema:
+        type: array
+        items:
+          type: string
+    TimeRangeStart:
+      in: query
+      name: startAt
+      schema:
+        type: string
+        format: date-time
+    TimeRangeEnd:
+      in: query
+      name: endAt
+      schema:
+        type: string
+        format: date-time
+    AlertId:
+      in: path
+      name: alertId
+      required: true
+      schema:
+        type: string
+    RuleId:
+      in: path
+      name: ruleId
+      required: true
+      schema:
+        type: string
+    TargetId:
+      in: path
+      name: targetId
+      required: true
+      schema:
+        type: string
+    SilenceId:
+      in: path
+      name: silenceId
+      required: true
+      schema:
+        type: string
+  schemas:
+    ObservabilityConfig:
+      type: object
+      properties:
+        clusterId:
+          type: string
+        metrics:
+          $ref: '#/components/schemas/DataSourceConfig'
+        logs:
+          $ref: '#/components/schemas/DataSourceConfig'
+        alerts:
+          $ref: '#/components/schemas/DataSourceConfig'
+        eventsEnabled:
+          type: boolean
+    UpdateObservabilityConfigRequest:
+      type: object
+      properties:
+        metrics:
+          $ref: '#/components/schemas/DataSourceConfigInput'
+        logs:
+          $ref: '#/components/schemas/DataSourceConfigInput'
+        alerts:
+          $ref: '#/components/schemas/DataSourceConfigInput'
+        eventsEnabled:
+          type: boolean
+    DataSourceConfig:
+      type: object
+      properties:
+        name:
+          type: string
+        providerKind:
+          type: string
+        baseUrl:
+          type: string
+        status:
+          type: string
+        lastVerifiedAt:
+          type: string
+          format: date-time
+        lastError:
+          type: string
+    DataSourceConfigInput:
+      type: object
+      required: [name, providerKind, baseUrl]
+      properties:
+        name:
+          type: string
+        providerKind:
+          type: string
+        baseUrl:
+          type: string
+        authSecretRef:
+          type: string
+    ObservabilityOverviewResponse:
+      type: object
+      properties:
+        cards:
+          type: array
+          items:
+            $ref: '#/components/schemas/OverviewCard'
+        hotAlerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/AlertIncident'
+        topEvents:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventItem'
+        metricHighlights:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricSummary'
+    OverviewCard:
+      type: object
+      properties:
+        title:
+          type: string
+        value:
+          type: number
+        unit:
+          type: string
+        trend:
+          type: string
+        severity:
+          type: string
+    LogQueryResponse:
+      type: object
+      properties:
+        queryId:
+          type: string
+        status:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogEntry'
+        nextCursor:
+          type: string
+        dataFreshness:
+          type: string
+    LogEntry:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        clusterId:
+          type: string
+        workspaceId:
+          type: string
+        projectId:
+          type: string
+        namespace:
+          type: string
+        workload:
+          type: string
+        pod:
+          type: string
+        container:
+          type: string
+        message:
+          type: string
+    EventListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventItem'
+    EventItem:
+      type: object
+      properties:
+        clusterId:
+          type: string
+        namespace:
+          type: string
+        involvedKind:
+          type: string
+        involvedName:
+          type: string
+        eventType:
+          type: string
+        reason:
+          type: string
+        message:
+          type: string
+        firstSeenAt:
+          type: string
+          format: date-time
+        lastSeenAt:
+          type: string
+          format: date-time
+        count:
+          type: integer
+    MetricSeriesResponse:
+      type: object
+      properties:
+        metricKey:
+          type: string
+        subjectType:
+          type: string
+        subjectRef:
+          type: string
+        window:
+          type: object
+          properties:
+            startAt:
+              type: string
+              format: date-time
+            endAt:
+              type: string
+              format: date-time
+        points:
+          type: array
+          items:
+            type: object
+            properties:
+              timestamp:
+                type: string
+                format: date-time
+              value:
+                type: number
+        dataFreshness:
+          type: string
+    ResourceContextResponse:
+      type: object
+      properties:
+        resourceRef:
+          type: object
+          properties:
+            clusterId:
+              type: string
+            namespace:
+              type: string
+            resourceKind:
+              type: string
+            resourceName:
+              type: string
+        logSummary:
+          type: object
+          properties:
+            queryId:
+              type: string
+            sampleCount:
+              type: integer
+        eventSummary:
+          type: object
+          properties:
+            total:
+              type: integer
+            warningCount:
+              type: integer
+        metricSummary:
+          $ref: '#/components/schemas/MetricSummary'
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/AlertIncident'
+        dataFreshness:
+          type: string
+    MetricSummary:
+      type: object
+      properties:
+        subjectType:
+          type: string
+        subjectRef:
+          type: string
+        cpuUsage:
+          type: number
+        memoryUsage:
+          type: number
+        availability:
+          type: number
+        anomalyFlags:
+          type: array
+          items:
+            type: string
+        observedAt:
+          type: string
+          format: date-time
+    AlertListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AlertIncident'
+    AlertIncident:
+      type: object
+      properties:
+        id:
+          type: string
+        ruleId:
+          type: string
+        clusterId:
+          type: string
+        workspaceId:
+          type: string
+        projectId:
+          type: string
+        namespace:
+          type: string
+        resourceKind:
+          type: string
+        resourceName:
+          type: string
+        severity:
+          type: string
+        status:
+          type: string
+        summary:
+          type: string
+        startsAt:
+          type: string
+          format: date-time
+        acknowledgedAt:
+          type: string
+          format: date-time
+        resolvedAt:
+          type: string
+          format: date-time
+        handlingRecords:
+          type: array
+          items:
+            $ref: '#/components/schemas/HandlingRecord'
+    AcknowledgeAlertRequest:
+      type: object
+      properties:
+        note:
+          type: string
+    CreateHandlingRecordRequest:
+      type: object
+      required: [actionType, content]
+      properties:
+        actionType:
+          type: string
+          enum: [acknowledge, note, handoff, recover-note]
+        content:
+          type: string
+    HandlingRecord:
+      type: object
+      properties:
+        id:
+          type: string
+        actionType:
+          type: string
+        content:
+          type: string
+        actedBy:
+          type: string
+        actedAt:
+          type: string
+          format: date-time
+    AlertRuleListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AlertRule'
+    AlertRule:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        severity:
+          type: string
+        status:
+          type: string
+        syncStatus:
+          type: string
+        scope:
+          $ref: '#/components/schemas/ScopeSelector'
+        evaluationWindow:
+          type: string
+        notificationTargetIds:
+          type: array
+          items:
+            type: string
+    CreateAlertRuleRequest:
+      type: object
+      required: [name, severity, scope, conditionExpression]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        severity:
+          type: string
+          enum: [info, warning, critical]
+        scope:
+          $ref: '#/components/schemas/ScopeSelector'
+        conditionExpression:
+          type: string
+        evaluationWindow:
+          type: string
+        notificationTargetIds:
+          type: array
+          items:
+            type: string
+    UpdateAlertRuleRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateAlertRuleRequest'
+        - type: object
+          properties:
+            status:
+              type: string
+              enum: [enabled, disabled]
+    NotificationTargetListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationTarget'
+    NotificationTarget:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        targetType:
+          type: string
+        status:
+          type: string
+        scope:
+          $ref: '#/components/schemas/ScopeSelector'
+    CreateNotificationTargetRequest:
+      type: object
+      required: [name, targetType]
+      properties:
+        name:
+          type: string
+        targetType:
+          type: string
+          enum: [webhook, email, chat, custom]
+        configSecretRef:
+          type: string
+        scope:
+          $ref: '#/components/schemas/ScopeSelector'
+    UpdateNotificationTargetRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateNotificationTargetRequest'
+        - type: object
+          properties:
+            status:
+              type: string
+              enum: [active, disabled]
+    SilenceListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SilenceWindow'
+    SilenceWindow:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+        reason:
+          type: string
+        scope:
+          $ref: '#/components/schemas/ScopeSelector'
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+    CreateSilenceRequest:
+      type: object
+      required: [name, reason, scope, startsAt, endsAt]
+      properties:
+        name:
+          type: string
+        reason:
+          type: string
+        scope:
+          $ref: '#/components/schemas/ScopeSelector'
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+    ScopeSelector:
+      type: object
+      properties:
+        clusterIds:
+          type: array
+          items:
+            type: string
+        workspaceIds:
+          type: array
+          items:
+            type: string
+        projectIds:
+          type: array
+          items:
+            type: string
+        namespaces:
+          type: array
+          items:
+            type: string
+        resourceKinds:
+          type: array
+          items:
+            type: string
+        resourceNames:
+          type: array
+          items:
+            type: string
+        labelSelector:
+          type: string

@@ -91,3 +91,120 @@ export type ListResourcesResponseDTO = {
   items?: ResourceInventoryDTO[];
   Items?: ResourceInventoryDTO[];
 };
+
+export type ObservabilityScopeDTO = {
+  clusterIds?: string[];
+  workspaceIds?: string[];
+  projectIds?: string[];
+  namespaces?: string[];
+  resourceKinds?: string[];
+  resourceNames?: string[];
+};
+
+export type ObservabilityOverviewCardDTO = {
+  title: string;
+  value: number;
+  unit?: string;
+  trend?: string;
+  severity?: string;
+};
+
+export type ObservabilityOverviewDTO = {
+  cards: ObservabilityOverviewCardDTO[];
+};
+
+export type ObservabilityLogEntryDTO = {
+  timestamp: string;
+  clusterId?: string;
+  workspaceId?: string;
+  projectId?: string;
+  namespace?: string;
+  workload?: string;
+  pod?: string;
+  container?: string;
+  message: string;
+};
+
+export type ObservabilityEventDTO = {
+  clusterId?: string;
+  namespace?: string;
+  involvedKind?: string;
+  involvedName?: string;
+  eventType?: 'normal' | 'warning';
+  reason?: string;
+  message?: string;
+  firstSeenAt?: string;
+  lastSeenAt?: string;
+  count?: number;
+};
+
+export type ObservabilityMetricPointDTO = {
+  timestamp: string;
+  value: number;
+};
+
+export type ObservabilityMetricSeriesDTO = {
+  metricKey: string;
+  subjectType: 'cluster' | 'node' | 'namespace' | 'workload' | 'pod';
+  subjectRef: string;
+  points: ObservabilityMetricPointDTO[];
+  dataFreshness?: string;
+};
+
+export type ObservabilityAlertDTO = {
+  id: string | number;
+  ruleId?: string;
+  clusterId?: string;
+  workspaceId?: string;
+  projectId?: string;
+  namespace?: string;
+  resourceKind?: string;
+  resourceName?: string;
+  severity?: 'info' | 'warning' | 'critical';
+  status?: 'firing' | 'acknowledged' | 'silenced' | 'resolved';
+  summary?: string;
+  startsAt?: string;
+  acknowledgedAt?: string;
+  resolvedAt?: string;
+  sourceIncidentKey?: string;
+};
+
+export type ObservabilityHandlingRecordDTO = {
+  id: string | number;
+  incidentId: string | number;
+  actionType: string;
+  content?: string;
+  actedBy?: string | number;
+  actedAt?: string;
+};
+
+export type ObservabilityAlertRuleDTO = {
+  id: string | number;
+  name: string;
+  description?: string;
+  severity: 'info' | 'warning' | 'critical';
+  scopeSnapshotJson?: string;
+  conditionExpression: string;
+  evaluationWindow?: string;
+  notificationStrategy?: string;
+  status: 'enabled' | 'disabled';
+};
+
+export type ObservabilityNotificationTargetDTO = {
+  id: string | number;
+  name: string;
+  targetType: string;
+  configRef?: string;
+  scopeSnapshot?: string;
+  status?: 'active' | 'disabled' | string;
+};
+
+export type ObservabilitySilenceWindowDTO = {
+  id: string | number;
+  name: string;
+  scopeSnapshot?: string;
+  reason?: string;
+  startsAt?: string;
+  endsAt?: string;
+  status?: 'scheduled' | 'active' | 'expired' | 'canceled' | string;
+};
