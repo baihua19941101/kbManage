@@ -1,0 +1,55 @@
+记录时间: 2026-04-11T21:48:19+08:00
+功能标识: 002-observability-center
+关联说明: 001 已确认合并到 main；本次备份作为 002 实施前的数据保护基线
+执行分支: 002-observability-center
+容器: mysql8
+
+执行记录:
+1) 命令: mysql -hlocalhost -P3306 -uadmin -p123456 -e "SELECT 1;"
+   结果: 沿用 001 历史结论，不重复执行
+   异常: admin 账号在当前容器环境中不可用
+   处置: 使用已验证可用的 root 账号执行 002 备份
+
+2) 命令: mysql -hlocalhost -P3306 -uroot -p123456 -e "SELECT NOW() AS backup_check;"
+   结果: 成功
+   输出: 2026-04-11 13:48:10
+
+3) 命令: mysqldump -hlocalhost -P3306 -uroot -p123456 --all-databases --single-transaction --quick --routines --events --triggers > artifacts/002-observability-center/mysql-backup-20260411-214819.sql
+   结果: 成功
+   产物: artifacts/002-observability-center/mysql-backup-20260411-214819.sql
+   文件大小: 33529235 bytes
+
+4) 命令: sha256sum artifacts/002-observability-center/mysql-backup-20260411-214819.sql
+   结果: 2ef9f9271b6bcc72e8d1d9099778d99b668e4e9148e34aee431f152b56c30a94
+
+恢复抽样验证:
+5) 命令: docker run -d --name mysql8-restore-check-002 -e MYSQL_ROOT_PASSWORD=123456 mysql:8.0
+   结果: 成功，临时恢复容器已启动
+
+6) 命令: docker exec -i mysql8-restore-check-002 sh -lc 'mysql -uroot -p123456' < artifacts/002-observability-center/mysql-backup-20260411-214819.sql
+   结果: 成功，完整备份已导入临时容器
+
+7) 命令: docker exec mysql8-restore-check-002 sh -lc 'mysql -uroot -p123456 -Nse "SHOW DATABASES"'
+   结果: 成功，恢复后数据库列表与源容器一致
+   抽样数据库:
+   - cdn_manage
+   - kb_manage
+   - kubemanage
+
+8) 命令: docker exec mysql8-restore-check-002 sh -lc 'mysql -uroot -p123456 -Nse "SELECT table_schema, COUNT(*) FROM information_schema.tables WHERE table_schema NOT IN (\"information_schema\",\"mysql\",\"performance_schema\",\"sys\") GROUP BY table_schema ORDER BY table_schema;"'
+   结果: 成功，抽样表计数与源容器一致
+   抽样结果:
+   - cdn_manage: 6
+   - kb_manage: 11
+   - kubemanage: 4
+
+9) 命令: docker rm -f mysql8-restore-check-002
+   结果: 成功，临时恢复容器已清理
+
+容器环境证据:
+- MYSQL_ROOT_PASSWORD=123456
+- MYSQL_USER=bh
+
+结论:
+- 002 实施前数据库备份已完成并通过临时容器恢复抽样验证
+- 由于当前容器环境不提供 admin 初始化配置，实际执行采用 root/123456

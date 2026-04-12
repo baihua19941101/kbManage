@@ -21,6 +21,7 @@ vendor/
 Thumbs.db
 .vscode/
 .idea/
+.codex/
 *.swp
 *.tmp
 

@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { ResourceListPage } from '@/features/resources/pages/ResourceListPage';
 import { listResources, type ResourceListItem } from '@/services/resources';
 
@@ -114,7 +115,11 @@ describe('ResourceListPage', () => {
       return resources;
     });
 
-    render(<ResourceListPage />);
+    render(
+      <MemoryRouter>
+        <ResourceListPage />
+      </MemoryRouter>
+    );
 
     await waitFor(() => {
       expect(listResources).toHaveBeenCalledWith({});

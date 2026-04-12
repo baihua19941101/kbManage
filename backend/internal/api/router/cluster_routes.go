@@ -25,13 +25,26 @@ func RegisterClusterRoutes(group *gin.RouterGroup, db *gorm.DB) {
 	syncWorker := worker.NewClusterSyncWorker(resourceIndexer, 128, 20*time.Second)
 	syncWorker.Start(context.Background())
 
-	svc := clusterSvc.NewService(clusterRepo, credRepo, resourceRepo, cipher, resourceIndexer, syncWorker, clientManager)
+	svc := clusterSvc.NewService(
+		clusterRepo,
+		credRepo,
+		resourceRepo,
+		cipher,
+		resourceIndexer,
+		syncWorker,
+		clientManager,
+		repository.NewWorkspaceClusterRepository(db),
+		repository.NewProjectRepository(db),
+	)
 	scopeAccess := newScopeAccessService(db)
 	clusterHandler := handler.NewClusterHandler(svc, scopeAccess)
 	resourceHandler := handler.NewResourceHandler(svc, scopeAccess)
+	observabilityConfigHandler := handler.NewObservabilityConfigHandler(nil)
 
 	group.GET("/clusters", clusterHandler.List)
 	group.POST("/clusters", clusterHandler.Register)
+	group.GET("/clusters/:id/observability-config", observabilityConfigHandler.GetClusterConfig)
+	group.PUT("/clusters/:id/observability-config", observabilityConfigHandler.UpdateClusterConfig)
 	group.POST("/clusters/:id/connectivity", clusterHandler.ValidateConnectivity)
 	group.POST("/clusters/:id/sync", clusterHandler.SyncResources)
 	group.GET("/clusters/:id/health-summary", clusterHandler.HealthSummary)

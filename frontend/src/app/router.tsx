@@ -59,6 +59,80 @@ export const router = createBrowserRouter([
               const { AuditEventPage } = await import('@/features/audit/pages/AuditEventPage');
               return { Component: AuditEventPage };
             }
+          },
+          {
+            path: '/observability',
+            lazy: async () => {
+              const { ObservabilityOverviewPage } = await import(
+                '@/features/observability/pages/ObservabilityOverviewPage'
+              );
+              return { Component: ObservabilityOverviewPage };
+            }
+          },
+          {
+            path: '/observability/logs',
+            lazy: async () => {
+              const { LogExplorerPage } = await import(
+                '@/features/observability/pages/LogExplorerPage'
+              );
+              return { Component: LogExplorerPage };
+            }
+          },
+          {
+            path: '/observability/events',
+            lazy: async () => {
+              const { EventExplorerPage } = await import(
+                '@/features/observability/pages/EventExplorerPage'
+              );
+              return { Component: EventExplorerPage };
+            }
+          },
+          {
+            path: '/observability/metrics',
+            lazy: async () => {
+              const { MetricsExplorerPage } = await import(
+                '@/features/observability/pages/MetricsExplorerPage'
+              );
+              return { Component: MetricsExplorerPage };
+            }
+          },
+          {
+            path: '/observability/context',
+            lazy: async () => {
+              const { ResourceContextPage } = await import(
+                '@/features/observability/pages/ResourceContextPage'
+              );
+              return { Component: ResourceContextPage };
+            }
+          },
+          {
+            path: '/observability/alerts',
+            lazy: async () => {
+              const { AlertCenterPage } = await import(
+                '@/features/observability/pages/AlertCenterPage'
+              );
+              return { Component: AlertCenterPage };
+            }
+          },
+          {
+            path: '/observability/alert-rules',
+            lazy: async () => {
+              const { AlertRulePage } = await import('@/features/observability/pages/AlertRulePage');
+              return { Component: AlertRulePage };
+            }
+          },
+          {
+            path: '/observability/silences',
+            lazy: async () => {
+              const { SilenceWindowPage } = await import(
+                '@/features/observability/pages/SilenceWindowPage'
+              );
+              return { Component: SilenceWindowPage };
+            }
+          },
+          {
+            path: '/observability/*',
+            element: <Navigate to="/observability" replace />
           }
         ]
       }

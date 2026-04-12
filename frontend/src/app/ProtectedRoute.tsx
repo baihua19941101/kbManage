@@ -1,12 +1,32 @@
 import { Spin } from 'antd';
 import { useEffect, useState } from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
-import { useAuthStore } from '@/features/auth/store';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import {
+  canReadObservability,
+  hasAnyRole,
+  useAuthStore
+} from '@/features/auth/store';
 import { refreshSession } from '@/services/auth';
+
+type RouteGuard = {
+  pathPrefix: string;
+  canAccess: (user: ReturnType<typeof useAuthStore.getState>['user']) => boolean;
+};
+
+const routeGuards: RouteGuard[] = [
+  { pathPrefix: '/workspaces', canAccess: (user) => hasAnyRole(user, ['platform-admin']) },
+  { pathPrefix: '/projects', canAccess: (user) => hasAnyRole(user, ['platform-admin', 'ops-operator']) },
+  { pathPrefix: '/audit-events', canAccess: (user) => hasAnyRole(user, ['platform-admin', 'audit-reader']) },
+  {
+    pathPrefix: '/observability',
+    canAccess: canReadObservability
+  }
+];
 
 export const ProtectedRoute = () => {
   const { isAuthenticated, accessToken, refreshToken, clearSession, setSession, user } =
     useAuthStore();
+  const location = useLocation();
   const [refreshChecked, setRefreshChecked] = useState(false);
 
   useEffect(() => {
@@ -65,6 +85,11 @@ export const ProtectedRoute = () => {
         <Spin size="large" tip="正在恢复会话..." />
       </div>
     );
+  }
+
+  const matchedGuard = routeGuards.find((guard) => location.pathname.startsWith(guard.pathPrefix));
+  if (matchedGuard && !matchedGuard.canAccess(user)) {
+    return <Navigate to="/" replace />;
   }
 
   return <Outlet />;

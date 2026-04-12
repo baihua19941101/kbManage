@@ -47,6 +47,10 @@ npm config set registry https://registry.npmmirror.com
 - `mysql.host / port / user / password / database / parse_time`
 - `redis.addr / password / db`
 - `security.jwt_secret / access_token_ttl / refresh_token_ttl`
+- `observability.metrics.base_url / auth_secret_ref / timeout`
+- `observability.logs.base_url / auth_secret_ref / timeout`
+- `observability.alerts.base_url / auth_secret_ref / timeout`
+- `observability.cache.query_ttl / sync_interval`
 
 说明：
 
@@ -118,6 +122,24 @@ npm run build
 
 ## 当前状态说明
 
-- 已完成基础骨架、配置体系与 US1/US2 的关键链路修复（含资源接口契约对齐、授权中间件、角色绑定校验）。
-- 前端已接入 Vitest 基础用例并启用路由级懒加载，构建可通过。
-- 审计导出与运维执行链路已具备基础流程，后续继续完善导出产物与保留策略。
+- 002-observability-center 已完成 US1/US2/US3（统一观测入口、告警治理闭环、工作空间/项目级权限隔离）。
+- 可观测后端接口已按读写动作区分权限：`observability:read`（读取）与 `observability:write`（治理动作）。
+- 前端已补齐可观测权限空态/只读态/权限回收处理，并通过 Vitest 与 ESLint 验证。
+
+## 002 可观测联调要点
+
+- 后端默认读取 `backend/config/config.dev.yaml`，按需配置：
+  - `observability.metrics.base_url`
+  - `observability.logs.base_url`
+  - `observability.alerts.base_url`
+  - `observability.cache.query_ttl`
+  - `observability.cache.sync_interval`
+- 前端入口：
+  - `/observability`（总览）
+  - `/observability/logs`、`/observability/events`、`/observability/metrics`
+  - `/observability/alerts`、`/observability/alert-rules`、`/observability/silences`
+- 如需复现实验基线，执行：
+
+```bash
+bash artifacts/002-observability-center/repro-observability-smoke.sh
+```

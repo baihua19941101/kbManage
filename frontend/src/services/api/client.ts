@@ -23,6 +23,14 @@ const pickMessage = (payload: unknown): string | undefined => {
     }
   }
 
+  const nestedError = payload.error;
+  if (isRecord(nestedError) && typeof nestedError.message === 'string') {
+    const trimmed = nestedError.message.trim();
+    if (trimmed.length > 0) {
+      return trimmed;
+    }
+  }
+
   return undefined;
 };
 
@@ -119,6 +127,25 @@ export class ApiError extends Error {
     this.url = options.url;
   }
 }
+
+export const normalizeApiError = (
+  error: unknown,
+  fallback = '请求失败，请稍后重试'
+): string => {
+  if (error instanceof ApiError && error.message.trim().length > 0) {
+    return error.message.trim();
+  }
+
+  if (error instanceof Error && error.message.trim().length > 0) {
+    return error.message.trim();
+  }
+
+  if (typeof error === 'string' && error.trim().length > 0) {
+    return error.trim();
+  }
+
+  return fallback;
+};
 
 export type FetchJSONInit = RequestInit & {
   skipAuth?: boolean;

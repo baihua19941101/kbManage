@@ -41,3 +41,27 @@ cors:
   expose_headers: ["X-Request-Id"]
   allow_credentials: true
   max_age_seconds: 600
+
+observability:
+  metrics:
+    # Prometheus 兼容查询端点（例如: http://prometheus:9090）
+    base_url: ""
+    # 可选：认证凭据引用键（由后端安全存储解析）
+    auth_secret_ref: ""
+    # 查询超时，Go duration 格式
+    timeout: "10s"
+  logs:
+    # Loki 兼容查询端点（例如: http://loki:3100）
+    base_url: ""
+    auth_secret_ref: ""
+    timeout: "15s"
+  alerts:
+    # Alertmanager 兼容端点（例如: http://alertmanager:9093）
+    base_url: ""
+    auth_secret_ref: ""
+    timeout: "10s"
+  cache:
+    # 查询缓存 TTL，Go duration 格式
+    query_ttl: "30s"
+    # 告警运行态同步间隔，Go duration 格式（生产建议 >= 30s）
+    sync_interval: "30s"

@@ -3,6 +3,8 @@ package audit
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -18,6 +20,21 @@ const (
 	OperationAuditActionFailure = "operation.failure"
 
 	OperationAuditResourceType = "operation"
+
+	ObservabilityAuditResourceType = "observability"
+
+	ObservabilityAuditActionAlertSync                 = "observability.alert.sync"
+	ObservabilityAuditActionAlertAcknowledge          = "observability.alert.acknowledge"
+	ObservabilityAuditActionAlertHandlingRecordCreate = "observability.alert.handling_record.create"
+	ObservabilityAuditActionAlertRuleCreate           = "observability.alert_rule.create"
+	ObservabilityAuditActionAlertRuleUpdate           = "observability.alert_rule.update"
+	ObservabilityAuditActionAlertRuleDelete           = "observability.alert_rule.delete"
+	ObservabilityAuditActionNotificationTargetCreate  = "observability.notification_target.create"
+	ObservabilityAuditActionNotificationTargetUpdate  = "observability.notification_target.update"
+	ObservabilityAuditActionNotificationTargetDelete  = "observability.notification_target.delete"
+	ObservabilityAuditActionSilenceCreate             = "observability.silence.create"
+	ObservabilityAuditActionSilenceCancel             = "observability.silence.cancel"
+	ObservabilityAuditActionAccessRead                = "observability.access.read"
 )
 
 type EventWriter struct {
@@ -50,17 +67,24 @@ func (w *EventWriter) Write(
 		return err
 	}
 
+	scopeSnapshot, _ := buildScopeSnapshotJSON(resourceID, details)
+	category, actionScope, tags := classifyAuditMetadata(action, details)
+
 	event := &domain.AuditEvent{
-		RequestID:    requestID,
-		ActorID:      actorID,
-		ClusterID:    resolveClusterID(resourceType, resourceID, details),
-		WorkspaceID:  resolveWorkspaceID(resourceID, details),
-		ProjectID:    resolveProjectID(resourceID, details),
-		Action:       action,
-		ResourceType: resourceType,
-		ResourceID:   resourceID,
-		Outcome:      outcome,
-		Details:      payload,
+		RequestID:     requestID,
+		ActorID:       actorID,
+		ClusterID:     resolveClusterID(resourceType, resourceID, details),
+		WorkspaceID:   resolveWorkspaceID(resourceID, details),
+		ProjectID:     resolveProjectID(resourceID, details),
+		AuditCategory: category,
+		ActionScope:   actionScope,
+		ScopeSnapshot: scopeSnapshot,
+		SearchTags:    strings.Join(tags, ","),
+		Action:        action,
+		ResourceType:  resourceType,
+		ResourceID:    resourceID,
+		Outcome:       outcome,
+		Details:       payload,
 	}
 	return w.repo.Create(ctx, event)
 }
@@ -85,6 +109,30 @@ func (w *EventWriter) WriteOperationEvent(
 		action,
 		OperationAuditResourceType,
 		strconv.FormatUint(operationID, 10),
+		outcome,
+		details,
+	)
+}
+
+func (w *EventWriter) WriteObservabilityEvent(
+	ctx context.Context,
+	requestID string,
+	actorID *uint64,
+	action string,
+	resourceID string,
+	outcome domain.AuditOutcome,
+	details map[string]any,
+) error {
+	if details == nil {
+		details = map[string]any{}
+	}
+	return w.Write(
+		ctx,
+		requestID,
+		actorID,
+		action,
+		ObservabilityAuditResourceType,
+		strings.TrimSpace(resourceID),
 		outcome,
 		details,
 	)
@@ -240,4 +288,114 @@ func convertToUint64(value any) (uint64, bool) {
 	default:
 		return 0, false
 	}
+}
+
+func classifyAuditMetadata(action string, details map[string]any) (string, string, []string) {
+	action = strings.TrimSpace(strings.ToLower(action))
+	category := "general"
+	actionScope := "unknown"
+	if strings.HasPrefix(action, "observability.") {
+		category = "observability"
+		actionScope = "access"
+		switch {
+		case strings.Contains(action, "alert_rule."):
+			actionScope = "alert_rule"
+		case strings.Contains(action, "silence."):
+			actionScope = "silence"
+		case strings.Contains(action, "acknowledge"):
+			actionScope = "acknowledge"
+		case strings.Contains(action, "handling_record"):
+			actionScope = "handling_record"
+		case strings.Contains(action, "access.read"):
+			actionScope = "access"
+		}
+	}
+
+	tags := map[string]struct{}{
+		fmt.Sprintf("category:%s", category): {},
+		fmt.Sprintf("scope:%s", actionScope): {},
+	}
+	addTagFromDetails(tags, details, "operation", "operation")
+	addTagFromDetails(tags, details, "resourceKind", "resourceKind")
+	addTagFromDetails(tags, details, "resourceName", "resourceName")
+	addTagFromDetails(tags, details, "subjectType", "subjectType")
+
+	out := make([]string, 0, len(tags))
+	for tag := range tags {
+		out = append(out, tag)
+	}
+	sort.Strings(out)
+	return category, actionScope, out
+}
+
+func addTagFromDetails(tags map[string]struct{}, details map[string]any, key, prefix string) {
+	if details == nil {
+		return
+	}
+	v, ok := findValueByKey(details, key)
+	if !ok {
+		return
+	}
+	text, ok := v.(string)
+	if !ok {
+		return
+	}
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return
+	}
+	tags[fmt.Sprintf("%s:%s", prefix, text)] = struct{}{}
+}
+
+func buildScopeSnapshotJSON(resourceID string, details map[string]any) (json.RawMessage, error) {
+	clusterIDs := make([]uint64, 0, 1)
+	workspaceIDs := make([]uint64, 0, 1)
+	projectIDs := make([]uint64, 0, 1)
+
+	if id, ok := authSvc.ParseClusterIDFromReference(resourceID); ok && id != 0 {
+		clusterIDs = append(clusterIDs, id)
+	}
+	if id := parseScopeIDFromReference(resourceID, "workspace"); id != nil {
+		workspaceIDs = append(workspaceIDs, *id)
+	}
+	if id := parseScopeIDFromReference(resourceID, "project"); id != nil {
+		projectIDs = append(projectIDs, *id)
+	}
+
+	if id := resolveOptionalUint64(details, "clusterId", "clusterID"); id != nil {
+		clusterIDs = append(clusterIDs, *id)
+	}
+	if id := resolveOptionalUint64(details, "workspaceId", "workspaceID"); id != nil {
+		workspaceIDs = append(workspaceIDs, *id)
+	}
+	if id := resolveOptionalUint64(details, "projectId", "projectID"); id != nil {
+		projectIDs = append(projectIDs, *id)
+	}
+
+	payload := map[string]any{
+		"clusterIds":   uniqueIDs(clusterIDs),
+		"workspaceIds": uniqueIDs(workspaceIDs),
+		"projectIds":   uniqueIDs(projectIDs),
+	}
+	encoded, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+	return json.RawMessage(encoded), nil
+}
+
+func uniqueIDs(values []uint64) []uint64 {
+	set := make(map[uint64]struct{}, len(values))
+	for _, value := range values {
+		if value == 0 {
+			continue
+		}
+		set[value] = struct{}{}
+	}
+	out := make([]uint64, 0, len(set))
+	for value := range set {
+		out = append(out, value)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i] < out[j] })
+	return out
 }

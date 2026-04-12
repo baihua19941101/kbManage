@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -58,6 +59,8 @@ type Service struct {
 	syncDispatcher  SyncDispatcher
 	cipher          CredentialCipher
 	clientManager   *kubeclient.Manager
+	workspaceBinds  *repository.WorkspaceClusterRepository
+	projectRepo     *repository.ProjectRepository
 }
 
 func NewService(
@@ -68,6 +71,8 @@ func NewService(
 	resourceIndexer adapter.ResourceIndexer,
 	syncDispatcher SyncDispatcher,
 	clientManager *kubeclient.Manager,
+	workspaceBinds *repository.WorkspaceClusterRepository,
+	projectRepo *repository.ProjectRepository,
 ) *Service {
 	if resourceIndexer == nil {
 		resourceIndexer = adapter.NoopResourceIndexer{}
@@ -83,6 +88,8 @@ func NewService(
 		syncDispatcher:  syncDispatcher,
 		cipher:          cipher,
 		clientManager:   clientManager,
+		workspaceBinds:  workspaceBinds,
+		projectRepo:     projectRepo,
 	}
 }
 
@@ -303,4 +310,87 @@ func (s *Service) ListClustersByIDs(ctx context.Context, clusterIDs []uint64) ([
 		return []domain.Cluster{}, nil
 	}
 	return s.clusterRepo.ListByIDs(ctx, clusterIDs)
+}
+
+func (s *Service) ResolveObservabilityScopeByClusterIDs(
+	ctx context.Context,
+	clusterIDs []uint64,
+) ([]uint64, []uint64, error) {
+	workspaceSet := make(map[uint64]struct{}, len(clusterIDs))
+	projectSet := make(map[uint64]struct{}, len(clusterIDs))
+
+	for _, clusterID := range clusterIDs {
+		if clusterID == 0 {
+			continue
+		}
+		workspaceIDs, projectIDs, err := s.ResolveObservabilityScopeByClusterID(ctx, clusterID)
+		if err != nil {
+			return nil, nil, err
+		}
+		for _, workspaceID := range workspaceIDs {
+			workspaceSet[workspaceID] = struct{}{}
+		}
+		for _, projectID := range projectIDs {
+			projectSet[projectID] = struct{}{}
+		}
+	}
+
+	return sortedKeys(workspaceSet), sortedKeys(projectSet), nil
+}
+
+func (s *Service) ResolveObservabilityScopeByClusterID(
+	ctx context.Context,
+	clusterID uint64,
+) ([]uint64, []uint64, error) {
+	if clusterID == 0 {
+		return []uint64{}, []uint64{}, nil
+	}
+	if s == nil || s.workspaceBinds == nil {
+		return []uint64{}, []uint64{}, nil
+	}
+
+	workspaceSet := map[uint64]struct{}{}
+	projectSet := map[uint64]struct{}{}
+
+	workspaceBindings, err := s.workspaceBinds.ListByCluster(ctx, clusterID)
+	if err != nil {
+		return nil, nil, err
+	}
+	for _, binding := range workspaceBindings {
+		if binding.WorkspaceID != 0 {
+			workspaceSet[binding.WorkspaceID] = struct{}{}
+		}
+	}
+
+	projectBindings, err := s.workspaceBinds.ListProjectBindingsByCluster(ctx, clusterID)
+	if err != nil {
+		return nil, nil, err
+	}
+	for _, binding := range projectBindings {
+		if binding.ProjectID == 0 {
+			continue
+		}
+		projectSet[binding.ProjectID] = struct{}{}
+		if s.projectRepo == nil {
+			continue
+		}
+		projectItem, err := s.projectRepo.GetByID(ctx, binding.ProjectID)
+		if err != nil {
+			return nil, nil, err
+		}
+		if projectItem.WorkspaceID != 0 {
+			workspaceSet[projectItem.WorkspaceID] = struct{}{}
+		}
+	}
+
+	return sortedKeys(workspaceSet), sortedKeys(projectSet), nil
+}
+
+func sortedKeys(set map[uint64]struct{}) []uint64 {
+	out := make([]uint64, 0, len(set))
+	for id := range set {
+		out = append(out, id)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i] < out[j] })
+	return out
 }

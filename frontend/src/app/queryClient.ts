@@ -1,6 +1,6 @@
 import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
 import { message } from 'antd';
-import { ApiError } from '@/services/api/client';
+import { ApiError, normalizeApiError } from '@/services/api/client';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
@@ -36,6 +36,17 @@ export const normalizeErrorMessage = (
   return fallback;
 };
 
+export const queryKeys = {
+  observability: {
+    all: ['observability'] as const,
+    overview: (scope?: string) => ['observability', 'overview', scope ?? 'default'] as const,
+    logs: (scope?: string) => ['observability', 'logs', scope ?? 'default'] as const,
+    events: (scope?: string) => ['observability', 'events', scope ?? 'default'] as const,
+    metrics: (scope?: string) => ['observability', 'metrics', scope ?? 'default'] as const,
+    alerts: (scope?: string) => ['observability', 'alerts', scope ?? 'default'] as const
+  }
+};
+
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error, query) => {
@@ -43,7 +54,7 @@ export const queryClient = new QueryClient({
         return;
       }
 
-      message.error(normalizeErrorMessage(error, '查询失败，请稍后重试'));
+      message.error(normalizeApiError(error, '查询失败，请稍后重试'));
     }
   }),
   mutationCache: new MutationCache({
@@ -52,7 +63,7 @@ export const queryClient = new QueryClient({
         return;
       }
 
-      message.error(normalizeErrorMessage(error, '提交失败，请稍后重试'));
+      message.error(normalizeApiError(error, '提交失败，请稍后重试'));
     }
   }),
   defaultOptions: {

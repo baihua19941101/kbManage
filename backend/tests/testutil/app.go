@@ -59,6 +59,7 @@ func NewApp(t *testing.T) *App {
 		&domain.Workspace{},
 		&domain.Project{},
 		&repository.WorkspaceClusterBinding{},
+		&repository.ProjectClusterBinding{},
 		&repository.ScopeRole{},
 		&repository.ScopeRoleBinding{},
 		&domain.OperationRequest{},
@@ -66,6 +67,12 @@ func NewApp(t *testing.T) *App {
 		&domain.Cluster{},
 		&repository.ClusterCredential{},
 		&repository.ResourceInventory{},
+		&domain.ObservabilityDataSource{},
+		&domain.AlertRule{},
+		&domain.NotificationTarget{},
+		&domain.SilenceWindow{},
+		&domain.AlertIncidentSnapshot{},
+		&domain.AlertHandlingRecord{},
 	); err != nil {
 		t.Fatalf("auto-migrate test schema failed: %v", err)
 	}

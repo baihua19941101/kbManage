@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+export type PlatformRole = 'platform-admin' | 'ops-operator' | 'audit-reader' | 'readonly';
+
 type AuthUser = {
   id: string;
   username: string;
@@ -73,6 +75,41 @@ const restoreSession = (): Pick<
 };
 
 const initialState = restoreSession();
+
+const OBSERVABILITY_READ_ROLES: PlatformRole[] = [
+  'platform-admin',
+  'ops-operator',
+  'audit-reader',
+  'readonly'
+];
+const OBSERVABILITY_MANAGE_ROLES: PlatformRole[] = ['platform-admin', 'ops-operator'];
+
+const getUserRoles = (user: AuthUser | null | undefined): string[] => {
+  if (!user || !Array.isArray(user.platformRoles)) {
+    return [];
+  }
+  return user.platformRoles;
+};
+
+export const hasAnyRole = (
+  user: AuthUser | null | undefined,
+  expectedRoles: readonly string[]
+): boolean => {
+  if (!user) {
+    return false;
+  }
+  const roles = getUserRoles(user);
+  if (roles.length === 0) {
+    return false;
+  }
+  return expectedRoles.some((role) => roles.includes(role));
+};
+
+export const canReadObservability = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, OBSERVABILITY_READ_ROLES);
+
+export const canManageObservability = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, OBSERVABILITY_MANAGE_ROLES);
 
 export const useAuthStore = create<AuthState>((set) => ({
   ...initialState,

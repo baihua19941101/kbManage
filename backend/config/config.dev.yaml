@@ -61,3 +61,27 @@ cors:
   allow_credentials: true
   # 预检请求缓存秒数
   max_age_seconds: 600
+
+observability:
+  metrics:
+    # Prometheus 兼容查询端点
+    base_url: "http://127.0.0.1:9090"
+    # 认证凭据引用键（如无可留空）
+    auth_secret_ref: ""
+    # 查询超时（Go duration）
+    timeout: "10s"
+  logs:
+    # Loki 兼容查询端点
+    base_url: "http://127.0.0.1:3100"
+    auth_secret_ref: ""
+    timeout: "15s"
+  alerts:
+    # Alertmanager 兼容端点
+    base_url: "http://127.0.0.1:9093"
+    auth_secret_ref: ""
+    timeout: "10s"
+  cache:
+    # 查询缓存时长
+    query_ttl: "30s"
+    # 告警运行态同步轮询间隔
+    sync_interval: "30s"

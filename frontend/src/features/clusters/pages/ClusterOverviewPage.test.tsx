@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
 import { ClusterOverviewPage } from '@/features/clusters/pages/ClusterOverviewPage';
 import { createCluster, listClusters, type Cluster } from '@/services/clusters';
 
@@ -84,7 +85,9 @@ describe('ClusterOverviewPage', () => {
 
     return render(
       <QueryClientProvider client={queryClient}>
-        <ClusterOverviewPage />
+        <MemoryRouter>
+          <ClusterOverviewPage />
+        </MemoryRouter>
       </QueryClientProvider>
     );
   };

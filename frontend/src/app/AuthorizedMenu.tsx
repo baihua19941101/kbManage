@@ -2,27 +2,62 @@ import { Menu } from 'antd';
 import type { MenuProps } from 'antd';
 import { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '@/features/auth/store';
-
-type MenuRole = 'platform-admin' | 'ops-operator' | 'audit-reader' | 'readonly';
+import {
+  canManageObservability,
+  canReadObservability,
+  hasAnyRole,
+  useAuthStore
+} from '@/features/auth/store';
 
 type MenuItemConfig = {
   key: string;
   label: string;
-  requiredRoles?: MenuRole[];
+  visibleWhen?: (rolesUser: ReturnType<typeof useAuthStore.getState>['user']) => boolean;
 };
 
 const allMenuItems: MenuItemConfig[] = [
   { key: '/', label: '首页' },
-  { key: '/clusters', label: '集群', requiredRoles: ['platform-admin', 'ops-operator', 'readonly'] },
+  {
+    key: '/clusters',
+    label: '集群',
+    visibleWhen: (user) => hasAnyRole(user, ['platform-admin', 'ops-operator', 'readonly'])
+  },
   {
     key: '/resources',
     label: '资源',
-    requiredRoles: ['platform-admin', 'ops-operator', 'readonly']
+    visibleWhen: (user) => hasAnyRole(user, ['platform-admin', 'ops-operator', 'readonly'])
   },
-  { key: '/workspaces', label: '工作空间', requiredRoles: ['platform-admin'] },
-  { key: '/projects', label: '项目', requiredRoles: ['platform-admin', 'ops-operator'] },
-  { key: '/audit-events', label: '审计', requiredRoles: ['platform-admin', 'audit-reader'] }
+  { key: '/workspaces', label: '工作空间', visibleWhen: (user) => hasAnyRole(user, ['platform-admin']) },
+  {
+    key: '/projects',
+    label: '项目',
+    visibleWhen: (user) => hasAnyRole(user, ['platform-admin', 'ops-operator'])
+  },
+  {
+    key: '/audit-events',
+    label: '审计',
+    visibleWhen: (user) => hasAnyRole(user, ['platform-admin', 'audit-reader'])
+  },
+  {
+    key: '/observability',
+    label: '可观测',
+    visibleWhen: canReadObservability
+  },
+  {
+    key: '/observability/alerts',
+    label: '告警中心',
+    visibleWhen: canReadObservability
+  },
+  {
+    key: '/observability/alert-rules',
+    label: '告警规则',
+    visibleWhen: canReadObservability
+  },
+  {
+    key: '/observability/silences',
+    label: '静默窗口',
+    visibleWhen: canManageObservability
+  }
 ];
 
 const findBestSelectedKey = (pathname: string, keys: string[]): string => {
@@ -40,32 +75,14 @@ export const AuthorizedMenu = () => {
   const location = useLocation();
   const user = useAuthStore((state) => state.user);
 
-  const currentRoles = useMemo(() => {
-    if (!user) {
-      return [] as string[];
-    }
-
-    if (Array.isArray(user.platformRoles) && user.platformRoles.length > 0) {
-      return user.platformRoles;
-    }
-
-    return [];
-  }, [user]);
-
   const authorizedItems = useMemo(() => {
-    const hasRoleData = currentRoles.length > 0;
     return allMenuItems.filter((item) => {
-      if (!item.requiredRoles || item.requiredRoles.length === 0) {
+      if (!item.visibleWhen) {
         return true;
       }
-
-      if (!hasRoleData) {
-        return false;
-      }
-
-      return item.requiredRoles.some((role) => currentRoles.includes(role));
+      return item.visibleWhen(user);
     });
-  }, [currentRoles]);
+  }, [user]);
 
   const menuItems = useMemo<NonNullable<MenuProps['items']>>(
     () =>
