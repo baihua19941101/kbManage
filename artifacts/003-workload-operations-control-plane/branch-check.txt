@@ -1,0 +1,9 @@
+Feature: 003-workload-operations-control-plane
+Checked At: 2026-04-12
+Current Branch: 003-workload-operations-control-plane
+Remote (fetch): git@github.com:baihua19941101/kbManage.git
+Remote (push): git@github.com:baihua19941101/kbManage.git
+Governance Gate:
+- 开发仅允许在 feature 分支进行，禁止在 main/master 直接开发。
+- 合并到主干前必须获得用户明确批准。
+- 本轮仅进入实现与验证，不执行未授权合并。

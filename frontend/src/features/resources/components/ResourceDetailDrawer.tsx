@@ -108,6 +108,14 @@ export const ResourceDetailDrawer = ({
             >
               资源上下文
             </Button>
+            <Button
+              onClick={() => {
+                const params = buildObservabilityParams(resource);
+                void navigate(`/workload-ops?${params.toString()}`);
+              }}
+            >
+              工作负载运维
+            </Button>
           </Space>
           <ResourceActionPanel resource={resource} onOperationCreated={onOperationCreated} />
         </Space>

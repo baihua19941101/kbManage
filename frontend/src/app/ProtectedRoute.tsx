@@ -2,6 +2,7 @@ import { Spin } from 'antd';
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import {
+  canReadWorkloadOps,
   canReadObservability,
   hasAnyRole,
   useAuthStore
@@ -20,6 +21,10 @@ const routeGuards: RouteGuard[] = [
   {
     pathPrefix: '/observability',
     canAccess: canReadObservability
+  },
+  {
+    pathPrefix: '/workload-ops',
+    canAccess: canReadWorkloadOps
   }
 ];
 

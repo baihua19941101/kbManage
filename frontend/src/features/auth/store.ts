@@ -83,6 +83,11 @@ const OBSERVABILITY_READ_ROLES: PlatformRole[] = [
   'readonly'
 ];
 const OBSERVABILITY_MANAGE_ROLES: PlatformRole[] = ['platform-admin', 'ops-operator'];
+const WORKLOAD_OPS_READ_ROLES: PlatformRole[] = ['platform-admin', 'ops-operator', 'readonly'];
+const WORKLOAD_OPS_EXECUTE_ROLES: PlatformRole[] = ['platform-admin', 'ops-operator'];
+const WORKLOAD_OPS_TERMINAL_ROLES: PlatformRole[] = ['platform-admin', 'ops-operator'];
+const WORKLOAD_OPS_ROLLBACK_ROLES: PlatformRole[] = ['platform-admin', 'ops-operator'];
+const WORKLOAD_OPS_BATCH_ROLES: PlatformRole[] = ['platform-admin', 'ops-operator'];
 
 const getUserRoles = (user: AuthUser | null | undefined): string[] => {
   if (!user || !Array.isArray(user.platformRoles)) {
@@ -110,6 +115,21 @@ export const canReadObservability = (user: AuthUser | null | undefined): boolean
 
 export const canManageObservability = (user: AuthUser | null | undefined): boolean =>
   hasAnyRole(user, OBSERVABILITY_MANAGE_ROLES);
+
+export const canReadWorkloadOps = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, WORKLOAD_OPS_READ_ROLES);
+
+export const canExecuteWorkloadOps = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, WORKLOAD_OPS_EXECUTE_ROLES);
+
+export const canAccessWorkloadOpsTerminal = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, WORKLOAD_OPS_TERMINAL_ROLES);
+
+export const canRollbackWorkloadOps = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, WORKLOAD_OPS_ROLLBACK_ROLES);
+
+export const canBatchWorkloadOps = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, WORKLOAD_OPS_BATCH_ROLES);
 
 export const useAuthStore = create<AuthState>((set) => ({
   ...initialState,

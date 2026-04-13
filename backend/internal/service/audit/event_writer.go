@@ -35,6 +35,18 @@ const (
 	ObservabilityAuditActionSilenceCreate             = "observability.silence.create"
 	ObservabilityAuditActionSilenceCancel             = "observability.silence.cancel"
 	ObservabilityAuditActionAccessRead                = "observability.access.read"
+
+	WorkloadOpsAuditResourceType   = "workloadops"
+	WorkloadOpsAuditActionSubmit   = "workloadops.action.submit"
+	WorkloadOpsAuditActionStart    = "workloadops.action.start"
+	WorkloadOpsAuditActionSuccess  = "workloadops.action.success"
+	WorkloadOpsAuditActionFailure  = "workloadops.action.failure"
+	WorkloadOpsAuditBatchSubmit    = "workloadops.batch.submit"
+	WorkloadOpsAuditBatchFinish    = "workloadops.batch.finish"
+	WorkloadOpsAuditRollbackSubmit = "workloadops.rollback.submit"
+	WorkloadOpsAuditRollbackFinish = "workloadops.rollback.finish"
+	WorkloadOpsAuditTerminalOpen   = "workloadops.terminal.open"
+	WorkloadOpsAuditTerminalClose  = "workloadops.terminal.close"
 )
 
 type EventWriter struct {
@@ -132,6 +144,30 @@ func (w *EventWriter) WriteObservabilityEvent(
 		actorID,
 		action,
 		ObservabilityAuditResourceType,
+		strings.TrimSpace(resourceID),
+		outcome,
+		details,
+	)
+}
+
+func (w *EventWriter) WriteWorkloadOpsEvent(
+	ctx context.Context,
+	requestID string,
+	actorID *uint64,
+	action string,
+	resourceID string,
+	outcome domain.AuditOutcome,
+	details map[string]any,
+) error {
+	if details == nil {
+		details = map[string]any{}
+	}
+	return w.Write(
+		ctx,
+		requestID,
+		actorID,
+		action,
+		WorkloadOpsAuditResourceType,
 		strings.TrimSpace(resourceID),
 		outcome,
 		details,
@@ -308,6 +344,18 @@ func classifyAuditMetadata(action string, details map[string]any) (string, strin
 			actionScope = "handling_record"
 		case strings.Contains(action, "access.read"):
 			actionScope = "access"
+		}
+	}
+	if strings.HasPrefix(action, "workloadops.") {
+		category = "workloadops"
+		actionScope = "action"
+		switch {
+		case strings.Contains(action, ".terminal."):
+			actionScope = "terminal"
+		case strings.Contains(action, ".batch."):
+			actionScope = "batch"
+		case strings.Contains(action, ".rollback."):
+			actionScope = "rollback"
 		}
 	}
 

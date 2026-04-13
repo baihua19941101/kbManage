@@ -3,7 +3,9 @@ import type { MenuProps } from 'antd';
 import { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
+  canBatchWorkloadOps,
   canManageObservability,
+  canReadWorkloadOps,
   canReadObservability,
   hasAnyRole,
   useAuthStore
@@ -57,6 +59,16 @@ const allMenuItems: MenuItemConfig[] = [
     key: '/observability/silences',
     label: '静默窗口',
     visibleWhen: canManageObservability
+  },
+  {
+    key: '/workload-ops',
+    label: '工作负载运维',
+    visibleWhen: canReadWorkloadOps
+  },
+  {
+    key: '/workload-ops/batches',
+    label: '批量任务',
+    visibleWhen: canBatchWorkloadOps
   }
 ];
 

@@ -107,6 +107,9 @@ export const ResourceContextPage = () => {
           >
             指标
           </Button>
+          <Button onClick={() => void navigate(`/workload-ops${queryString ? `?${queryString}` : ''}`)}>
+            工作负载运维
+          </Button>
         </Space>
       </Space>
       <ResourceContextPanel

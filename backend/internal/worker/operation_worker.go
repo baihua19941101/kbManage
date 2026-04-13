@@ -90,10 +90,7 @@ func (w *OperationWorker) run(ctx context.Context) {
 
 		result, execErr := w.executor.Execute(ctx, item)
 		if execErr != nil {
-			failureReason := strings.TrimSpace(result.FailureReason)
-			if failureReason == "" {
-				failureReason = strings.TrimSpace(execErr.Error())
-			}
+			failureReason := normalizeFailureReason(result.FailureReason, execErr)
 			progressMessage := strings.TrimSpace(result.ProgressMessage)
 			if progressMessage == "" {
 				progressMessage = "operation execution failed"
@@ -151,6 +148,17 @@ func (w *OperationWorker) run(ctx context.Context) {
 			})
 		}
 	}
+}
+
+func normalizeFailureReason(resultFailure string, execErr error) string {
+	failureReason := strings.TrimSpace(resultFailure)
+	if failureReason != "" {
+		return failureReason
+	}
+	if execErr == nil {
+		return ""
+	}
+	return strings.TrimSpace(execErr.Error())
 }
 
 func buildDefaultOperationResultMessage(item *domain.OperationRequest) string {

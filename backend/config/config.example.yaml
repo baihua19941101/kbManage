@@ -65,3 +65,23 @@ observability:
     query_ttl: "30s"
     # 告警运行态同步间隔，Go duration 格式（生产建议 >= 30s）
     sync_interval: "30s"
+
+workloadops:
+  actions:
+    # 单资源动作默认超时（Go duration）
+    default_timeout: "2m"
+    # 幂等窗口（Go duration）
+    idempotency_ttl: "10m"
+  batch:
+    # 批量任务最大目标数
+    max_targets: 50
+    # 批量执行并发上限
+    concurrency: 5
+  terminal:
+    # 终端会话空闲超时（Go duration）
+    idle_timeout: "15m"
+    # 终端短会话 token 过期（Go duration）
+    token_ttl: "30m"
+  audit:
+    # 高风险运维审计保留天数（默认与全局审计策略一致或更高）
+    retention_days: 180

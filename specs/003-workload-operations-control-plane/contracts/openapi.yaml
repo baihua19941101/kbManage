@@ -1,0 +1,488 @@
+openapi: 3.1.0
+info:
+  title: kbManage Workload Operations API
+  version: 0.1.0
+  description: >-
+    003 工作负载运维控制面 API 契约，覆盖单资源运维视图、实例列表、
+    发布历史、动作执行、批量任务和终端会话管理。
+servers:
+  - url: /api/v1
+paths:
+  /workload-ops/resources/context:
+    get:
+      summary: 获取工作负载运维上下文
+      operationId: getWorkloadOperationsContext
+      parameters:
+        - $ref: '#/components/parameters/ClusterId'
+        - $ref: '#/components/parameters/Namespace'
+        - $ref: '#/components/parameters/ResourceKind'
+        - $ref: '#/components/parameters/ResourceName'
+      responses:
+        '200':
+          description: 工作负载运维视图
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkloadOperationsView'
+  /workload-ops/resources/instances:
+    get:
+      summary: 获取工作负载实例列表
+      operationId: listWorkloadInstances
+      parameters:
+        - $ref: '#/components/parameters/ClusterId'
+        - $ref: '#/components/parameters/Namespace'
+        - $ref: '#/components/parameters/ResourceKind'
+        - $ref: '#/components/parameters/ResourceName'
+      responses:
+        '200':
+          description: 实例列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WorkloadInstance'
+  /workload-ops/resources/revisions:
+    get:
+      summary: 获取工作负载发布历史
+      operationId: listWorkloadRevisions
+      parameters:
+        - $ref: '#/components/parameters/ClusterId'
+        - $ref: '#/components/parameters/Namespace'
+        - $ref: '#/components/parameters/ResourceKind'
+        - $ref: '#/components/parameters/ResourceName'
+      responses:
+        '200':
+          description: 发布历史列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReleaseRevision'
+  /workload-ops/actions:
+    post:
+      summary: 提交单资源运维动作
+      operationId: submitWorkloadAction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitWorkloadActionRequest'
+      responses:
+        '202':
+          description: 动作已提交
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkloadAction'
+  /workload-ops/actions/{actionId}:
+    get:
+      summary: 获取单资源运维动作状态
+      operationId: getWorkloadAction
+      parameters:
+        - $ref: '#/components/parameters/ActionId'
+      responses:
+        '200':
+          description: 动作详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkloadAction'
+  /workload-ops/batches:
+    post:
+      summary: 提交批量运维任务
+      operationId: submitBatchOperation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitBatchOperationRequest'
+      responses:
+        '202':
+          description: 批量任务已提交
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchOperationTask'
+  /workload-ops/batches/{batchId}:
+    get:
+      summary: 获取批量运维任务详情
+      operationId: getBatchOperation
+      parameters:
+        - $ref: '#/components/parameters/BatchId'
+      responses:
+        '200':
+          description: 批量任务详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchOperationTask'
+  /workload-ops/terminal/sessions:
+    post:
+      summary: 创建终端会话
+      operationId: createTerminalSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTerminalSessionRequest'
+      responses:
+        '201':
+          description: 会话已创建
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TerminalSession'
+  /workload-ops/terminal/sessions/{sessionId}:
+    get:
+      summary: 获取终端会话状态
+      operationId: getTerminalSession
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      responses:
+        '200':
+          description: 会话详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TerminalSession'
+    delete:
+      summary: 关闭终端会话
+      operationId: closeTerminalSession
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      responses:
+        '204':
+          description: 会话已关闭
+components:
+  parameters:
+    ClusterId:
+      in: query
+      name: clusterId
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    Namespace:
+      in: query
+      name: namespace
+      required: true
+      schema:
+        type: string
+    ResourceKind:
+      in: query
+      name: resourceKind
+      required: true
+      schema:
+        type: string
+        enum: [Deployment, StatefulSet, DaemonSet]
+    ResourceName:
+      in: query
+      name: resourceName
+      required: true
+      schema:
+        type: string
+    ActionId:
+      in: path
+      name: actionId
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    BatchId:
+      in: path
+      name: batchId
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    SessionId:
+      in: path
+      name: sessionId
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+  schemas:
+    WorkloadOperationsView:
+      type: object
+      required: [clusterId, namespace, resourceKind, resourceName, healthStatus, rolloutStatus]
+      properties:
+        clusterId:
+          type: integer
+        workspaceId:
+          type: integer
+        projectId:
+          type: integer
+        namespace:
+          type: string
+        resourceKind:
+          type: string
+          enum: [Deployment, StatefulSet, DaemonSet]
+        resourceName:
+          type: string
+        healthStatus:
+          type: string
+        rolloutStatus:
+          type: string
+        latestChangeSummary:
+          type: string
+        latestActionSummary:
+          type: string
+        availableActions:
+          type: array
+          items:
+            type: string
+        logJump:
+          type: object
+          properties:
+            path:
+              type: string
+            query:
+              type: object
+              additionalProperties: true
+    WorkloadInstance:
+      type: object
+      required: [podName, phase, ready]
+      properties:
+        podName:
+          type: string
+        containerName:
+          type: string
+        nodeName:
+          type: string
+        phase:
+          type: string
+        ready:
+          type: boolean
+        restartCount:
+          type: integer
+        startedAt:
+          type: string
+          format: date-time
+        lastTransitionAt:
+          type: string
+          format: date-time
+        logAvailable:
+          type: boolean
+        terminalAvailable:
+          type: boolean
+    ReleaseRevision:
+      type: object
+      required: [revision, sourceKind, sourceName, isCurrent, rollbackAvailable]
+      properties:
+        revision:
+          type: integer
+        sourceKind:
+          type: string
+          enum: [replicaset, controllerrevision]
+        sourceName:
+          type: string
+        changeCause:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        isCurrent:
+          type: boolean
+        rollbackAvailable:
+          type: boolean
+        summary:
+          type: string
+    SubmitWorkloadActionRequest:
+      type: object
+      required:
+        - clusterId
+        - namespace
+        - resourceKind
+        - resourceName
+        - actionType
+      properties:
+        clusterId:
+          type: integer
+        workspaceId:
+          type: integer
+        projectId:
+          type: integer
+        namespace:
+          type: string
+        resourceKind:
+          type: string
+          enum: [Deployment, StatefulSet, DaemonSet]
+        resourceName:
+          type: string
+        targetInstanceRef:
+          type: string
+        actionType:
+          type: string
+          enum: [scale, restart, redeploy, replace-instance, rollback]
+        riskConfirmed:
+          type: boolean
+        payload:
+          type: object
+          additionalProperties: true
+    WorkloadAction:
+      type: object
+      required: [id, actionType, status, riskLevel]
+      properties:
+        id:
+          type: integer
+        actionType:
+          type: string
+        status:
+          type: string
+          enum: [pending, running, succeeded, failed, canceled]
+        riskLevel:
+          type: string
+          enum: [low, medium, high]
+        progressMessage:
+          type: string
+        resultMessage:
+          type: string
+        failureReason:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+    SubmitBatchOperationRequest:
+      type: object
+      required: [actionType, targets]
+      properties:
+        actionType:
+          type: string
+          enum: [scale, restart, redeploy, replace-instance]
+        riskConfirmed:
+          type: boolean
+        payload:
+          type: object
+          additionalProperties: true
+        targets:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            type: object
+            required: [clusterId, namespace, resourceKind, resourceName]
+            properties:
+              clusterId:
+                type: integer
+              workspaceId:
+                type: integer
+              projectId:
+                type: integer
+              namespace:
+                type: string
+              resourceKind:
+                type: string
+                enum: [Deployment, StatefulSet, DaemonSet]
+              resourceName:
+                type: string
+    BatchOperationTask:
+      type: object
+      required: [id, actionType, status, totalTargets]
+      properties:
+        id:
+          type: integer
+        actionType:
+          type: string
+        status:
+          type: string
+          enum: [pending, running, partially_succeeded, succeeded, failed, canceled]
+        totalTargets:
+          type: integer
+        succeededTargets:
+          type: integer
+        failedTargets:
+          type: integer
+        canceledTargets:
+          type: integer
+        progressPercent:
+          type: integer
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              resourceRef:
+                type: string
+              status:
+                type: string
+              resultMessage:
+                type: string
+              failureReason:
+                type: string
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+    CreateTerminalSessionRequest:
+      type: object
+      required: [clusterId, namespace, podName, containerName]
+      properties:
+        clusterId:
+          type: integer
+        workspaceId:
+          type: integer
+        projectId:
+          type: integer
+        namespace:
+          type: string
+        podName:
+          type: string
+        containerName:
+          type: string
+        workloadKind:
+          type: string
+          enum: [Deployment, StatefulSet, DaemonSet]
+        workloadName:
+          type: string
+        cols:
+          type: integer
+        rows:
+          type: integer
+    TerminalSession:
+      type: object
+      required: [id, status, podName, containerName]
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+          enum: [pending, active, closed, expired, denied, failed]
+        podName:
+          type: string
+        containerName:
+          type: string
+        workloadKind:
+          type: string
+        workloadName:
+          type: string
+        streamUrl:
+          type: string
+        streamToken:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+        endedAt:
+          type: string
+          format: date-time
+        durationSeconds:
+          type: integer
+        closeReason:
+          type: string

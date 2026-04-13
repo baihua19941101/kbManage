@@ -51,6 +51,10 @@ npm config set registry https://registry.npmmirror.com
 - `observability.logs.base_url / auth_secret_ref / timeout`
 - `observability.alerts.base_url / auth_secret_ref / timeout`
 - `observability.cache.query_ttl / sync_interval`
+- `workloadops.actions.default_timeout / idempotency_ttl`
+- `workloadops.batch.max_targets / concurrency`
+- `workloadops.terminal.idle_timeout / token_ttl`
+- `workloadops.audit.retention_days`
 
 说明：
 
@@ -125,6 +129,7 @@ npm run build
 - 002-observability-center 已完成 US1/US2/US3（统一观测入口、告警治理闭环、工作空间/项目级权限隔离）。
 - 可观测后端接口已按读写动作区分权限：`observability:read`（读取）与 `observability:write`（治理动作）。
 - 前端已补齐可观测权限空态/只读态/权限回收处理，并通过 Vitest 与 ESLint 验证。
+- 003-workload-operations-control-plane 已完成 US1/US2/US3（单资源诊断、动作执行与回滚恢复、权限隔离与高风险审计闭环），当前进入 Final Phase 收尾与交付准备。
 
 ## 002 可观测联调要点
 

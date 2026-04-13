@@ -183,3 +183,10 @@ export const fetchJSON = async <T>(
 
   return payload as T;
 };
+
+export const buildScopeQueryKey = (parts: Array<string | number | undefined | null>) => {
+  return parts
+    .filter((part): part is string | number => part !== undefined && part !== null && part !== '')
+    .map((part) => String(part))
+    .join(':');
+};

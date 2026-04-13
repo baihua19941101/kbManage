@@ -85,3 +85,23 @@ observability:
     query_ttl: "30s"
     # 告警运行态同步轮询间隔
     sync_interval: "30s"
+
+workloadops:
+  actions:
+    # 单资源动作默认超时
+    default_timeout: "2m"
+    # 动作幂等窗口
+    idempotency_ttl: "10m"
+  batch:
+    # 单次批量任务最大目标数
+    max_targets: 50
+    # 批量执行并发上限
+    concurrency: 5
+  terminal:
+    # 终端会话空闲超时
+    idle_timeout: "15m"
+    # 终端短会话 token 有效期
+    token_ttl: "30m"
+  audit:
+    # 工作负载高风险审计保留天数
+    retention_days: 180
