@@ -1,0 +1,17 @@
+Feature: 003-workload-operations-control-plane
+Branch: 003-workload-operations-control-plane
+Executed At: 2026-04-12 15:01:23 +0800
+Backup File: artifacts/003-workload-operations-control-plane/mysql-backup-20260412-150123.sql
+Backup Size Bytes: 33561841
+Primary Command: docker exec mysql8 sh -lc 'MYSQL_PWD=123456 mysqldump -hlocalhost -P3306 -uroot --all-databases --single-transaction --quick --routines --events --triggers' > artifacts/003-workload-operations-control-plane/mysql-backup-20260412-150123.sql
+Credential Note: admin/123456 returned access denied in current container; root/123456 succeeded and was used for this backup.
+Restore Validation Container: mysql8-restore-check-003
+Restore Validation:
+- Imported full dump into temporary mysql:8.0 container successfully.
+- SHOW DATABASES output matched source container database list.
+- information_schema.tables count for schema kb_manage matched source container: 11.
+
+Implementation Start Check (2026-04-12):
+- Feature branch confirmed: 003-workload-operations-control-plane
+- Backup artifact exists and readable before schema migration task T009
+- 本轮未执行新的高风险结构变更之外的额外备份；若后续发生高风险 DDL 调整需再次执行备份

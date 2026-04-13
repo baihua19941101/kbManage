@@ -208,3 +208,114 @@ export type ObservabilitySilenceWindowDTO = {
   endsAt?: string;
   status?: 'scheduled' | 'active' | 'expired' | 'canceled' | string;
 };
+
+export type WorkloadOperationsViewDTO = {
+  clusterId: number;
+  workspaceId?: number;
+  projectId?: number;
+  namespace: string;
+  resourceKind: 'Deployment' | 'StatefulSet' | 'DaemonSet';
+  resourceName: string;
+  healthStatus: string;
+  rolloutStatus: string;
+  latestChangeSummary?: string;
+  latestActionSummary?: string;
+  availableActions?: string[];
+};
+
+export type WorkloadInstanceDTO = {
+  podName: string;
+  containerName?: string;
+  nodeName?: string;
+  phase: string;
+  ready: boolean;
+  restartCount?: number;
+  startedAt?: string;
+  lastTransitionAt?: string;
+  logAvailable?: boolean;
+  terminalAvailable?: boolean;
+};
+
+export type ReleaseRevisionDTO = {
+  revision: number;
+  sourceKind: 'replicaset' | 'controllerrevision';
+  sourceName: string;
+  changeCause?: string;
+  createdAt?: string;
+  isCurrent: boolean;
+  rollbackAvailable: boolean;
+  summary?: string;
+};
+
+export type SubmitWorkloadActionRequestDTO = {
+  clusterId: number;
+  workspaceId?: number;
+  projectId?: number;
+  namespace: string;
+  resourceKind: 'Deployment' | 'StatefulSet' | 'DaemonSet';
+  resourceName: string;
+  targetInstanceRef?: string;
+  actionType: 'scale' | 'restart' | 'redeploy' | 'replace-instance' | 'rollback';
+  riskConfirmed?: boolean;
+  payload?: Record<string, unknown>;
+};
+
+export type WorkloadActionDTO = {
+  id: number;
+  actionType: string;
+  status: 'pending' | 'running' | 'succeeded' | 'failed' | 'canceled';
+  riskLevel: 'low' | 'medium' | 'high';
+  progressMessage?: string;
+  resultMessage?: string;
+  failureReason?: string;
+  startedAt?: string;
+  completedAt?: string;
+};
+
+export type SubmitBatchOperationRequestDTO = {
+  actionType: 'scale' | 'restart' | 'redeploy' | 'replace-instance';
+  riskConfirmed?: boolean;
+  payload?: Record<string, unknown>;
+  targets: Array<{
+    clusterId: number;
+    workspaceId?: number;
+    projectId?: number;
+    namespace: string;
+    resourceKind: 'Deployment' | 'StatefulSet' | 'DaemonSet';
+    resourceName: string;
+  }>;
+};
+
+export type BatchOperationTaskDTO = {
+  id: number;
+  actionType: string;
+  status: 'pending' | 'running' | 'partially_succeeded' | 'succeeded' | 'failed' | 'canceled';
+  totalTargets: number;
+  succeededTargets?: number;
+  failedTargets?: number;
+  canceledTargets?: number;
+  progressPercent?: number;
+  items?: Array<{
+    resourceRef?: string;
+    status?: string;
+    resultMessage?: string;
+    failureReason?: string;
+  }>;
+  startedAt?: string;
+  completedAt?: string;
+};
+
+export type TerminalSessionDTO = {
+  id: number;
+  status: 'pending' | 'active' | 'closed' | 'expired' | 'denied' | 'failed';
+  podName: string;
+  containerName: string;
+  workloadKind?: string;
+  workloadName?: string;
+  streamUrl?: string;
+  streamToken?: string;
+  startedAt?: string;
+  endedAt?: string;
+  durationSeconds?: number;
+  closeReason?: string;
+};

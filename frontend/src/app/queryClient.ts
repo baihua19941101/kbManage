@@ -44,6 +44,15 @@ export const queryKeys = {
     events: (scope?: string) => ['observability', 'events', scope ?? 'default'] as const,
     metrics: (scope?: string) => ['observability', 'metrics', scope ?? 'default'] as const,
     alerts: (scope?: string) => ['observability', 'alerts', scope ?? 'default'] as const
+  },
+  workloadOps: {
+    all: ['workloadOps'] as const,
+    context: (scope?: string) => ['workloadOps', 'context', scope ?? 'default'] as const,
+    instances: (scope?: string) => ['workloadOps', 'instances', scope ?? 'default'] as const,
+    revisions: (scope?: string) => ['workloadOps', 'revisions', scope ?? 'default'] as const,
+    action: (id?: number | string) => ['workloadOps', 'action', id ?? 'unknown'] as const,
+    batch: (id?: number | string) => ['workloadOps', 'batch', id ?? 'unknown'] as const,
+    terminal: (id?: number | string) => ['workloadOps', 'terminal', id ?? 'unknown'] as const
   }
 };
 

@@ -133,6 +133,24 @@ export const router = createBrowserRouter([
           {
             path: '/observability/*',
             element: <Navigate to="/observability" replace />
+          },
+          {
+            path: '/workload-ops',
+            lazy: async () => {
+              const { WorkloadOperationsPage } = await import(
+                '@/features/workload-ops/pages/WorkloadOperationsPage'
+              );
+              return { Component: WorkloadOperationsPage };
+            }
+          },
+          {
+            path: '/workload-ops/batches',
+            lazy: async () => {
+              const { BatchOperationPage } = await import(
+                '@/features/workload-ops/pages/BatchOperationPage'
+              );
+              return { Component: BatchOperationPage };
+            }
           }
         ]
       }

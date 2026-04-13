@@ -18,13 +18,18 @@ import (
 )
 
 const (
-	PermissionWorkspaceRead      = "access:workspace:read"
-	PermissionProjectRead        = "access:project:read"
-	PermissionProjectWrite       = "access:project:write"
-	PermissionBindingRead        = "access:binding:read"
-	PermissionBindingWrite       = "access:binding:write"
-	PermissionObservabilityRead  = "observability:read"
-	PermissionObservabilityWrite = "observability:write"
+	PermissionWorkspaceRead       = "access:workspace:read"
+	PermissionProjectRead         = "access:project:read"
+	PermissionProjectWrite        = "access:project:write"
+	PermissionBindingRead         = "access:binding:read"
+	PermissionBindingWrite        = "access:binding:write"
+	PermissionObservabilityRead   = "observability:read"
+	PermissionObservabilityWrite  = "observability:write"
+	PermissionWorkloadOpsRead     = "workloadops:read"
+	PermissionWorkloadOpsExecute  = "workloadops:execute"
+	PermissionWorkloadOpsTerminal = "workloadops:terminal"
+	PermissionWorkloadOpsRollback = "workloadops:rollback"
+	PermissionWorkloadOpsBatch    = "workloadops:batch"
 )
 
 func RequireWorkspaceScope(scopeAccess *auth.ScopeAccessService, permission string) gin.HandlerFunc {
@@ -183,6 +188,140 @@ func parseUint64Any(v any) (uint64, error) {
 	default:
 		return 0, errors.New("unsupported")
 	}
+}
+
+func RequireWorkloadOpsClusterScope(scopeAccess *auth.ScopeAccessService, permission string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if err := authorizeWorkloadOpsClusterScope(c, scopeAccess, permission); err != nil {
+			httpStatus := http.StatusForbidden
+			if strings.Contains(err.Error(), "configured") {
+				httpStatus = http.StatusInternalServerError
+			} else if strings.Contains(err.Error(), "authenticated") {
+				httpStatus = http.StatusUnauthorized
+			} else if strings.Contains(err.Error(), "clusterId") || strings.Contains(err.Error(), "request body") {
+				httpStatus = http.StatusBadRequest
+			}
+			c.AbortWithStatusJSON(httpStatus, gin.H{"error": err.Error()})
+			return
+		}
+		c.Next()
+	}
+}
+
+func RequireWorkloadOpsActionScope(scopeAccess *auth.ScopeAccessService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		actionType, err := parseWorkloadOpsActionType(c)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		permission := PermissionWorkloadOpsExecute
+		if actionType == "rollback" {
+			permission = PermissionWorkloadOpsRollback
+		}
+		if err := authorizeWorkloadOpsClusterScope(c, scopeAccess, permission); err != nil {
+			httpStatus := http.StatusForbidden
+			if strings.Contains(err.Error(), "configured") {
+				httpStatus = http.StatusInternalServerError
+			} else if strings.Contains(err.Error(), "authenticated") {
+				httpStatus = http.StatusUnauthorized
+			} else if strings.Contains(err.Error(), "clusterId") || strings.Contains(err.Error(), "request body") {
+				httpStatus = http.StatusBadRequest
+			}
+			c.AbortWithStatusJSON(httpStatus, gin.H{"error": err.Error()})
+			return
+		}
+		c.Next()
+	}
+}
+
+func authorizeWorkloadOpsClusterScope(c *gin.Context, scopeAccess *auth.ScopeAccessService, permission string) error {
+	if scopeAccess == nil {
+		return errors.New("scope authorization is not configured")
+	}
+	userID := c.GetUint64(UserIDKey)
+	if userID == 0 {
+		return errors.New("missing authenticated user")
+	}
+	clusterID, err := parseWorkloadOpsClusterID(c)
+	if err != nil {
+		return err
+	}
+	clusterIDs, constrained, err := scopeAccess.ListClusterIDsByPermission(c.Request.Context(), userID, permission)
+	if err != nil {
+		return err
+	}
+	if !constrained {
+		return errors.New("workload operations scope access denied")
+	}
+	for _, allowedClusterID := range clusterIDs {
+		if allowedClusterID == clusterID {
+			return nil
+		}
+	}
+	return errors.New("workload operations scope access denied")
+}
+
+func parseWorkloadOpsActionType(c *gin.Context) (string, error) {
+	body, err := c.GetRawData()
+	if err != nil {
+		return "", errors.New("invalid request body")
+	}
+	c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
+	if len(bytes.TrimSpace(body)) == 0 {
+		return "", nil
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(body, &payload); err != nil {
+		return "", errors.New("invalid request body")
+	}
+	v, ok := payload["actionType"]
+	if !ok {
+		return "", nil
+	}
+	text, ok := v.(string)
+	if !ok {
+		return "", errors.New("invalid actionType")
+	}
+	return strings.ToLower(strings.TrimSpace(text)), nil
+}
+
+func parseWorkloadOpsClusterID(c *gin.Context) (uint64, error) {
+	if raw := strings.TrimSpace(c.Query("clusterId")); raw != "" {
+		clusterID, err := strconv.ParseUint(raw, 10, 64)
+		if err != nil || clusterID == 0 {
+			return 0, errors.New("invalid clusterId")
+		}
+		return clusterID, nil
+	}
+	body, err := c.GetRawData()
+	if err != nil {
+		return 0, errors.New("invalid request body")
+	}
+	c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
+	if len(bytes.TrimSpace(body)) == 0 {
+		return 0, errors.New("clusterId is required")
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(body, &payload); err != nil {
+		return 0, errors.New("invalid request body")
+	}
+	if v, ok := payload["clusterId"]; ok {
+		clusterID, err := parseUint64Any(v)
+		if err != nil || clusterID == 0 {
+			return 0, errors.New("invalid clusterId")
+		}
+		return clusterID, nil
+	}
+	if targets, ok := payload["targets"].([]any); ok && len(targets) > 0 {
+		first, _ := targets[0].(map[string]any)
+		clusterID, err := parseUint64Any(first["clusterId"])
+		if err != nil || clusterID == 0 {
+			return 0, errors.New("invalid clusterId")
+		}
+		return clusterID, nil
+	}
+	return 0, errors.New("clusterId is required")
 }
 
 func RequireObservabilityScope(

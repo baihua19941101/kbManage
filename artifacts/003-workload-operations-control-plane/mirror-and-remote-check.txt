@@ -1,0 +1,13 @@
+Feature: 003-workload-operations-control-plane
+Checked At: 2026-04-12
+Go Proxy: GOPROXY=https://goproxy.cn,direct
+NPM Registry: https://registry.npmmirror.com
+联调镜像来源策略:
+- 优先阿里云、DaoCloud 或已批准的国内代理镜像源
+- 禁止未说明来源时直接裸连默认境外源
+Git Remote:
+- origin: git@github.com:baihua19941101/kbManage.git
+PR 流程:
+1) 推送 feature 分支到 origin
+2) 创建中文 PR，附数据库备份证据与验证结果
+3) 待用户明确批准后再执行合并

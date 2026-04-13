@@ -1,0 +1,215 @@
+# Data Model: 多集群 Kubernetes 工作负载运维控制面
+
+> 说明：003 复用 001 中已有的 `Cluster`、`Workspace`、`Project`、`Resource Item`、`Operation Request` 和审计模型，也复用 002 中资源上下文与日志联动能力。本文件只描述 003 新增或被显著扩展的运维闭环实体。
+
+## 1. WorkloadOperationsView
+- Purpose: 表示围绕单个工作负载展开的统一运维视图，是 003 的核心读取对象。
+- Key Fields:
+  - `cluster_id`
+  - `workspace_id`
+  - `project_id`
+  - `namespace`
+  - `resource_kind`
+  - `resource_name`
+  - `health_status`
+  - `rollout_status`
+  - `instance_summary`
+  - `latest_change_summary`
+  - `latest_action_summary`
+  - `available_actions`
+  - `data_freshness`
+- Relationships:
+  - 聚合 `WorkloadInstanceSnapshot`、`ReleaseRevisionSnapshot`、近期 `WorkloadActionRequest` 和 002 的日志/观测摘要
+- Validation Rules:
+  - 任何聚合结果都必须通过统一范围授权过滤
+  - 状态字段必须明确区分“异常”“部分可用”“发布中”“对象已变化”
+- Notes:
+  - 该实体属于查询结果模型，不要求长期持久化
+
+## 2. WorkloadInstanceSnapshot
+- Purpose: 描述某个工作负载当前受管实例的快照信息。
+- Key Fields:
+  - `cluster_id`
+  - `namespace`
+  - `workload_kind`
+  - `workload_name`
+  - `pod_name`
+  - `container_name`
+  - `node_name`
+  - `phase`
+  - `ready`
+  - `restart_count`
+  - `started_at`
+  - `last_transition_at`
+  - `is_replacing`
+  - `log_available`
+  - `terminal_available`
+- Relationships:
+  - 属于一个 `WorkloadOperationsView`
+  - 可作为 `TerminalSession` 和 `WorkloadActionRequest` 的目标
+- Validation Rules:
+  - 实例必须能映射回真实工作负载范围
+  - 不存在的 Pod/容器不得继续暴露为可操作实例
+
+## 3. WorkloadActionRequest
+- Purpose: 表示一次面向单个工作负载或实例的运维动作请求。
+- Key Fields:
+  - `id`
+  - `request_id`
+  - `operator_id`
+  - `cluster_id`
+  - `workspace_id`
+  - `project_id`
+  - `namespace`
+  - `resource_kind`
+  - `resource_name`
+  - `target_instance_ref`
+  - `action_type`: `scale | restart | redeploy | replace-instance | rollback`
+  - `risk_level`: `low | medium | high`
+  - `risk_confirmed`
+  - `payload_json`
+  - `status`: `pending | running | succeeded | failed | canceled`
+  - `progress_message`
+  - `result_message`
+  - `failure_reason`
+  - `started_at`
+  - `completed_at`
+  - `created_at` / `updated_at`
+- Relationships:
+  - 可属于一个 `BatchOperationTask`
+  - 可引用一个 `ReleaseRevisionSnapshot`
+- Validation Rules:
+  - 高风险动作必须有风险确认记录
+  - `rollback` 必须关联明确的目标 revision
+  - 终态动作不得再次进入运行态
+- State Transitions:
+  - `pending -> running | canceled`
+  - `running -> succeeded | failed | canceled`
+
+## 4. BatchOperationTask
+- Purpose: 表示一次面向多个工作负载执行的同类批量运维任务。
+- Key Fields:
+  - `id`
+  - `request_id`
+  - `operator_id`
+  - `action_type`
+  - `scope_snapshot_json`
+  - `risk_level`
+  - `risk_confirmed`
+  - `total_targets`
+  - `succeeded_targets`
+  - `failed_targets`
+  - `canceled_targets`
+  - `status`: `pending | running | partially_succeeded | succeeded | failed | canceled`
+  - `progress_percent`
+  - `started_at`
+  - `completed_at`
+  - `created_at` / `updated_at`
+- Relationships:
+  - 拥有多个 `BatchOperationItem`
+  - 可派生多个 `WorkloadActionRequest`
+- Validation Rules:
+  - 所有目标对象必须属于同一动作类型
+  - 单次批量任务目标数量必须受平台上限控制
+- State Transitions:
+  - `pending -> running | canceled`
+  - `running -> partially_succeeded | succeeded | failed | canceled`
+
+## 5. BatchOperationItem
+- Purpose: 表示批量任务中的单个目标对象执行项。
+- Key Fields:
+  - `id`
+  - `batch_id`
+  - `cluster_id`
+  - `workspace_id`
+  - `project_id`
+  - `namespace`
+  - `resource_kind`
+  - `resource_name`
+  - `status`: `pending | running | succeeded | failed | skipped | canceled`
+  - `action_request_id`
+  - `failure_reason`
+  - `result_message`
+  - `started_at`
+  - `completed_at`
+- Relationships:
+  - 属于一个 `BatchOperationTask`
+  - 可关联一个 `WorkloadActionRequest`
+- Validation Rules:
+  - 不同目标的失败不得覆盖或污染其他目标结果
+
+## 6. ReleaseRevisionSnapshot
+- Purpose: 表示某个工作负载的可识别发布历史版本，用于展示变更轨迹和执行回滚。
+- Key Fields:
+  - `cluster_id`
+  - `namespace`
+  - `resource_kind`
+  - `resource_name`
+  - `revision`
+  - `source_kind`: `replicaset | controllerrevision`
+  - `source_name`
+  - `change_cause`
+  - `created_at`
+  - `is_current`
+  - `rollback_available`
+  - `summary`
+- Relationships:
+  - 可作为 `WorkloadActionRequest` 的回滚目标
+- Validation Rules:
+  - 仅允许来自 Kubernetes 原生 revision 来源的版本进入回滚候选
+  - 缺失 revision 历史时必须显式返回不可回滚状态
+- Notes:
+  - 该实体可作为查询模型或短时缓存，不要求长期完整持久化
+
+## 7. TerminalSession
+- Purpose: 表示一次容器终端访问会话及其审计元数据。
+- Key Fields:
+  - `id`
+  - `session_key`
+  - `operator_id`
+  - `cluster_id`
+  - `workspace_id`
+  - `project_id`
+  - `namespace`
+  - `pod_name`
+  - `container_name`
+  - `workload_kind`
+  - `workload_name`
+  - `status`: `pending | active | closed | expired | denied | failed`
+  - `started_at`
+  - `ended_at`
+  - `duration_seconds`
+  - `close_reason`
+  - `client_metadata_json`
+  - `created_at` / `updated_at`
+- Relationships:
+  - 引用一个 `WorkloadInstanceSnapshot`
+  - 复用现有审计域写入 `WorkloadOpsAuditEvent`
+- Validation Rules:
+  - 未授权范围不得创建会话
+  - 已关闭、已过期或已失败会话不得再次激活
+- State Transitions:
+  - `pending -> active | denied | failed`
+  - `active -> closed | expired | failed`
+
+## 8. WorkloadOpsAuditEvent
+- Purpose: 描述 003 中高风险动作、终端访问、回滚和批量任务的标准化审计行为。
+- Key Fields:
+  - `action`: `workloadops.action.submit | workloadops.action.start | workloadops.action.success | workloadops.action.failure | workloadops.batch.submit | workloadops.batch.finish | workloadops.rollback.submit | workloadops.rollback.finish | workloadops.terminal.open | workloadops.terminal.close`
+  - `operator_id`
+  - `cluster_id`
+  - `workspace_id`
+  - `project_id`
+  - `namespace`
+  - `resource_kind`
+  - `resource_name`
+  - `target_instance_ref`
+  - `risk_level`
+  - `outcome`
+  - `details_json`
+  - `occurred_at`
+- Relationships:
+  - 复用 001 的 `AuditEvent` 持久化表和查询能力
+- Validation Rules:
+  - 终端审计仅记录会话元数据，不记录命令正文和终端输出正文
+  - 审计记录必须能映射回真实资源对象和操作请求
