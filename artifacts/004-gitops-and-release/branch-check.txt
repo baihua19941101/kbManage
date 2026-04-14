@@ -1,0 +1,8 @@
+# 004 分支与合并门槛核对（T001）
+
+- Checked At: 2026-04-13 16:10 CST
+- Current Branch: 004-gitops-and-release
+- Remote (fetch): git@github.com:baihua19941101/kbManage.git
+- Remote (push): git@github.com:baihua19941101/kbManage.git
+- Merge Gate: 未经用户明确批准，禁止合并到 main/master。
+- PR Gate: 必须推送 `004-gitops-and-release` 并提交中文 PR，提交说明需专业且可审计。

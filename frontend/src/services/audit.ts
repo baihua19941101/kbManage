@@ -24,8 +24,12 @@ export type AuditEventFilters = {
   to?: string;
   actorUserId?: string;
   clusterId?: string;
+  workspaceId?: string;
+  projectId?: string;
   result?: string;
   eventType?: string;
+  resource?: string;
+  actionPrefix?: string;
 };
 
 export type ListAuditEventsResponse = {
@@ -106,8 +110,11 @@ const buildBackendQuery = (filters: AuditEventFilters): string => {
   if (filters.from) search.set('startAt', filters.from);
   if (filters.to) search.set('endAt', filters.to);
   if (filters.actorUserId) search.set('actorId', filters.actorUserId);
+  if (filters.workspaceId) search.set('workspaceId', filters.workspaceId);
+  if (filters.projectId) search.set('projectId', filters.projectId);
   if (filters.eventType) search.set('action', filters.eventType);
   if (filters.result) search.set('outcome', filters.result);
+  if (filters.resource) search.set('resource', filters.resource);
 
   const query = search.toString();
   return query ? `?${query}` : '';
@@ -204,8 +211,13 @@ export const listAuditEvents = async (
       ? response.Items
       : [];
 
+  const mappedItems = items.map(mapAuditEvent).filter((item) => item.id.length > 0);
+  const actionPrefix = filters.actionPrefix?.trim().toLowerCase();
+  if (!actionPrefix) {
+    return { items: mappedItems };
+  }
   return {
-    items: items.map(mapAuditEvent).filter((item) => item.id.length > 0)
+    items: mappedItems.filter((item) => (item.action || item.eventType || '').toLowerCase().startsWith(actionPrefix))
   };
 };
 

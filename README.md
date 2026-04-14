@@ -55,6 +55,11 @@ npm config set registry https://registry.npmmirror.com
 - `workloadops.batch.max_targets / concurrency`
 - `workloadops.terminal.idle_timeout / token_ttl`
 - `workloadops.audit.retention_days`
+- `gitops.sources.git_timeout / package_timeout / healthcheck_timeout`
+- `gitops.sync.default_timeout / max_parallel_targets / drift_scan_interval`
+- `gitops.diff.cache_ttl / max_entries / ignore_last_applied_annotation`
+- `gitops.release.history_retention_days / max_concurrent_operations / stage_progress_deadline`
+- `gitops.audit.retention_days / redact_secrets`
 
 说明：
 
@@ -72,7 +77,9 @@ npm config set registry https://registry.npmmirror.com
 
 - `VITE_API_BASE_URL`：后端 API 前缀
 - `VITE_HOST`：前端 dev server host
-- `VITE_PORT`：前端 dev server 端口（可自定义）
+- `VITE_PORT`：前端 dev server 端口（必须通过该变量配置，不在脚本中硬编码）
+- `VITE_GITOPS_OPERATION_POLL_INTERVAL`：GitOps 动作轮询间隔（毫秒）
+- `VITE_GITOPS_DIFF_REFRESH_INTERVAL`：GitOps 差异面板刷新间隔（毫秒）
 
 ## 启动方式
 
@@ -130,6 +137,8 @@ npm run build
 - 可观测后端接口已按读写动作区分权限：`observability:read`（读取）与 `observability:write`（治理动作）。
 - 前端已补齐可观测权限空态/只读态/权限回收处理，并通过 Vitest 与 ESLint 验证。
 - 003-workload-operations-control-plane 已完成 US1/US2/US3（单资源诊断、动作执行与回滚恢复、权限隔离与高风险审计闭环），当前进入 Final Phase 收尾与交付准备。
+- 004-gitops-and-release 已完成 US1/US2/US3，当前进入 Final Phase（文档收尾、验证基线与 PR 就绪材料）。
+- GitOps 审计查询入口：`/audit-events/gitops`。
 
 ## 002 可观测联调要点
 

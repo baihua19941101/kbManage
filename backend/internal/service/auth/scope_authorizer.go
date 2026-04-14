@@ -208,6 +208,56 @@ func (a *ScopeAuthorizer) CanAccessWorkloadOpsMapped(
 	)
 }
 
+func (a *ScopeAuthorizer) CanAccessGitOps(
+	grantedType domain.ScopeType,
+	grantedWorkspaceID uint64,
+	grantedProjectID uint64,
+	targetWorkspaceID uint64,
+	targetProjectID uint64,
+) bool {
+	targetType := domain.ScopeTypeWorkspace
+	if targetProjectID != 0 {
+		targetType = domain.ScopeTypeProject
+	}
+	return a.CanAccess(
+		grantedType,
+		grantedWorkspaceID,
+		grantedProjectID,
+		targetType,
+		targetWorkspaceID,
+		targetProjectID,
+	)
+}
+
+func (a *ScopeAuthorizer) CanAccessGitOpsMapped(
+	grantedType domain.ScopeType,
+	grantedWorkspaceID uint64,
+	grantedProjectID uint64,
+	targetWorkspaceIDs []uint64,
+	targetProjectIDs []uint64,
+) bool {
+	if grantedType == domain.ScopeTypePlatform {
+		return true
+	}
+	for _, workspaceID := range targetWorkspaceIDs {
+		if workspaceID == 0 {
+			continue
+		}
+		if a.CanAccessGitOps(grantedType, grantedWorkspaceID, grantedProjectID, workspaceID, 0) {
+			return true
+		}
+	}
+	for _, projectID := range targetProjectIDs {
+		if projectID == 0 {
+			continue
+		}
+		if a.CanAccessGitOps(grantedType, grantedWorkspaceID, grantedProjectID, 0, projectID) {
+			return true
+		}
+	}
+	return false
+}
+
 func firstNonZero(items []uint64) uint64 {
 	for _, item := range items {
 		if item != 0 {

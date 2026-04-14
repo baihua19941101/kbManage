@@ -1,0 +1,18 @@
+# 004 数据库备份记录
+
+- Feature:   004-gitops-and-release
+- Branch:   004-gitops-and-release
+- Executed At:   2026-04-13 15:53:03 CST
+- Backup Command:   docker exec mysql8 sh -lc 'mysqldump -hlocalhost -P3306 -uroot -p123456 --all-databases --single-transaction --quick --routines --events --triggers' > artifacts/004-gitops-and-release/mysql-backup-20260413-155243.sql
+- Backup File:   artifacts/004-gitops-and-release/mysql-backup-20260413-155243.sql
+- Credential Note:   admin/123456 在当前容器环境不可用；本次按容器实际可用凭据 root/123456 执行备份，并保留差异记录。
+- Restore Validation:   已通过临时容器 mysql8-restore-check-004 完成完整导入，并成功列出数据库：cdn_manage,cdn_manage_auth_service_test,cdn_manage_bootstrap_service_test,cdn_manage_demo,cdn_manage_projects_service_test,cdn_manage_repository_test,cdn_manage_users_service_test,information_schema,kb_manage,kubemanage,myapp,mysql,performance_schema,sys
+
+## 2026-04-13 治理核对补充（T002）
+
+- Checked At:   2026-04-13 16:10 CST
+- Check Scope:  复核 004 备份文件、凭据差异说明、恢复抽样验证记录
+- Backup File Exists:   artifacts/004-gitops-and-release/mysql-backup-20260413-155243.sql
+- Credential Delta Confirmed:   规划要求默认凭据为 admin/123456；当前容器环境实际使用 root/123456，差异已留痕
+- Restore Sampling Confirmed:   复核记录显示已通过临时容器 mysql8-restore-check-004 完成导入与数据库列表校验
+- Result:   本轮治理核对通过，可继续 004 tasks/implement 启动前准备

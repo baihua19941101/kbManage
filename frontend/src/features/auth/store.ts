@@ -2,6 +2,14 @@ import { create } from 'zustand';
 
 export type PlatformRole = 'platform-admin' | 'ops-operator' | 'audit-reader' | 'readonly';
 
+export type GitOpsPermission =
+  | 'gitops:read'
+  | 'gitops:manage-source'
+  | 'gitops:sync'
+  | 'gitops:promote'
+  | 'gitops:rollback'
+  | 'gitops:override';
+
 type AuthUser = {
   id: string;
   username: string;
@@ -89,6 +97,39 @@ const WORKLOAD_OPS_TERMINAL_ROLES: PlatformRole[] = ['platform-admin', 'ops-oper
 const WORKLOAD_OPS_ROLLBACK_ROLES: PlatformRole[] = ['platform-admin', 'ops-operator'];
 const WORKLOAD_OPS_BATCH_ROLES: PlatformRole[] = ['platform-admin', 'ops-operator'];
 
+const GITOPS_READ_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'audit-reader',
+  'readonly',
+  'gitops:read'
+];
+const GITOPS_MANAGE_SOURCE_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'gitops:manage-source'
+];
+const GITOPS_SYNC_IDENTIFIERS: readonly string[] = ['platform-admin', 'ops-operator', 'gitops:sync'];
+const GITOPS_PROMOTE_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'gitops:promote'
+];
+const GITOPS_ROLLBACK_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'gitops:rollback'
+];
+const GITOPS_OVERRIDE_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'gitops:override'
+];
+const GITOPS_AUDIT_READ_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'audit-reader',
+  'gitops:read'
+];
+
 const getUserRoles = (user: AuthUser | null | undefined): string[] => {
   if (!user || !Array.isArray(user.platformRoles)) {
     return [];
@@ -130,6 +171,27 @@ export const canRollbackWorkloadOps = (user: AuthUser | null | undefined): boole
 
 export const canBatchWorkloadOps = (user: AuthUser | null | undefined): boolean =>
   hasAnyRole(user, WORKLOAD_OPS_BATCH_ROLES);
+
+export const canReadGitOps = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, GITOPS_READ_IDENTIFIERS);
+
+export const canManageGitOpsSource = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, GITOPS_MANAGE_SOURCE_IDENTIFIERS);
+
+export const canSyncGitOps = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, GITOPS_SYNC_IDENTIFIERS);
+
+export const canPromoteGitOps = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, GITOPS_PROMOTE_IDENTIFIERS);
+
+export const canRollbackGitOps = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, GITOPS_ROLLBACK_IDENTIFIERS);
+
+export const canOverrideGitOps = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, GITOPS_OVERRIDE_IDENTIFIERS);
+
+export const canReadGitOpsAudit = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, GITOPS_AUDIT_READ_IDENTIFIERS);
 
 export const useAuthStore = create<AuthState>((set) => ({
   ...initialState,

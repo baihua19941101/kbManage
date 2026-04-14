@@ -53,6 +53,18 @@ func WorkloadOpsBatchKey(parts ...string) string {
 	return prefixedRedisKey("workloadops:batch", parts...)
 }
 
+func GitOpsProgressKey(parts ...string) string {
+	return prefixedRedisKey("gitops:progress", parts...)
+}
+
+func GitOpsDiffKey(parts ...string) string {
+	return prefixedRedisKey("gitops:diff", parts...)
+}
+
+func GitOpsLockKey(parts ...string) string {
+	return prefixedRedisKey("gitops:lock", parts...)
+}
+
 func prefixedRedisKey(prefix string, parts ...string) string {
 	if len(parts) == 0 {
 		return prefix

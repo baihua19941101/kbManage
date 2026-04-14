@@ -47,6 +47,18 @@ const (
 	WorkloadOpsAuditRollbackFinish = "workloadops.rollback.finish"
 	WorkloadOpsAuditTerminalOpen   = "workloadops.terminal.open"
 	WorkloadOpsAuditTerminalClose  = "workloadops.terminal.close"
+
+	GitOpsAuditResourceType          = "gitops"
+	GitOpsAuditActionSourceVerify    = "gitops.source.verify"
+	GitOpsAuditActionSyncSubmit      = "gitops.sync.submit"
+	GitOpsAuditActionResyncSubmit    = "gitops.resync.submit"
+	GitOpsAuditActionInstallSubmit   = "gitops.install.submit"
+	GitOpsAuditActionUpgradeSubmit   = "gitops.upgrade.submit"
+	GitOpsAuditActionPromoteSubmit   = "gitops.promote.submit"
+	GitOpsAuditActionRollbackSubmit  = "gitops.rollback.submit"
+	GitOpsAuditActionPauseSubmit     = "gitops.pause.submit"
+	GitOpsAuditActionResumeSubmit    = "gitops.resume.submit"
+	GitOpsAuditActionUninstallSubmit = "gitops.uninstall.submit"
 )
 
 type EventWriter struct {
@@ -168,6 +180,30 @@ func (w *EventWriter) WriteWorkloadOpsEvent(
 		actorID,
 		action,
 		WorkloadOpsAuditResourceType,
+		strings.TrimSpace(resourceID),
+		outcome,
+		details,
+	)
+}
+
+func (w *EventWriter) WriteGitOpsEvent(
+	ctx context.Context,
+	requestID string,
+	actorID *uint64,
+	action string,
+	resourceID string,
+	outcome domain.AuditOutcome,
+	details map[string]any,
+) error {
+	if details == nil {
+		details = map[string]any{}
+	}
+	return w.Write(
+		ctx,
+		requestID,
+		actorID,
+		action,
+		GitOpsAuditResourceType,
 		strings.TrimSpace(resourceID),
 		outcome,
 		details,
@@ -356,6 +392,22 @@ func classifyAuditMetadata(action string, details map[string]any) (string, strin
 			actionScope = "batch"
 		case strings.Contains(action, ".rollback."):
 			actionScope = "rollback"
+		}
+	}
+	if strings.HasPrefix(action, "gitops.") {
+		category = "gitops"
+		actionScope = "action"
+		switch {
+		case strings.Contains(action, ".source."):
+			actionScope = "source"
+		case strings.Contains(action, ".promote."):
+			actionScope = "promote"
+		case strings.Contains(action, ".rollback."):
+			actionScope = "rollback"
+		case strings.Contains(action, ".pause.") || strings.Contains(action, ".resume."):
+			actionScope = "sync_control"
+		case strings.Contains(action, ".sync.") || strings.Contains(action, ".resync."):
+			actionScope = "sync"
 		}
 	}
 

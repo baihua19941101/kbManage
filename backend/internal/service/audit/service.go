@@ -272,13 +272,19 @@ func (s *Service) filterVisibleEvents(
 	constrained := false
 	allowedClusterSet := make(map[uint64]struct{})
 	if viewerID != 0 && s.scopeAccess != nil {
-		allowedClusterIDs, hasScopeConstraint, err := s.scopeAccess.ListClusterIDsByPermission(ctx, viewerID, "access:project:read")
-		if err != nil {
-			return nil, err
-		}
-		constrained = hasScopeConstraint
-		for _, id := range allowedClusterIDs {
-			allowedClusterSet[id] = struct{}{}
+		constrained = true
+		permissions := []string{"access:project:read", "gitops:read"}
+		for _, permission := range permissions {
+			allowedClusterIDs, hasScopeConstraint, err := s.scopeAccess.ListClusterIDsByPermission(ctx, viewerID, permission)
+			if err != nil {
+				return nil, err
+			}
+			if !hasScopeConstraint {
+				constrained = false
+			}
+			for _, id := range allowedClusterIDs {
+				allowedClusterSet[id] = struct{}{}
+			}
 		}
 	}
 
