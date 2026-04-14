@@ -3,7 +3,13 @@ export type Pagination<T> = {
   count?: number;
 };
 
-export type OperationStatus = 'pending' | 'running' | 'succeeded' | 'failed';
+export type OperationStatus =
+  | 'pending'
+  | 'running'
+  | 'partially_succeeded'
+  | 'succeeded'
+  | 'failed'
+  | 'canceled';
 
 export type OperationDTO = {
   id: string | number;
@@ -318,4 +324,80 @@ export type TerminalSessionDTO = {
   endedAt?: string;
   durationSeconds?: number;
   closeReason?: string;
+};
+
+export type GitOpsSourceDTO = {
+  id: string;
+  name: string;
+  sourceType?: 'git' | 'helm' | 'oci' | string;
+  status?: 'enabled' | 'disabled' | 'degraded' | string;
+  workspaceId?: string;
+  projectId?: string;
+  lastValidatedAt?: string;
+};
+
+export type GitOpsDeliveryUnitDTO = {
+  id: string;
+  name: string;
+  sourceId?: string;
+  workspaceId?: string;
+  projectId?: string;
+  desiredState?: string;
+  actualState?: string;
+  driftStatus?: 'in_sync' | 'drifted' | 'unknown' | string;
+  lastSyncAt?: string;
+  lastSyncResult?: string;
+};
+
+export type GitOpsOperationType =
+  | 'install'
+  | 'sync'
+  | 'resync'
+  | 'upgrade'
+  | 'pause'
+  | 'resume'
+  | 'promote'
+  | 'rollback'
+  | 'uninstall';
+
+export type GitOpsOperationDTO = {
+  id: string | number;
+  unitId?: string;
+  actionType?: GitOpsOperationType | string;
+  operationType: GitOpsOperationType | string;
+  status?: OperationStatus | string;
+  progressPercent?: number;
+  resultSummary?: string;
+  startedAt?: string;
+  completedAt?: string;
+  resultMessage?: string;
+  failureReason?: string;
+  stages?: Array<{
+    environment?: string;
+    status?: string;
+    targetCount?: number;
+    succeededCount?: number;
+    failedCount?: number;
+    failureReason?: string;
+  }>;
+};
+
+export type GitOpsActionRequestDTO = {
+  actionType: GitOpsOperationType;
+  environment?: string;
+  targetReleaseId?: number;
+  targetAppVersion?: string;
+  targetConfigVersion?: string;
+  reason?: string;
+  stageId?: string;
+  targetRevision?: string;
+  overrideValues?: Record<string, unknown>;
+};
+
+export type GitOpsListQueryDTO = {
+  keyword?: string;
+  workspaceId?: string;
+  projectId?: string;
+  limit?: number;
+  offset?: number;
 };

@@ -190,3 +190,25 @@ export const buildScopeQueryKey = (parts: Array<string | number | undefined | nu
     .map((part) => String(part))
     .join(':');
 };
+
+export const isApiErrorStatus = (
+  error: unknown,
+  statuses: readonly number[]
+): error is ApiError => {
+  return error instanceof ApiError && statuses.includes(error.status);
+};
+
+export const isAuthorizationError = (error: unknown): error is ApiError => {
+  return isApiErrorStatus(error, [401, 403]);
+};
+
+export const normalizeAuthorizationError = (
+  error: unknown,
+  fallback = '当前操作未授权，请联系管理员调整权限。'
+): string => {
+  if (isAuthorizationError(error)) {
+    return normalizeApiError(error, fallback);
+  }
+
+  return fallback;
+};

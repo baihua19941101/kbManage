@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"kbmanage/backend/internal/domain"
+	"kbmanage/backend/internal/repository"
 	auditSvc "kbmanage/backend/internal/service/audit"
 	"kbmanage/backend/internal/service/auth"
 	obsSvc "kbmanage/backend/internal/service/observability"
@@ -30,6 +31,12 @@ const (
 	PermissionWorkloadOpsTerminal = "workloadops:terminal"
 	PermissionWorkloadOpsRollback = "workloadops:rollback"
 	PermissionWorkloadOpsBatch    = "workloadops:batch"
+	PermissionGitOpsRead          = "gitops:read"
+	PermissionGitOpsManageSource  = "gitops:manage-source"
+	PermissionGitOpsSync          = "gitops:sync"
+	PermissionGitOpsPromote       = "gitops:promote"
+	PermissionGitOpsRollback      = "gitops:rollback"
+	PermissionGitOpsOverride      = "gitops:override"
 )
 
 func RequireWorkspaceScope(scopeAccess *auth.ScopeAccessService, permission string) gin.HandlerFunc {
@@ -188,6 +195,328 @@ func parseUint64Any(v any) (uint64, error) {
 	default:
 		return 0, errors.New("unsupported")
 	}
+}
+
+func RequireGitOpsScopeFromRequest(scopeAccess *auth.ScopeAccessService, permission string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if scopeAccess == nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "scope authorization is not configured"})
+			return
+		}
+		userID := c.GetUint64(UserIDKey)
+		if userID == 0 {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing authenticated user"})
+			return
+		}
+
+		workspaceID, projectID, err := parseGitOpsScopeFromQueryOrBody(c)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if workspaceID == 0 && projectID == 0 {
+			c.Next()
+			return
+		}
+		if err := checkGitOpsScopePermission(c, scopeAccess, userID, workspaceID, projectID, permission); err != nil {
+			c.AbortWithStatusJSON(statusCodeForGitOpsScopeErr(err), gin.H{"error": err.Error()})
+			return
+		}
+		c.Next()
+	}
+}
+
+func RequireGitOpsSourceScope(scopeAccess *auth.ScopeAccessService, sourceRepo *repository.DeliverySourceRepository, permission string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if scopeAccess == nil || sourceRepo == nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "gitops source authorization is not configured"})
+			return
+		}
+		userID := c.GetUint64(UserIDKey)
+		if userID == 0 {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing authenticated user"})
+			return
+		}
+		sourceID, err := strconv.ParseUint(strings.TrimSpace(c.Param("sourceId")), 10, 64)
+		if err != nil || sourceID == 0 {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid sourceId"})
+			return
+		}
+		item, err := sourceRepo.GetByID(c.Request.Context(), sourceID)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "source not found"})
+			return
+		}
+		if err := checkGitOpsScopePermission(c, scopeAccess, userID, derefUint64(item.WorkspaceID), derefUint64(item.ProjectID), permission); err != nil {
+			c.AbortWithStatusJSON(statusCodeForGitOpsScopeErr(err), gin.H{"error": err.Error()})
+			return
+		}
+		c.Next()
+	}
+}
+
+func RequireGitOpsTargetGroupScope(scopeAccess *auth.ScopeAccessService, targetRepo *repository.ClusterTargetGroupRepository, permission string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if scopeAccess == nil || targetRepo == nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "gitops target group authorization is not configured"})
+			return
+		}
+		userID := c.GetUint64(UserIDKey)
+		if userID == 0 {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing authenticated user"})
+			return
+		}
+		targetGroupID, err := strconv.ParseUint(strings.TrimSpace(c.Param("targetGroupId")), 10, 64)
+		if err != nil || targetGroupID == 0 {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid targetGroupId"})
+			return
+		}
+		item, err := targetRepo.GetByID(c.Request.Context(), targetGroupID)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "target group not found"})
+			return
+		}
+		if err := checkGitOpsScopePermission(c, scopeAccess, userID, item.WorkspaceID, derefUint64(item.ProjectID), permission); err != nil {
+			c.AbortWithStatusJSON(statusCodeForGitOpsScopeErr(err), gin.H{"error": err.Error()})
+			return
+		}
+		c.Next()
+	}
+}
+
+func RequireGitOpsDeliveryUnitScope(scopeAccess *auth.ScopeAccessService, unitRepo *repository.DeliveryUnitRepository, permission string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if scopeAccess == nil || unitRepo == nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "gitops delivery unit authorization is not configured"})
+			return
+		}
+		userID := c.GetUint64(UserIDKey)
+		if userID == 0 {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing authenticated user"})
+			return
+		}
+		unitID, err := strconv.ParseUint(strings.TrimSpace(c.Param("unitId")), 10, 64)
+		if err != nil || unitID == 0 {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid unitId"})
+			return
+		}
+		item, err := unitRepo.GetByID(c.Request.Context(), unitID)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "delivery unit not found"})
+			return
+		}
+		if err := checkGitOpsScopePermission(c, scopeAccess, userID, item.WorkspaceID, derefUint64(item.ProjectID), permission); err != nil {
+			c.AbortWithStatusJSON(statusCodeForGitOpsScopeErr(err), gin.H{"error": err.Error()})
+			return
+		}
+		c.Next()
+	}
+}
+
+func RequireGitOpsOperationScope(
+	scopeAccess *auth.ScopeAccessService,
+	operationRepo *repository.DeliveryOperationRepository,
+	unitRepo *repository.DeliveryUnitRepository,
+	permission string,
+) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if scopeAccess == nil || operationRepo == nil || unitRepo == nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "gitops operation authorization is not configured"})
+			return
+		}
+		userID := c.GetUint64(UserIDKey)
+		if userID == 0 {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing authenticated user"})
+			return
+		}
+		operationID, err := strconv.ParseUint(strings.TrimSpace(c.Param("operationId")), 10, 64)
+		if err != nil || operationID == 0 {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid operationId"})
+			return
+		}
+		operation, err := operationRepo.GetByID(c.Request.Context(), operationID)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "operation not found"})
+			return
+		}
+		unit, err := unitRepo.GetByID(c.Request.Context(), operation.DeliveryUnitID)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "delivery unit not found"})
+			return
+		}
+		if err := checkGitOpsScopePermission(c, scopeAccess, userID, unit.WorkspaceID, derefUint64(unit.ProjectID), permission); err != nil {
+			c.AbortWithStatusJSON(statusCodeForGitOpsScopeErr(err), gin.H{"error": err.Error()})
+			return
+		}
+		c.Next()
+	}
+}
+
+func RequireGitOpsActionScope(scopeAccess *auth.ScopeAccessService, unitRepo *repository.DeliveryUnitRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if scopeAccess == nil || unitRepo == nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "gitops action authorization is not configured"})
+			return
+		}
+		userID := c.GetUint64(UserIDKey)
+		if userID == 0 {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing authenticated user"})
+			return
+		}
+		unitID, err := strconv.ParseUint(strings.TrimSpace(c.Param("unitId")), 10, 64)
+		if err != nil || unitID == 0 {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid unitId"})
+			return
+		}
+		actionType, err := parseGitOpsActionType(c)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		permission := permissionForGitOpsAction(actionType)
+		unit, err := unitRepo.GetByID(c.Request.Context(), unitID)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "delivery unit not found"})
+			return
+		}
+		if err := checkGitOpsScopePermission(c, scopeAccess, userID, unit.WorkspaceID, derefUint64(unit.ProjectID), permission); err != nil {
+			c.AbortWithStatusJSON(statusCodeForGitOpsScopeErr(err), gin.H{"error": err.Error()})
+			return
+		}
+		c.Next()
+	}
+}
+
+func parseGitOpsScopeFromQueryOrBody(c *gin.Context) (uint64, uint64, error) {
+	workspaceID, err := parseUint64Any(c.Query("workspaceId"))
+	if err != nil {
+		return 0, 0, errors.New("invalid workspaceId")
+	}
+	projectID, err := parseUint64Any(c.Query("projectId"))
+	if err != nil {
+		return 0, 0, errors.New("invalid projectId")
+	}
+	if workspaceID != 0 || projectID != 0 {
+		return workspaceID, projectID, nil
+	}
+
+	body, err := c.GetRawData()
+	if err != nil {
+		return 0, 0, errors.New("invalid request body")
+	}
+	c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
+	if len(bytes.TrimSpace(body)) == 0 {
+		return 0, 0, nil
+	}
+
+	var payload map[string]any
+	if err := json.Unmarshal(body, &payload); err != nil {
+		return 0, 0, errors.New("invalid request body")
+	}
+	if rawWorkspaceID, ok := payload["workspaceId"]; ok {
+		workspaceID, err = parseUint64Any(rawWorkspaceID)
+		if err != nil {
+			return 0, 0, errors.New("invalid workspaceId")
+		}
+	}
+	if rawProjectID, ok := payload["projectId"]; ok {
+		projectID, err = parseUint64Any(rawProjectID)
+		if err != nil {
+			return 0, 0, errors.New("invalid projectId")
+		}
+	}
+	return workspaceID, projectID, nil
+}
+
+func parseGitOpsActionType(c *gin.Context) (string, error) {
+	body, err := c.GetRawData()
+	if err != nil {
+		return "", errors.New("invalid request body")
+	}
+	c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
+	if len(bytes.TrimSpace(body)) == 0 {
+		return "", nil
+	}
+
+	var payload map[string]any
+	if err := json.Unmarshal(body, &payload); err != nil {
+		return "", errors.New("invalid request body")
+	}
+	rawActionType, ok := payload["actionType"]
+	if !ok {
+		return "", nil
+	}
+	actionType, ok := rawActionType.(string)
+	if !ok {
+		return "", errors.New("invalid actionType")
+	}
+	return strings.ToLower(strings.TrimSpace(actionType)), nil
+}
+
+func permissionForGitOpsAction(actionType string) string {
+	switch strings.ToLower(strings.TrimSpace(actionType)) {
+	case "promote":
+		return PermissionGitOpsPromote
+	case "rollback":
+		return PermissionGitOpsRollback
+	case "install", "sync", "resync", "upgrade", "pause", "resume", "uninstall":
+		return PermissionGitOpsSync
+	default:
+		return PermissionGitOpsRead
+	}
+}
+
+func checkGitOpsScopePermission(
+	c *gin.Context,
+	scopeAccess *auth.ScopeAccessService,
+	userID uint64,
+	workspaceID uint64,
+	projectID uint64,
+	permission string,
+) error {
+	targetType := domain.ScopeTypeWorkspace
+	if projectID != 0 {
+		targetType = domain.ScopeTypeProject
+	}
+	allowed, err := scopeAccess.HasScopePermission(
+		c.Request.Context(),
+		userID,
+		targetType,
+		workspaceID,
+		projectID,
+		permission,
+	)
+	if err != nil {
+		return err
+	}
+	if !allowed {
+		return errors.New("gitops scope access denied")
+	}
+	return nil
+}
+
+func statusCodeForGitOpsScopeErr(err error) int {
+	if err == nil {
+		return http.StatusOK
+	}
+	lower := strings.ToLower(err.Error())
+	switch {
+	case strings.Contains(lower, "configured"):
+		return http.StatusInternalServerError
+	case strings.Contains(lower, "authenticated"):
+		return http.StatusUnauthorized
+	case strings.Contains(lower, "invalid"), strings.Contains(lower, "required"), strings.Contains(lower, "request body"):
+		return http.StatusBadRequest
+	default:
+		return http.StatusForbidden
+	}
+}
+
+func derefUint64(value *uint64) uint64 {
+	if value == nil {
+		return 0
+	}
+	return *value
 }
 
 func RequireWorkloadOpsClusterScope(scopeAccess *auth.ScopeAccessService, permission string) gin.HandlerFunc {

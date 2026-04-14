@@ -33,10 +33,10 @@ export const router = createBrowserRouter([
           {
             path: '/resources',
             lazy: async () => {
-              const { ResourceListPage } = await import(
-                '@/features/resources/pages/ResourceListPage'
+              const { ResourcesPage } = await import(
+                '@/features/resources/pages/ResourcesPage'
               );
-              return { Component: ResourceListPage };
+              return { Component: ResourcesPage };
             }
           },
           {
@@ -58,6 +58,13 @@ export const router = createBrowserRouter([
             lazy: async () => {
               const { AuditEventPage } = await import('@/features/audit/pages/AuditEventPage');
               return { Component: AuditEventPage };
+            }
+          },
+          {
+            path: '/audit-events/gitops',
+            lazy: async () => {
+              const { GitOpsAuditPage } = await import('@/features/audit/pages/GitOpsAuditPage');
+              return { Component: GitOpsAuditPage };
             }
           },
           {
@@ -151,6 +158,28 @@ export const router = createBrowserRouter([
               );
               return { Component: BatchOperationPage };
             }
+          },
+          {
+            path: '/gitops',
+            lazy: async () => {
+              const { GitOpsOverviewPage } = await import(
+                '@/features/gitops/pages/GitOpsOverviewPage'
+              );
+              return { Component: GitOpsOverviewPage };
+            }
+          },
+          {
+            path: '/gitops/delivery-units/:unitId',
+            lazy: async () => {
+              const { DeliveryUnitDetailPage } = await import(
+                '@/features/gitops/pages/DeliveryUnitDetailPage'
+              );
+              return { Component: DeliveryUnitDetailPage };
+            }
+          },
+          {
+            path: '/gitops/*',
+            element: <Navigate to="/gitops" replace />
           }
         ]
       }

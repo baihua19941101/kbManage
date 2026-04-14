@@ -1,0 +1,15 @@
+# 004 国内源与远程流程核对（T003）
+
+- Checked At: 2026-04-13 16:10 CST
+- Go Proxy Current: https://proxy.golang.org,direct
+- Go Proxy Required: https://goproxy.cn,direct
+- npm Registry Current: https://registry.npmmirror.com
+- Git/Helm/OCI 联调镜像来源要求: 优先阿里云、DaoCloud 或已批准的国内代理，禁止未说明来源时直接裸连默认境外源
+- Git Remote (origin): git@github.com:baihua19941101/kbManage.git
+- PR 流程: 推送 feature 分支 -> 创建中文 PR（附备份证据/验证结果/风险）-> 用户明确批准后再合并
+
+## 处理说明
+
+- 本机当前 `GOPROXY` 与要求值不一致；进入 004 implement 前需执行：
+  - `go env -w GOPROXY=https://goproxy.cn,direct`
+- npm registry 已满足要求，无需调整。

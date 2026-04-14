@@ -2,6 +2,7 @@ import { Spin } from 'antd';
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import {
+  canReadGitOps,
   canReadWorkloadOps,
   canReadObservability,
   hasAnyRole,
@@ -25,6 +26,10 @@ const routeGuards: RouteGuard[] = [
   {
     pathPrefix: '/workload-ops',
     canAccess: canReadWorkloadOps
+  },
+  {
+    pathPrefix: '/gitops',
+    canAccess: canReadGitOps
   }
 ];
 

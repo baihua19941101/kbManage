@@ -1,6 +1,6 @@
 # kbManage Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-12
+Auto-generated from all feature plans. Last updated: 2026-04-13
 
 ## Active Technologies
 - Go 1.25；TypeScript 5.x；React 19.2 + Gin；client-go；GORM；React；Vite 8；Ant Design 6.3.x；React Router；TanStack Query (001-k8s-ops-platform)
@@ -8,6 +8,8 @@ Auto-generated from all feature plans. Last updated: 2026-04-12
 - Go 1.25；TypeScript 5.x；React 19.2 + Gin；client-go；GORM；go-redis；React；Vite 8；Ant Design 6.3.x；React Router；TanStack Query；Zustand；Apache ECharts；Prometheus-compatible Query API；Alertmanager-compatible API；Loki-compatible Query API (002-observability-center)
 - MySQL 8.4（可观测数据源配置、告警规则治理元数据、通知目标、静默窗口、告警快照、处理记录、审计索引）；Redis 8.x（查询缓存、同步游标、短时上下文、告警状态协同）；原始日志/指标/运行态告警由外部 Prometheus/Alertmanager/Loki 兼容后端保存 (002-observability-center)
 - MySQL 8.4（工作负载动作请求、批量任务、发布历史快照索引、终端会话审计、扩展运维审计索引）；Redis 8.x（动作进度缓存、批量执行协调、终端短会话上下文、幂等键和短时结果缓存）；运行时工作负载状态、Pod/容器状态、日志流和 exec 通道来自 Kubernetes API (003-workload-operations-control-plane)
+- Go 1.25；TypeScript 5.x；React 19.2 + Gin；client-go；GORM；go-redis；go-git 风格 Git 访问抽象；Helm SDK 风格发布源抽象；React；Vite 8；Ant Design 6.3.x；React Router；TanStack Query；Zustand (004-gitops-and-release)
+- MySQL 8.4（交付来源、目标组、环境阶段、配置覆盖、发布历史、同步/发布动作、审计索引）；Redis 8.x（动作进度、分布式锁、幂等键、短时差异缓存、阶段推进上下文）；Git/Helm/OCI 来源内容与 Kubernetes 实际状态由外部来源和 Kubernetes API 提供 (004-gitops-and-release)
 
 ## Project Structure
 
@@ -26,9 +28,9 @@ npm test && npm run lint
 Go 1.25；TypeScript 5.x；React 19.2: Follow standard conventions
 
 ## Recent Changes
+- 004-gitops-and-release: Added Go 1.25；TypeScript 5.x；React 19.2 + Gin；client-go；GORM；go-redis；go-git 风格 Git 访问抽象；Helm SDK 风格发布源抽象；React；Vite 8；Ant Design 6.3.x；React Router；TanStack Query；Zustand
 - 003-workload-operations-control-plane: Added Go 1.25；TypeScript 5.x；React 19.2 + Gin；client-go；GORM；go-redis；React；Vite 8；Ant Design 6.3.x；React Router；TanStack Query；Zustand
 - 002-observability-center: Added Go 1.25；TypeScript 5.x；React 19.2 + Gin；client-go；GORM；go-redis；React；Vite 8；Ant Design 6.3.x；React Router；TanStack Query；Zustand；Apache ECharts；Prometheus-compatible Query API；Alertmanager-compatible API；Loki-compatible Query API
-- 001-k8s-ops-platform: Added Go 1.25；TypeScript 5.x；React 19.2 + Gin；client-go；GORM；React；Vite 8；Ant Design 6.3.x；React Router；TanStack Query
 
 <!-- MANUAL ADDITIONS START -->
 ## Configuration Conventions

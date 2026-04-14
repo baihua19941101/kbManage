@@ -1,0 +1,839 @@
+openapi: 3.1.0
+info:
+  title: kbManage GitOps Release API
+  version: 0.1.0
+  description: >-
+    004 GitOps 与应用发布中心 API 契约，覆盖交付来源、目标组、
+    交付单元、状态/差异、发布动作、环境推进、回滚和审计查询。
+servers:
+  - url: /api/v1
+paths:
+  /gitops/sources:
+    get:
+      summary: 查询交付来源列表
+      operationId: listDeliverySources
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/ProjectIdOptional'
+        - in: query
+          name: sourceType
+          schema:
+            type: string
+            enum: [git, package]
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, ready, failed, disabled]
+      responses:
+        '200':
+          description: 交付来源列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DeliverySource'
+    post:
+      summary: 创建交付来源
+      operationId: createDeliverySource
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDeliverySourceRequest'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliverySource'
+  /gitops/sources/{sourceId}:
+    get:
+      summary: 获取交付来源详情
+      operationId: getDeliverySource
+      parameters:
+        - $ref: '#/components/parameters/SourceId'
+      responses:
+        '200':
+          description: 交付来源详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliverySource'
+    patch:
+      summary: 更新交付来源
+      operationId: updateDeliverySource
+      parameters:
+        - $ref: '#/components/parameters/SourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDeliverySourceRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliverySource'
+  /gitops/sources/{sourceId}/verify:
+    post:
+      summary: 校验交付来源连通性
+      operationId: verifyDeliverySource
+      parameters:
+        - $ref: '#/components/parameters/SourceId'
+      responses:
+        '202':
+          description: 校验任务已提交
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryOperation'
+  /gitops/target-groups:
+    get:
+      summary: 查询目标组列表
+      operationId: listTargetGroups
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/ProjectIdOptional'
+      responses:
+        '200':
+          description: 目标组列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TargetGroup'
+    post:
+      summary: 创建目标组
+      operationId: createTargetGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTargetGroupRequest'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TargetGroup'
+  /gitops/target-groups/{targetGroupId}:
+    get:
+      summary: 获取目标组详情
+      operationId: getTargetGroup
+      parameters:
+        - $ref: '#/components/parameters/TargetGroupId'
+      responses:
+        '200':
+          description: 目标组详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TargetGroup'
+    patch:
+      summary: 更新目标组
+      operationId: updateTargetGroup
+      parameters:
+        - $ref: '#/components/parameters/TargetGroupId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTargetGroupRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TargetGroup'
+  /gitops/delivery-units:
+    get:
+      summary: 查询交付单元列表
+      operationId: listDeliveryUnits
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/ProjectIdOptional'
+        - in: query
+          name: environment
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [ready, progressing, degraded, out_of_sync, paused, unknown]
+        - in: query
+          name: driftStatus
+          schema:
+            type: string
+            enum: [in_sync, drifted, modified, unavailable, unknown]
+      responses:
+        '200':
+          description: 交付单元列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ApplicationDeliveryUnit'
+    post:
+      summary: 创建交付单元
+      operationId: createDeliveryUnit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDeliveryUnitRequest'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationDeliveryUnit'
+  /gitops/delivery-units/{unitId}:
+    get:
+      summary: 获取交付单元详情
+      operationId: getDeliveryUnit
+      parameters:
+        - $ref: '#/components/parameters/UnitId'
+      responses:
+        '200':
+          description: 交付单元详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationDeliveryUnit'
+    patch:
+      summary: 更新交付单元
+      operationId: updateDeliveryUnit
+      parameters:
+        - $ref: '#/components/parameters/UnitId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDeliveryUnitRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationDeliveryUnit'
+  /gitops/delivery-units/{unitId}/status:
+    get:
+      summary: 获取交付单元状态聚合
+      operationId: getDeliveryUnitStatus
+      parameters:
+        - $ref: '#/components/parameters/UnitId'
+        - in: query
+          name: environment
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 状态聚合结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryUnitStatus'
+  /gitops/delivery-units/{unitId}/diff:
+    get:
+      summary: 获取交付单元期望与实际状态差异
+      operationId: getDeliveryUnitDiff
+      parameters:
+        - $ref: '#/components/parameters/UnitId'
+        - in: query
+          name: environment
+          schema:
+            type: string
+        - in: query
+          name: targetGroupId
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: 差异结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryDiffResponse'
+  /gitops/delivery-units/{unitId}/actions:
+    post:
+      summary: 提交交付动作
+      operationId: submitDeliveryAction
+      parameters:
+        - $ref: '#/components/parameters/UnitId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitDeliveryActionRequest'
+      responses:
+        '202':
+          description: 动作已提交
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryOperation'
+  /gitops/delivery-units/{unitId}/releases:
+    get:
+      summary: 查询交付修订历史
+      operationId: listReleaseRevisions
+      parameters:
+        - $ref: '#/components/parameters/UnitId'
+        - in: query
+          name: environment
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 修订历史列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReleaseRevision'
+  /gitops/operations/{operationId}:
+    get:
+      summary: 获取交付动作状态
+      operationId: getDeliveryOperation
+      parameters:
+        - $ref: '#/components/parameters/OperationId'
+      responses:
+        '200':
+          description: 动作详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryOperation'
+  /gitops/audit/records:
+    get:
+      summary: 查询 GitOps 审计记录
+      operationId: listGitOpsAuditRecords
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/ProjectIdOptional'
+        - in: query
+          name: environment
+          schema:
+            type: string
+        - in: query
+          name: actionType
+          schema:
+            type: string
+        - in: query
+          name: operatorId
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: result
+          schema:
+            type: string
+            enum: [succeeded, failed, partially_succeeded, denied]
+        - in: query
+          name: start
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: end
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: 审计记录列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GitOpsAuditRecord'
+components:
+  parameters:
+    WorkspaceId:
+      in: query
+      name: workspaceId
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    ProjectIdOptional:
+      in: query
+      name: projectId
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+    SourceId:
+      in: path
+      name: sourceId
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    TargetGroupId:
+      in: path
+      name: targetGroupId
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    UnitId:
+      in: path
+      name: unitId
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    OperationId:
+      in: path
+      name: operationId
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+  schemas:
+    DeliverySource:
+      type: object
+      required: [id, name, sourceType, endpoint, status]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        sourceType:
+          type: string
+          enum: [git, package]
+        endpoint:
+          type: string
+        defaultRef:
+          type: string
+        credentialRef:
+          type: string
+        status:
+          type: string
+          enum: [pending, ready, failed, disabled]
+        lastVerifiedAt:
+          type: string
+          format: date-time
+        lastErrorMessage:
+          type: string
+    CreateDeliverySourceRequest:
+      type: object
+      required: [name, sourceType, endpoint, workspaceId]
+      properties:
+        name:
+          type: string
+        sourceType:
+          type: string
+          enum: [git, package]
+        endpoint:
+          type: string
+        defaultRef:
+          type: string
+        credentialRef:
+          type: string
+        workspaceId:
+          type: integer
+        projectId:
+          type: integer
+    UpdateDeliverySourceRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        defaultRef:
+          type: string
+        credentialRef:
+          type: string
+        disabled:
+          type: boolean
+    TargetGroup:
+      type: object
+      required: [id, name, workspaceId, status]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        workspaceId:
+          type: integer
+        projectId:
+          type: integer
+        clusterRefs:
+          type: array
+          items:
+            type: integer
+        selectorSummary:
+          type: string
+        status:
+          type: string
+          enum: [active, stale, disabled]
+    CreateTargetGroupRequest:
+      type: object
+      required: [name, workspaceId]
+      properties:
+        name:
+          type: string
+        workspaceId:
+          type: integer
+        projectId:
+          type: integer
+        clusterRefs:
+          type: array
+          items:
+            type: integer
+        selectorSummary:
+          type: string
+        description:
+          type: string
+    UpdateTargetGroupRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        clusterRefs:
+          type: array
+          items:
+            type: integer
+        selectorSummary:
+          type: string
+        disabled:
+          type: boolean
+    EnvironmentStage:
+      type: object
+      required: [name, orderIndex, targetGroupId, promotionMode]
+      properties:
+        name:
+          type: string
+        orderIndex:
+          type: integer
+        targetGroupId:
+          type: integer
+        promotionMode:
+          type: string
+          enum: [manual, automatic]
+        paused:
+          type: boolean
+    ConfigurationOverlay:
+      type: object
+      required: [overlayType, overlayRef]
+      properties:
+        overlayType:
+          type: string
+          enum: [values, patch, manifest-snippet]
+        overlayRef:
+          type: string
+        precedence:
+          type: integer
+        effectiveScope:
+          type: string
+    ApplicationDeliveryUnit:
+      type: object
+      required: [id, name, workspaceId, sourceId, syncMode, deliveryStatus]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        workspaceId:
+          type: integer
+        projectId:
+          type: integer
+        sourceId:
+          type: integer
+        sourcePath:
+          type: string
+        defaultNamespace:
+          type: string
+        syncMode:
+          type: string
+          enum: [manual, auto]
+        paused:
+          type: boolean
+        desiredRevision:
+          type: string
+        desiredAppVersion:
+          type: string
+        desiredConfigVersion:
+          type: string
+        deliveryStatus:
+          type: string
+          enum: [ready, progressing, degraded, out_of_sync, paused, unknown]
+        lastSyncedAt:
+          type: string
+          format: date-time
+        environments:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnvironmentStage'
+        overlays:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConfigurationOverlay'
+    CreateDeliveryUnitRequest:
+      type: object
+      required: [name, workspaceId, sourceId, syncMode, environments]
+      properties:
+        name:
+          type: string
+        workspaceId:
+          type: integer
+        projectId:
+          type: integer
+        sourceId:
+          type: integer
+        sourcePath:
+          type: string
+        defaultNamespace:
+          type: string
+        syncMode:
+          type: string
+          enum: [manual, auto]
+        desiredRevision:
+          type: string
+        desiredAppVersion:
+          type: string
+        desiredConfigVersion:
+          type: string
+        environments:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnvironmentStage'
+        overlays:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConfigurationOverlay'
+    UpdateDeliveryUnitRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        sourcePath:
+          type: string
+        defaultNamespace:
+          type: string
+        syncMode:
+          type: string
+          enum: [manual, auto]
+        desiredRevision:
+          type: string
+        desiredAppVersion:
+          type: string
+        desiredConfigVersion:
+          type: string
+        environments:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnvironmentStage'
+        overlays:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConfigurationOverlay'
+    DeliveryUnitStatus:
+      type: object
+      required: [deliveryStatus, driftStatus]
+      properties:
+        deliveryStatus:
+          type: string
+          enum: [ready, progressing, degraded, out_of_sync, paused, unknown]
+        driftStatus:
+          type: string
+          enum: [in_sync, drifted, modified, unavailable, unknown]
+        lastSyncedAt:
+          type: string
+          format: date-time
+        lastSyncResult:
+          type: string
+        lastErrorMessage:
+          type: string
+        environments:
+          type: array
+          items:
+            type: object
+            properties:
+              environment:
+                type: string
+              syncStatus:
+                type: string
+              driftStatus:
+                type: string
+              targetCount:
+                type: integer
+              succeededCount:
+                type: integer
+              failedCount:
+                type: integer
+    DeliveryDiffResponse:
+      type: object
+      properties:
+        summary:
+          type: object
+          properties:
+            added:
+              type: integer
+            modified:
+              type: integer
+            removed:
+              type: integer
+            unavailable:
+              type: integer
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              objectRef:
+                type: string
+              environment:
+                type: string
+              diffType:
+                type: string
+                enum: [added, modified, removed, unavailable]
+              desiredSummary:
+                type: string
+              liveSummary:
+                type: string
+    SubmitDeliveryActionRequest:
+      type: object
+      required: [actionType]
+      properties:
+        actionType:
+          type: string
+          enum: [install, sync, resync, upgrade, promote, rollback, pause, resume, uninstall]
+        environment:
+          type: string
+        targetReleaseId:
+          type: integer
+        targetAppVersion:
+          type: string
+        targetConfigVersion:
+          type: string
+        reason:
+          type: string
+    DeliveryOperation:
+      type: object
+      required: [id, actionType, status]
+      properties:
+        id:
+          type: integer
+        actionType:
+          type: string
+          enum: [verify-source, install, sync, resync, upgrade, promote, rollback, pause, resume, uninstall]
+        status:
+          type: string
+          enum: [pending, running, partially_succeeded, succeeded, failed, canceled]
+        progressPercent:
+          type: integer
+        resultSummary:
+          type: string
+        failureReason:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        stages:
+          type: array
+          items:
+            type: object
+            properties:
+              environment:
+                type: string
+              status:
+                type: string
+              targetCount:
+                type: integer
+              succeededCount:
+                type: integer
+              failedCount:
+                type: integer
+              failureReason:
+                type: string
+    ReleaseRevision:
+      type: object
+      required: [id, sourceRevision, appVersion, configVersion, status]
+      properties:
+        id:
+          type: integer
+        sourceRevision:
+          type: string
+        appVersion:
+          type: string
+        configVersion:
+          type: string
+        status:
+          type: string
+          enum: [active, historical, failed, rolled_back]
+        rollbackAvailable:
+          type: boolean
+        createdBy:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        releaseNotesSummary:
+          type: string
+    GitOpsAuditRecord:
+      type: object
+      required: [action, outcome, occurredAt]
+      properties:
+        action:
+          type: string
+        outcome:
+          type: string
+        workspaceId:
+          type: integer
+        projectId:
+          type: integer
+        environment:
+          type: string
+        deliveryUnitId:
+          type: integer
+        targetGroupId:
+          type: integer
+        operatorId:
+          type: integer
+        occurredAt:
+          type: string
+          format: date-time
+        details:
+          type: object
+          additionalProperties: true

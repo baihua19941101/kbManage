@@ -105,3 +105,38 @@ workloadops:
   audit:
     # 工作负载高风险审计保留天数
     retention_days: 180
+
+gitops:
+  sources:
+    # Git 仓库来源连通性探测与拉取超时
+    git_timeout: "30s"
+    # Helm/OCI 等发布来源探测超时
+    package_timeout: "45s"
+    # 来源健康检查轮询超时
+    healthcheck_timeout: "10s"
+  sync:
+    # 单次同步/重同步默认执行超时
+    default_timeout: "5m"
+    # 单次同步最大并发目标数
+    max_parallel_targets: 10
+    # 漂移扫描间隔
+    drift_scan_interval: "1m"
+  diff:
+    # 差异摘要缓存时长
+    cache_ttl: "30s"
+    # 差异缓存最大条目数
+    max_entries: 1000
+    # 是否忽略 last-applied 注解导致的噪音差异
+    ignore_last_applied_annotation: true
+  release:
+    # 发布历史保留天数
+    history_retention_days: 180
+    # 单交付单元最大并发发布动作数
+    max_concurrent_operations: 3
+    # 环境阶段推进超时时间
+    stage_progress_deadline: "30m"
+  audit:
+    # GitOps 审计保留天数
+    retention_days: 365
+    # 审计写入时是否脱敏密钥类字段
+    redact_secrets: true

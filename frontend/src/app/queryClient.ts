@@ -53,6 +53,12 @@ export const queryKeys = {
     action: (id?: number | string) => ['workloadOps', 'action', id ?? 'unknown'] as const,
     batch: (id?: number | string) => ['workloadOps', 'batch', id ?? 'unknown'] as const,
     terminal: (id?: number | string) => ['workloadOps', 'terminal', id ?? 'unknown'] as const
+  },
+  gitops: {
+    all: ['gitops'] as const,
+    sources: (scope?: string) => ['gitops', 'sources', scope ?? 'default'] as const,
+    deliveryUnits: (scope?: string) => ['gitops', 'deliveryUnits', scope ?? 'default'] as const,
+    operation: (id?: number | string) => ['gitops', 'operation', id ?? 'unknown'] as const
   }
 };
 

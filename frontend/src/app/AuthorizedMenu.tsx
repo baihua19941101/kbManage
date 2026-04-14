@@ -5,8 +5,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import {
   canBatchWorkloadOps,
   canManageObservability,
-  canReadWorkloadOps,
+  canReadGitOpsAudit,
+  canReadGitOps,
   canReadObservability,
+  canReadWorkloadOps,
   hasAnyRole,
   useAuthStore
 } from '@/features/auth/store';
@@ -41,6 +43,11 @@ const allMenuItems: MenuItemConfig[] = [
     visibleWhen: (user) => hasAnyRole(user, ['platform-admin', 'audit-reader'])
   },
   {
+    key: '/audit-events/gitops',
+    label: 'GitOps审计',
+    visibleWhen: canReadGitOpsAudit
+  },
+  {
     key: '/observability',
     label: '可观测',
     visibleWhen: canReadObservability
@@ -69,6 +76,11 @@ const allMenuItems: MenuItemConfig[] = [
     key: '/workload-ops/batches',
     label: '批量任务',
     visibleWhen: canBatchWorkloadOps
+  },
+  {
+    key: '/gitops',
+    label: 'GitOps 发布',
+    visibleWhen: canReadGitOps
   }
 ];
 
