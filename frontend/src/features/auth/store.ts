@@ -10,6 +10,16 @@ export type GitOpsPermission =
   | 'gitops:rollback'
   | 'gitops:override';
 
+export type PolicyPermission =
+  | 'policy:read'
+  | 'policy:manage'
+  | 'policy:assign'
+  | 'policy:approve-exception'
+  | 'policy:remediate'
+  | 'securitypolicy:read'
+  | 'securitypolicy:manage'
+  | 'securitypolicy:enforce';
+
 type AuthUser = {
   id: string;
   username: string;
@@ -129,6 +139,39 @@ const GITOPS_AUDIT_READ_IDENTIFIERS: readonly string[] = [
   'audit-reader',
   'gitops:read'
 ];
+const POLICY_READ_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'audit-reader',
+  'readonly',
+  'policy:read',
+  'securitypolicy:read'
+];
+const POLICY_AUDIT_READ_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'audit-reader',
+  'policy:read',
+  'securitypolicy:read'
+];
+const POLICY_MANAGE_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'policy:manage',
+  'securitypolicy:manage'
+];
+const POLICY_ASSIGN_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'policy:assign',
+  'securitypolicy:enforce'
+];
+const POLICY_APPROVE_EXCEPTION_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'policy:approve-exception',
+  'securitypolicy:manage',
+  'securitypolicy:enforce'
+];
 
 const getUserRoles = (user: AuthUser | null | undefined): string[] => {
   if (!user || !Array.isArray(user.platformRoles)) {
@@ -192,6 +235,21 @@ export const canOverrideGitOps = (user: AuthUser | null | undefined): boolean =>
 
 export const canReadGitOpsAudit = (user: AuthUser | null | undefined): boolean =>
   hasAnyRole(user, GITOPS_AUDIT_READ_IDENTIFIERS);
+
+export const canReadPolicy = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, POLICY_READ_IDENTIFIERS);
+
+export const canReadPolicyAudit = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, POLICY_AUDIT_READ_IDENTIFIERS);
+
+export const canManagePolicy = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, POLICY_MANAGE_IDENTIFIERS);
+
+export const canAssignPolicy = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, POLICY_ASSIGN_IDENTIFIERS);
+
+export const canApprovePolicyException = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, POLICY_APPROVE_EXCEPTION_IDENTIFIERS);
 
 export const useAuthStore = create<AuthState>((set) => ({
   ...initialState,

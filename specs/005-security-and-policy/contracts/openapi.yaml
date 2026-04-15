@@ -1,0 +1,653 @@
+openapi: 3.1.0
+info:
+  title: kbManage Security Policy API
+  version: 0.1.0
+  description: >-
+    005 安全与策略治理中心 API 契约，覆盖策略定义、策略分配、命中记录、
+    例外申请、整改动作与审计检索。
+servers:
+  - url: /api/v1
+paths:
+  /security-policies:
+    get:
+      summary: 查询策略列表
+      operationId: listSecurityPolicies
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceIdOptional'
+        - $ref: '#/components/parameters/ProjectIdOptional'
+        - in: query
+          name: scopeLevel
+          schema:
+            type: string
+            enum: [platform, workspace, project]
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [draft, active, disabled, archived]
+        - in: query
+          name: category
+          schema:
+            type: string
+            enum: [pod-security, image, resource, label, network, admission]
+      responses:
+        '200':
+          description: 策略列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SecurityPolicy'
+    post:
+      summary: 创建策略
+      operationId: createSecurityPolicy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSecurityPolicyRequest'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityPolicy'
+  /security-policies/{policyId}:
+    get:
+      summary: 获取策略详情
+      operationId: getSecurityPolicy
+      parameters:
+        - $ref: '#/components/parameters/PolicyId'
+      responses:
+        '200':
+          description: 策略详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityPolicy'
+    patch:
+      summary: 更新策略
+      operationId: updateSecurityPolicy
+      parameters:
+        - $ref: '#/components/parameters/PolicyId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSecurityPolicyRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityPolicy'
+  /security-policies/{policyId}/assignments:
+    get:
+      summary: 查询策略分配
+      operationId: listPolicyAssignments
+      parameters:
+        - $ref: '#/components/parameters/PolicyId'
+      responses:
+        '200':
+          description: 策略分配列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PolicyAssignment'
+    post:
+      summary: 创建策略分配
+      operationId: createPolicyAssignment
+      parameters:
+        - $ref: '#/components/parameters/PolicyId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePolicyAssignmentRequest'
+      responses:
+        '202':
+          description: 分配任务已提交
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyDistributionTask'
+  /security-policies/{policyId}/mode-switch:
+    post:
+      summary: 切换策略执行模式
+      operationId: switchPolicyMode
+      parameters:
+        - $ref: '#/components/parameters/PolicyId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyModeSwitchRequest'
+      responses:
+        '202':
+          description: 模式切换任务已提交
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyDistributionTask'
+  /security-policies/hits:
+    get:
+      summary: 查询策略命中记录
+      operationId: listPolicyHits
+      parameters:
+        - in: query
+          name: policyId
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/WorkspaceIdOptional'
+        - $ref: '#/components/parameters/ProjectIdOptional'
+        - in: query
+          name: clusterId
+          schema:
+            type: string
+        - in: query
+          name: namespace
+          schema:
+            type: string
+        - in: query
+          name: riskLevel
+          schema:
+            type: string
+            enum: [low, medium, high, critical]
+        - in: query
+          name: remediationStatus
+          schema:
+            type: string
+            enum: [open, in_progress, mitigated, closed]
+        - $ref: '#/components/parameters/TimeFrom'
+        - $ref: '#/components/parameters/TimeTo'
+      responses:
+        '200':
+          description: 命中记录列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PolicyHitRecord'
+  /security-policies/hits/{hitId}/exceptions:
+    post:
+      summary: 提交例外申请
+      operationId: createExceptionRequest
+      parameters:
+        - $ref: '#/components/parameters/HitId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExceptionRequest'
+      responses:
+        '201':
+          description: 申请已创建
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExceptionRequest'
+  /security-policies/exceptions:
+    get:
+      summary: 查询例外申请列表
+      operationId: listExceptionRequests
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceIdOptional'
+        - $ref: '#/components/parameters/ProjectIdOptional'
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, approved, rejected, active, expired, revoked]
+        - in: query
+          name: policyId
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 例外申请列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ExceptionRequest'
+  /security-policies/exceptions/{exceptionId}/review:
+    post:
+      summary: 审批例外申请
+      operationId: reviewExceptionRequest
+      parameters:
+        - $ref: '#/components/parameters/ExceptionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewExceptionRequest'
+      responses:
+        '200':
+          description: 审批结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExceptionRequest'
+  /security-policies/hits/{hitId}/remediation:
+    patch:
+      summary: 更新整改状态
+      operationId: updateRemediationStatus
+      parameters:
+        - $ref: '#/components/parameters/HitId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRemediationRequest'
+      responses:
+        '200':
+          description: 更新后的命中记录
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyHitRecord'
+  /audit/security-policies/events:
+    get:
+      summary: 查询策略治理审计记录
+      operationId: listSecurityPolicyAuditEvents
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceIdOptional'
+        - $ref: '#/components/parameters/ProjectIdOptional'
+        - in: query
+          name: action
+          schema:
+            type: string
+        - in: query
+          name: operatorId
+          schema:
+            type: string
+        - in: query
+          name: outcome
+          schema:
+            type: string
+            enum: [success, failed, rejected]
+        - $ref: '#/components/parameters/TimeFrom'
+        - $ref: '#/components/parameters/TimeTo'
+      responses:
+        '200':
+          description: 审计记录列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PolicyAuditEvent'
+components:
+  parameters:
+    PolicyId:
+      in: path
+      name: policyId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    HitId:
+      in: path
+      name: hitId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ExceptionId:
+      in: path
+      name: exceptionId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    WorkspaceIdOptional:
+      in: query
+      name: workspaceId
+      required: false
+      schema:
+        type: string
+        format: uuid
+    ProjectIdOptional:
+      in: query
+      name: projectId
+      required: false
+      schema:
+        type: string
+        format: uuid
+    TimeFrom:
+      in: query
+      name: from
+      schema:
+        type: string
+        format: date-time
+    TimeTo:
+      in: query
+      name: to
+      schema:
+        type: string
+        format: date-time
+  schemas:
+    SecurityPolicy:
+      type: object
+      required: [id, name, scopeLevel, category, defaultEnforcementMode, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        scopeLevel:
+          type: string
+          enum: [platform, workspace, project]
+        category:
+          type: string
+          enum: [pod-security, image, resource, label, network, admission]
+        defaultEnforcementMode:
+          type: string
+          enum: [audit, alert, warn, enforce]
+        riskLevel:
+          type: string
+          enum: [low, medium, high, critical]
+        status:
+          type: string
+          enum: [draft, active, disabled, archived]
+        updatedAt:
+          type: string
+          format: date-time
+    CreateSecurityPolicyRequest:
+      type: object
+      required: [name, scopeLevel, category, ruleTemplate, defaultEnforcementMode]
+      properties:
+        name:
+          type: string
+        scopeLevel:
+          type: string
+          enum: [platform, workspace, project]
+        category:
+          type: string
+          enum: [pod-security, image, resource, label, network, admission]
+        ruleTemplate:
+          type: object
+          additionalProperties: true
+        defaultEnforcementMode:
+          type: string
+          enum: [audit, alert, warn, enforce]
+        riskLevel:
+          type: string
+          enum: [low, medium, high, critical]
+    UpdateSecurityPolicyRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        ruleTemplate:
+          type: object
+          additionalProperties: true
+        defaultEnforcementMode:
+          type: string
+          enum: [audit, alert, warn, enforce]
+        status:
+          type: string
+          enum: [active, disabled, archived]
+    PolicyAssignment:
+      type: object
+      required: [id, policyId, enforcementMode, rolloutStage, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        policyId:
+          type: string
+          format: uuid
+        workspaceId:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        clusterRefs:
+          type: array
+          items:
+            type: string
+        namespaceRefs:
+          type: array
+          items:
+            type: string
+        resourceKinds:
+          type: array
+          items:
+            type: string
+        enforcementMode:
+          type: string
+          enum: [audit, alert, warn, enforce]
+        rolloutStage:
+          type: string
+          enum: [pilot, canary, broad, full]
+        status:
+          type: string
+          enum: [pending, active, failed, paused]
+    CreatePolicyAssignmentRequest:
+      type: object
+      required: [enforcementMode, rolloutStage]
+      properties:
+        workspaceId:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        clusterRefs:
+          type: array
+          items:
+            type: string
+        namespaceRefs:
+          type: array
+          items:
+            type: string
+        resourceKinds:
+          type: array
+          items:
+            type: string
+        enforcementMode:
+          type: string
+          enum: [audit, alert, warn, enforce]
+        rolloutStage:
+          type: string
+          enum: [pilot, canary, broad, full]
+        effectiveFrom:
+          type: string
+          format: date-time
+        effectiveTo:
+          type: string
+          format: date-time
+    PolicyModeSwitchRequest:
+      type: object
+      required: [targetMode]
+      properties:
+        targetMode:
+          type: string
+          enum: [audit, alert, warn, enforce]
+        assignmentIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        reason:
+          type: string
+    PolicyDistributionTask:
+      type: object
+      required: [id, policyId, operation, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        policyId:
+          type: string
+          format: uuid
+        operation:
+          type: string
+          enum: [assign, mode-switch, pause, resume, revoke]
+        status:
+          type: string
+          enum: [pending, running, partially_succeeded, succeeded, failed]
+        targetCount:
+          type: integer
+        succeededCount:
+          type: integer
+        failedCount:
+          type: integer
+        resultSummary:
+          type: string
+    PolicyHitRecord:
+      type: object
+      required: [id, policyId, hitResult, riskLevel, remediationStatus, detectedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        policyId:
+          type: string
+          format: uuid
+        assignmentId:
+          type: string
+          format: uuid
+        clusterId:
+          type: string
+        namespace:
+          type: string
+        resourceKind:
+          type: string
+        resourceName:
+          type: string
+        hitResult:
+          type: string
+          enum: [pass, warn, block]
+        riskLevel:
+          type: string
+          enum: [low, medium, high, critical]
+        message:
+          type: string
+        remediationStatus:
+          type: string
+          enum: [open, in_progress, mitigated, closed]
+        detectedAt:
+          type: string
+          format: date-time
+    ExceptionRequest:
+      type: object
+      required: [id, policyId, hitRecordId, status, startsAt, expiresAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        policyId:
+          type: string
+          format: uuid
+        hitRecordId:
+          type: string
+          format: uuid
+        reason:
+          type: string
+        status:
+          type: string
+          enum: [pending, approved, rejected, active, expired, revoked]
+        startsAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        reviewComment:
+          type: string
+    CreateExceptionRequest:
+      type: object
+      required: [reason, startsAt, expiresAt]
+      properties:
+        reason:
+          type: string
+        startsAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+    ReviewExceptionRequest:
+      type: object
+      required: [decision]
+      properties:
+        decision:
+          type: string
+          enum: [approve, reject, revoke]
+        comment:
+          type: string
+    UpdateRemediationRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [open, in_progress, mitigated, closed]
+        summary:
+          type: string
+        evidenceRef:
+          type: string
+    PolicyAuditEvent:
+      type: object
+      required: [action, operatorId, outcome, occurredAt]
+      properties:
+        action:
+          type: string
+        operatorId:
+          type: string
+        workspaceId:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        policyId:
+          type: string
+          format: uuid
+        assignmentId:
+          type: string
+          format: uuid
+        outcome:
+          type: string
+          enum: [success, failed, rejected]
+        occurredAt:
+          type: string
+          format: date-time
+        details:
+          type: object
+          additionalProperties: true

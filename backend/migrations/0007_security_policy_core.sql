@@ -1,0 +1,116 @@
+-- 0007_security_policy_core.sql
+-- Core schema for 005 security policy and admission governance.
+
+CREATE TABLE IF NOT EXISTS security_policies (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(128) NOT NULL,
+  workspace_id BIGINT UNSIGNED NULL,
+  project_id BIGINT UNSIGNED NULL,
+  scope_level VARCHAR(32) NOT NULL,
+  category VARCHAR(32) NOT NULL,
+  rule_template_json LONGTEXT NULL,
+  default_enforcement_mode VARCHAR(32) NOT NULL,
+  risk_level VARCHAR(32) NOT NULL DEFAULT 'medium',
+  status VARCHAR(32) NOT NULL DEFAULT 'draft',
+  created_by BIGINT UNSIGNED NULL,
+  updated_by BIGINT UNSIGNED NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY idx_security_policies_workspace (workspace_id),
+  KEY idx_security_policies_project (project_id),
+  KEY idx_security_policies_scope_level (scope_level),
+  KEY idx_security_policies_category (category),
+  KEY idx_security_policies_status (status),
+  UNIQUE KEY uk_security_policies_scope_name (workspace_id, project_id, name)
+);
+
+CREATE TABLE IF NOT EXISTS policy_distribution_tasks (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  policy_id BIGINT UNSIGNED NOT NULL,
+  operation VARCHAR(32) NOT NULL,
+  status VARCHAR(32) NOT NULL DEFAULT 'pending',
+  target_count INT NOT NULL DEFAULT 0,
+  succeeded_count INT NOT NULL DEFAULT 0,
+  failed_count INT NOT NULL DEFAULT 0,
+  result_summary TEXT NULL,
+  created_by BIGINT UNSIGNED NULL,
+  started_at TIMESTAMP NULL,
+  completed_at TIMESTAMP NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY idx_policy_distribution_tasks_policy (policy_id),
+  KEY idx_policy_distribution_tasks_status (status),
+  KEY idx_policy_distribution_tasks_operation (operation)
+);
+
+CREATE TABLE IF NOT EXISTS policy_assignments (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  policy_id BIGINT UNSIGNED NOT NULL,
+  workspace_id BIGINT UNSIGNED NULL,
+  project_id BIGINT UNSIGNED NULL,
+  cluster_refs_json LONGTEXT NULL,
+  namespace_refs_json LONGTEXT NULL,
+  resource_kinds_json LONGTEXT NULL,
+  enforcement_mode VARCHAR(32) NOT NULL,
+  rollout_stage VARCHAR(32) NOT NULL,
+  status VARCHAR(32) NOT NULL DEFAULT 'pending',
+  effective_from TIMESTAMP NULL,
+  effective_to TIMESTAMP NULL,
+  last_task_id BIGINT UNSIGNED NULL,
+  created_by BIGINT UNSIGNED NULL,
+  updated_by BIGINT UNSIGNED NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY idx_policy_assignments_policy (policy_id),
+  KEY idx_policy_assignments_workspace (workspace_id),
+  KEY idx_policy_assignments_project (project_id),
+  KEY idx_policy_assignments_status (status),
+  KEY idx_policy_assignments_last_task (last_task_id)
+);
+
+CREATE TABLE IF NOT EXISTS policy_hit_records (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  policy_id BIGINT UNSIGNED NOT NULL,
+  assignment_id BIGINT UNSIGNED NULL,
+  cluster_id BIGINT UNSIGNED NULL,
+  namespace VARCHAR(255) NULL,
+  resource_kind VARCHAR(64) NULL,
+  resource_name VARCHAR(255) NULL,
+  hit_result VARCHAR(32) NOT NULL,
+  risk_level VARCHAR(32) NOT NULL,
+  message TEXT NULL,
+  remediation_status VARCHAR(32) NOT NULL DEFAULT 'open',
+  detected_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  resolved_at TIMESTAMP NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY idx_policy_hits_policy (policy_id),
+  KEY idx_policy_hits_assignment (assignment_id),
+  KEY idx_policy_hits_cluster (cluster_id),
+  KEY idx_policy_hits_namespace (namespace),
+  KEY idx_policy_hits_remediation (remediation_status),
+  KEY idx_policy_hits_detected_at (detected_at)
+);
+
+CREATE TABLE IF NOT EXISTS policy_exception_requests (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  hit_id BIGINT UNSIGNED NULL,
+  policy_id BIGINT UNSIGNED NOT NULL,
+  workspace_id BIGINT UNSIGNED NULL,
+  project_id BIGINT UNSIGNED NULL,
+  status VARCHAR(32) NOT NULL DEFAULT 'pending',
+  reason TEXT NULL,
+  expires_at TIMESTAMP NULL,
+  requested_by BIGINT UNSIGNED NULL,
+  reviewed_by BIGINT UNSIGNED NULL,
+  reviewed_at TIMESTAMP NULL,
+  review_comment TEXT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY idx_policy_exceptions_policy (policy_id),
+  KEY idx_policy_exceptions_hit (hit_id),
+  KEY idx_policy_exceptions_workspace (workspace_id),
+  KEY idx_policy_exceptions_project (project_id),
+  KEY idx_policy_exceptions_status (status),
+  KEY idx_policy_exceptions_expires_at (expires_at)
+);

@@ -68,6 +68,15 @@ export const router = createBrowserRouter([
             }
           },
           {
+            path: '/audit-events/security-policy',
+            lazy: async () => {
+              const { SecurityPolicyAuditPage } = await import(
+                '@/features/audit/pages/SecurityPolicyAuditPage'
+              );
+              return { Component: SecurityPolicyAuditPage };
+            }
+          },
+          {
             path: '/observability',
             lazy: async () => {
               const { ObservabilityOverviewPage } = await import(
@@ -180,6 +189,33 @@ export const router = createBrowserRouter([
           {
             path: '/gitops/*',
             element: <Navigate to="/gitops" replace />
+          },
+          {
+            path: '/security-policies',
+            lazy: async () => {
+              const { PolicyCenterPage } = await import(
+                '@/features/security-policy/pages/PolicyCenterPage'
+              );
+              return { Component: PolicyCenterPage };
+            }
+          },
+          {
+            path: '/security-policies/rollout',
+            lazy: async () => {
+              const { PolicyRolloutPage } = await import(
+                '@/features/security-policy/pages/PolicyRolloutPage'
+              );
+              return { Component: PolicyRolloutPage };
+            }
+          },
+          {
+            path: '/security-policies/violations',
+            lazy: async () => {
+              const { ViolationCenterPage } = await import(
+                '@/features/security-policy/pages/ViolationCenterPage'
+              );
+              return { Component: ViolationCenterPage };
+            }
           }
         ]
       }

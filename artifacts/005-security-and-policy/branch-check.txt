@@ -1,0 +1,13 @@
+# 005 Branch Gate Check
+
+Date: 2026-04-14
+Current Branch: 005-security-and-policy
+
+Rules:
+- 禁止在 main/master 直接开发
+- 005 仅允许在 005-security-and-policy 或其后续专用分支开发
+- 合并前必须获得用户明确同意
+
+Remote:
+origin	git@github.com:baihua19941101/kbManage.git (fetch)
+origin	git@github.com:baihua19941101/kbManage.git (push)

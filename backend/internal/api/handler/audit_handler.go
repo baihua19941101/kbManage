@@ -97,6 +97,80 @@ func (h *AuditHandler) ListEvents(c *gin.Context) {
 	})
 }
 
+func (h *AuditHandler) ListSecurityPolicyEvents(c *gin.Context) {
+	startAt, err := parseOptionalRFC3339(c.Query("startAt"), "startAt")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	endAt, err := parseOptionalRFC3339(c.Query("endAt"), "endAt")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var actorID *uint64
+	actorRaw := strings.TrimSpace(c.Query("actorId"))
+	if actorRaw != "" {
+		parsed, parseErr := strconv.ParseUint(actorRaw, 10, 64)
+		if parseErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "actorId must be a positive integer"})
+			return
+		}
+		actorID = &parsed
+	}
+
+	clusterID, err := parseOptionalQueryUint64(c, "clusterId")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	workspaceID, err := parseOptionalQueryUint64(c, "workspaceId")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	projectID, err := parseOptionalQueryUint64(c, "projectId")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	limit := 100
+	if raw := strings.TrimSpace(c.Query("limit")); raw != "" {
+		n, parseErr := strconv.Atoi(raw)
+		if parseErr != nil || n <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "limit must be a positive integer"})
+			return
+		}
+		limit = n
+	}
+
+	items, err := h.svc.QuerySecurityPolicyEvents(c.Request.Context(), auditSvc.QueryEventsRequest{
+		StartAt:     startAt,
+		EndAt:       endAt,
+		ActorID:     actorID,
+		ClusterID:   clusterID,
+		WorkspaceID: workspaceID,
+		ProjectID:   projectID,
+		Action:      strings.TrimSpace(c.Query("action")),
+		Outcome:     strings.TrimSpace(c.Query("outcome")),
+		Result:      strings.TrimSpace(c.Query("result")),
+		Resource:    strings.TrimSpace(c.Query("resource")),
+		Limit:       limit,
+		ViewerID:    c.GetUint64(middleware.UserIDKey),
+	})
+	if err != nil {
+		writeAuditError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"items": items,
+		"count": len(items),
+	})
+}
+
 type submitAuditExportRequest struct {
 	StartAt     string `json:"startAt"`
 	EndAt       string `json:"endAt"`

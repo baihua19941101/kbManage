@@ -62,6 +62,14 @@ export type AuditExportTask = {
   completedAt?: string;
 };
 
+export type SecurityPolicyAuditFilters = {
+  from?: string;
+  to?: string;
+  actorUserId?: string;
+  action?: string;
+  result?: string;
+};
+
 type UnknownRecord = Record<string, unknown>;
 
 const toRecord = (value: unknown): UnknownRecord =>
@@ -252,4 +260,18 @@ export const getAuditExportTask = async (taskId: string): Promise<AuditExportTas
   });
 
   return mapAuditExportTask(response, trimmed);
+};
+
+export const listSecurityPolicyAuditEvents = async (
+  filters: SecurityPolicyAuditFilters = {}
+): Promise<ListAuditEventsResponse> => {
+  return listAuditEvents({
+    from: filters.from,
+    to: filters.to,
+    actorUserId: filters.actorUserId,
+    eventType: filters.action,
+    result: filters.result,
+    resource: 'securitypolicy',
+    actionPrefix: 'securitypolicy.'
+  });
 };

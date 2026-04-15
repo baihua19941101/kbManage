@@ -5,6 +5,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import {
   canBatchWorkloadOps,
   canManageObservability,
+  canReadPolicyAudit,
+  canReadPolicy,
   canReadGitOpsAudit,
   canReadGitOps,
   canReadObservability,
@@ -81,6 +83,26 @@ const allMenuItems: MenuItemConfig[] = [
     key: '/gitops',
     label: 'GitOps 发布',
     visibleWhen: canReadGitOps
+  },
+  {
+    key: '/security-policies',
+    label: '安全策略',
+    visibleWhen: canReadPolicy
+  },
+  {
+    key: '/security-policies/rollout',
+    label: '策略灰度',
+    visibleWhen: canReadPolicy
+  },
+  {
+    key: '/security-policies/violations',
+    label: '违规中心',
+    visibleWhen: canReadPolicy
+  },
+  {
+    key: '/audit-events/security-policy',
+    label: '策略审计',
+    visibleWhen: canReadPolicyAudit
   }
 ];
 

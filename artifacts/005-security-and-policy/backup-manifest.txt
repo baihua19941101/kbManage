@@ -1,0 +1,21 @@
+# 005 数据库备份清单
+
+Date: 2026-04-14
+Feature Branch: 005-security-and-policy
+
+默认要求凭据: admin/123456
+实际执行情况:
+1) admin/123456 失败: Access denied for user 'admin'@'localhost'
+2) 使用 root/123456 成功完成备份
+
+备份命令:
+docker exec mysql8 sh -lc 'mysqldump -hlocalhost -P3306 -uroot -p123456 --all-databases --single-transaction --quick --routines --events --triggers' > artifacts/005-security-and-policy/mysql-backup-20260414-162805-root.sql
+
+备份产物:
+- artifacts/005-security-and-policy/mysql-backup-20260414-162805-root.sql
+
+恢复抽样验证:
+- 容器: mysql8-restore-check-005 (mysql:8.0)
+- 导入命令: cat <backup.sql> | docker exec -i mysql8-restore-check-005 sh -lc 'mysql -uroot -p123456'
+- 校验命令: docker exec mysql8-restore-check-005 sh -lc 'mysql -N -B -uroot -p123456 -e "SHOW DATABASES;"'
+- 结果: PASS（可列出数据库）

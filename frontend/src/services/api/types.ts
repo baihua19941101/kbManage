@@ -401,3 +401,151 @@ export type GitOpsListQueryDTO = {
   limit?: number;
   offset?: number;
 };
+
+export type SecurityPolicyScopeLevel = 'platform' | 'workspace' | 'project';
+
+export type SecurityPolicyCategory =
+  | 'pod-security'
+  | 'image'
+  | 'resource'
+  | 'label'
+  | 'network'
+  | 'admission';
+
+export type SecurityPolicyEnforcementMode = 'audit' | 'alert' | 'warn' | 'enforce';
+
+export type SecurityPolicyRiskLevel = 'low' | 'medium' | 'high' | 'critical';
+
+export type SecurityPolicyStatus = 'draft' | 'active' | 'disabled' | 'archived';
+
+export type SecurityPolicyDTO = {
+  id: string;
+  name: string;
+  scopeLevel: SecurityPolicyScopeLevel;
+  category: SecurityPolicyCategory;
+  defaultEnforcementMode: SecurityPolicyEnforcementMode;
+  riskLevel?: SecurityPolicyRiskLevel;
+  status: SecurityPolicyStatus;
+  ruleTemplate?: Record<string, unknown>;
+  updatedAt?: string;
+};
+
+export type CreateSecurityPolicyRequestDTO = {
+  name: string;
+  scopeLevel: SecurityPolicyScopeLevel;
+  category: SecurityPolicyCategory;
+  ruleTemplate: Record<string, unknown>;
+  defaultEnforcementMode: SecurityPolicyEnforcementMode;
+  riskLevel?: SecurityPolicyRiskLevel;
+};
+
+export type UpdateSecurityPolicyRequestDTO = {
+  name?: string;
+  ruleTemplate?: Record<string, unknown>;
+  defaultEnforcementMode?: SecurityPolicyEnforcementMode;
+  status?: Exclude<SecurityPolicyStatus, 'draft'>;
+};
+
+export type PolicyRolloutStage = 'pilot' | 'canary' | 'broad' | 'full';
+
+export type PolicyAssignmentStatus = 'pending' | 'active' | 'failed' | 'paused';
+
+export type PolicyAssignmentDTO = {
+  id: string;
+  policyId: string;
+  workspaceId?: string;
+  projectId?: string;
+  clusterRefs?: string[];
+  namespaceRefs?: string[];
+  resourceKinds?: string[];
+  enforcementMode: SecurityPolicyEnforcementMode;
+  rolloutStage: PolicyRolloutStage;
+  status: PolicyAssignmentStatus;
+};
+
+export type CreatePolicyAssignmentRequestDTO = {
+  workspaceId?: string;
+  projectId?: string;
+  clusterRefs?: string[];
+  namespaceRefs?: string[];
+  resourceKinds?: string[];
+  enforcementMode: SecurityPolicyEnforcementMode;
+  rolloutStage: PolicyRolloutStage;
+  effectiveFrom?: string;
+  effectiveTo?: string;
+};
+
+export type PolicyDistributionOperation = 'assign' | 'mode-switch' | 'pause' | 'resume' | 'revoke';
+
+export type PolicyDistributionTaskDTO = {
+  id: string;
+  policyId: string;
+  operation: PolicyDistributionOperation;
+  status: OperationStatus;
+  targetCount?: number;
+  succeededCount?: number;
+  failedCount?: number;
+  resultSummary?: string;
+};
+
+export type PolicyHitResult = 'pass' | 'warn' | 'block';
+
+export type PolicyRemediationStatus = 'open' | 'in_progress' | 'mitigated' | 'closed';
+
+export type PolicyHitRecordDTO = {
+  id: string;
+  policyId: string;
+  assignmentId?: string;
+  clusterId?: string;
+  namespace?: string;
+  resourceKind?: string;
+  resourceName?: string;
+  hitResult: PolicyHitResult;
+  riskLevel: SecurityPolicyRiskLevel;
+  message?: string;
+  remediationStatus: PolicyRemediationStatus;
+  detectedAt: string;
+};
+
+export type UpdatePolicyRemediationRequestDTO = {
+  remediationStatus: PolicyRemediationStatus;
+  comment?: string;
+};
+
+export type SwitchPolicyModeRequestDTO = {
+  targetMode: SecurityPolicyEnforcementMode;
+  assignmentIds?: string[];
+  reason?: string;
+};
+
+export type PolicyExceptionStatus =
+  | 'pending'
+  | 'approved'
+  | 'rejected'
+  | 'active'
+  | 'expired'
+  | 'revoked';
+
+export type PolicyExceptionRequestDTO = {
+  id: string;
+  policyId: string;
+  hitRecordId: string;
+  reason?: string;
+  status: PolicyExceptionStatus;
+  startsAt: string;
+  expiresAt: string;
+  reviewComment?: string;
+};
+
+export type CreateExceptionRequestDTO = {
+  reason: string;
+  startsAt: string;
+  expiresAt: string;
+};
+
+export type ReviewExceptionDecision = 'approve' | 'reject' | 'revoke';
+
+export type ReviewExceptionRequestDTO = {
+  decision: ReviewExceptionDecision;
+  comment?: string;
+};

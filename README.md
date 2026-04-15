@@ -60,6 +60,10 @@ npm config set registry https://registry.npmmirror.com
 - `gitops.diff.cache_ttl / max_entries / ignore_last_applied_annotation`
 - `gitops.release.history_retention_days / max_concurrent_operations / stage_progress_deadline`
 - `gitops.audit.retention_days / redact_secrets`
+- `securityPolicy.policy.distribution_timeout / max_parallel_targets`
+- `securityPolicy.exception.max_duration_hours / expiry_scan_interval`
+- `securityPolicy.cache.distribution_ttl / exception_ttl`
+- `securityPolicy.audit.retention_days`
 
 说明：
 
@@ -139,6 +143,7 @@ npm run build
 - 003-workload-operations-control-plane 已完成 US1/US2/US3（单资源诊断、动作执行与回滚恢复、权限隔离与高风险审计闭环），当前进入 Final Phase 收尾与交付准备。
 - 004-gitops-and-release 已完成 US1/US2/US3，当前进入 Final Phase（文档收尾、验证基线与 PR 就绪材料）。
 - GitOps 审计查询入口：`/audit-events/gitops`。
+- 005-security-and-policy 已进入 implement 阶段，已落地策略中心 US1 前后端主干与治理证据。
 
 ## 002 可观测联调要点
 
