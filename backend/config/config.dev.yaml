@@ -140,3 +140,23 @@ gitops:
     retention_days: 365
     # 审计写入时是否脱敏密钥类字段
     redact_secrets: true
+
+securityPolicy:
+  policy:
+    # 策略分发默认超时
+    distribution_timeout: "2m"
+    # 单次策略分发最大并发目标数
+    max_parallel_targets: 20
+  exception:
+    # 例外最长期限（小时）
+    max_duration_hours: 168
+    # 例外到期扫描间隔
+    expiry_scan_interval: "1m"
+  cache:
+    # 策略分发进度缓存 TTL
+    distribution_ttl: "10m"
+    # 例外状态缓存 TTL
+    exception_ttl: "30m"
+  audit:
+    # 策略治理审计保留天数
+    retention_days: 365

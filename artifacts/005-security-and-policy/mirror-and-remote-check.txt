@@ -1,0 +1,17 @@
+# 005 国内源与远程流程核对
+
+Date: 2026-04-14
+
+依赖源要求:
+- Go: GOPROXY=https://goproxy.cn,direct
+- npm: https://registry.npmmirror.com
+- 策略相关镜像/依赖: 优先阿里云/DaoCloud/已批准国内代理，禁止默认境外源直连
+
+远程仓库:
+- origin: git@github.com:baihua19941101/kbManage.git
+
+PR 流程:
+1. 在 005-security-and-policy 分支开发
+2. 推送远程并创建/更新中文 PR
+3. PR 描述包含备份证据、测试结果、风险说明
+4. 未获用户明确同意不得合并

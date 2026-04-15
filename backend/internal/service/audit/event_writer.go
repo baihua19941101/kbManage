@@ -59,6 +59,18 @@ const (
 	GitOpsAuditActionPauseSubmit     = "gitops.pause.submit"
 	GitOpsAuditActionResumeSubmit    = "gitops.resume.submit"
 	GitOpsAuditActionUninstallSubmit = "gitops.uninstall.submit"
+
+	SecurityPolicyAuditResourceType = "securitypolicy"
+
+	SecurityPolicyAuditActionPolicyCreate         = "securitypolicy.policy.create"
+	SecurityPolicyAuditActionPolicyUpdate         = "securitypolicy.policy.update"
+	SecurityPolicyAuditActionAssignmentCreate     = "securitypolicy.assignment.create"
+	SecurityPolicyAuditActionAssignmentUpdate     = "securitypolicy.assignment.update"
+	SecurityPolicyAuditActionModeSwitch           = "securitypolicy.mode_switch.submit"
+	SecurityPolicyAuditActionExceptionCreate      = "securitypolicy.exception.create"
+	SecurityPolicyAuditActionExceptionReview      = "securitypolicy.exception.review"
+	SecurityPolicyAuditActionHitQuery             = "securitypolicy.hit.query"
+	SecurityPolicyAuditActionHitRemediationUpdate = "securitypolicy.hit.remediation.update"
 )
 
 type EventWriter struct {
@@ -210,6 +222,30 @@ func (w *EventWriter) WriteGitOpsEvent(
 	)
 }
 
+func (w *EventWriter) WriteSecurityPolicyEvent(
+	ctx context.Context,
+	requestID string,
+	actorID *uint64,
+	action string,
+	resourceID string,
+	outcome domain.AuditOutcome,
+	details map[string]any,
+) error {
+	if details == nil {
+		details = map[string]any{}
+	}
+	return w.Write(
+		ctx,
+		requestID,
+		actorID,
+		action,
+		SecurityPolicyAuditResourceType,
+		strings.TrimSpace(resourceID),
+		outcome,
+		details,
+	)
+}
+
 func resolveClusterID(resourceType, resourceID string, details map[string]any) *uint64 {
 	if strings.EqualFold(strings.TrimSpace(resourceType), "cluster") {
 		if id, err := strconv.ParseUint(strings.TrimSpace(resourceID), 10, 64); err == nil && id != 0 {
@@ -328,6 +364,26 @@ func findValueByKey(data map[string]any, key string) (any, bool) {
 
 func convertToUint64(value any) (uint64, bool) {
 	switch v := value.(type) {
+	case *uint64:
+		if v == nil {
+			return 0, false
+		}
+		return *v, true
+	case *uint:
+		if v == nil {
+			return 0, false
+		}
+		return uint64(*v), true
+	case *int:
+		if v == nil || *v < 0 {
+			return 0, false
+		}
+		return uint64(*v), true
+	case *int64:
+		if v == nil || *v < 0 {
+			return 0, false
+		}
+		return uint64(*v), true
 	case uint64:
 		return v, true
 	case uint:
@@ -408,6 +464,20 @@ func classifyAuditMetadata(action string, details map[string]any) (string, strin
 			actionScope = "sync_control"
 		case strings.Contains(action, ".sync.") || strings.Contains(action, ".resync."):
 			actionScope = "sync"
+		}
+	}
+	if strings.HasPrefix(action, "securitypolicy.") {
+		category = "securitypolicy"
+		actionScope = "policy"
+		switch {
+		case strings.Contains(action, ".assignment."):
+			actionScope = "assignment"
+		case strings.Contains(action, ".mode_switch."):
+			actionScope = "mode_switch"
+		case strings.Contains(action, ".exception."):
+			actionScope = "exception"
+		case strings.Contains(action, ".hit.") || strings.Contains(action, ".remediation."):
+			actionScope = "hit"
 		}
 	}
 

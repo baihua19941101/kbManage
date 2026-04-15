@@ -59,6 +59,14 @@ export const queryKeys = {
     sources: (scope?: string) => ['gitops', 'sources', scope ?? 'default'] as const,
     deliveryUnits: (scope?: string) => ['gitops', 'deliveryUnits', scope ?? 'default'] as const,
     operation: (id?: number | string) => ['gitops', 'operation', id ?? 'unknown'] as const
+  },
+  securityPolicy: {
+    all: ['securityPolicy'] as const,
+    list: (scope?: string) => ['securityPolicy', 'list', scope ?? 'default'] as const,
+    detail: (policyId?: number | string) =>
+      ['securityPolicy', 'detail', policyId ?? 'unknown'] as const,
+    assignments: (policyId?: number | string) =>
+      ['securityPolicy', 'assignments', policyId ?? 'unknown'] as const
   }
 };
 

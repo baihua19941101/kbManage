@@ -65,6 +65,14 @@ func GitOpsLockKey(parts ...string) string {
 	return prefixedRedisKey("gitops:lock", parts...)
 }
 
+func PolicyDistributionKey(parts ...string) string {
+	return prefixedRedisKey("securitypolicy:distribution", parts...)
+}
+
+func PolicyExceptionKey(parts ...string) string {
+	return prefixedRedisKey("securitypolicy:exception", parts...)
+}
+
 func prefixedRedisKey(prefix string, parts ...string) string {
 	if len(parts) == 0 {
 		return prefix

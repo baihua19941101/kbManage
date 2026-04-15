@@ -46,6 +46,7 @@ func NewRouter(db *gorm.DB, rdb *redis.Client, cfg repository.Config) *gin.Engin
 		RegisterObservabilityRoutes(authed, db, nil)
 		RegisterWorkloadOpsRoutes(authed, db, rdb)
 		RegisterGitOpsRoutes(authed, db, rdb)
+		RegisterSecurityPolicyRoutes(authed, db, rdb)
 
 		if db != nil {
 			RegisterClusterRoutes(authed, db)

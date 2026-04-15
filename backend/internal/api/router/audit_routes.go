@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"kbmanage/backend/internal/api/handler"
+	"kbmanage/backend/internal/api/middleware"
 	"kbmanage/backend/internal/domain"
 	"kbmanage/backend/internal/repository"
 	auditSvc "kbmanage/backend/internal/service/audit"
@@ -18,7 +19,8 @@ import (
 func RegisterAuditRoutes(group *gin.RouterGroup, db *gorm.DB) {
 	auditRepo := repository.NewAuditRepository(db)
 	auditExportRepo := repository.NewAuditExportRepository(db)
-	svc := auditSvc.NewService(auditRepo, auditExportRepo, newScopeAccessService(db))
+	scopeAccess := newScopeAccessService(db)
+	svc := auditSvc.NewService(auditRepo, auditExportRepo, scopeAccess)
 	h := handler.NewAuditHandler(svc)
 
 	if db != nil {
@@ -33,6 +35,11 @@ func RegisterAuditRoutes(group *gin.RouterGroup, db *gorm.DB) {
 	}
 
 	group.GET("/audits/events", h.ListEvents)
+	group.GET(
+		"/audit/security-policies/events",
+		middleware.RequireSecurityPolicyScopeFromRequest(scopeAccess, middleware.PermissionSecurityPolicyRead),
+		h.ListSecurityPolicyEvents,
+	)
 	group.POST("/audits/exports", h.SubmitExport)
 	group.GET("/audits/exports/:taskId", h.GetExportStatus)
 	group.GET("/audits/exports/:taskId/download", h.DownloadExport)

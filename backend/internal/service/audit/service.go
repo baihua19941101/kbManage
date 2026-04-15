@@ -28,18 +28,20 @@ var (
 )
 
 type QueryEventsRequest struct {
-	StartAt     *time.Time
-	EndAt       *time.Time
-	ActorID     *uint64
-	ClusterID   *uint64
-	WorkspaceID *uint64
-	ProjectID   *uint64
-	Action      string
-	Outcome     string
-	Result      string
-	Resource    string
-	Limit       int
-	ViewerID    uint64
+	StartAt      *time.Time
+	EndAt        *time.Time
+	ActorID      *uint64
+	ClusterID    *uint64
+	WorkspaceID  *uint64
+	ProjectID    *uint64
+	Action       string
+	ActionPrefix string
+	Outcome      string
+	Result       string
+	Resource     string
+	ResourceType string
+	Limit        int
+	ViewerID     uint64
 }
 
 type SubmitExportRequest struct {
@@ -108,8 +110,16 @@ func (s *Service) QueryEvents(ctx context.Context, req QueryEventsRequest) ([]do
 	if err != nil {
 		return nil, err
 	}
+	items = filterEventsByActionPrefix(items, req.ActionPrefix)
+	items = filterEventsByResourceType(items, req.ResourceType)
 
 	return s.filterVisibleEvents(ctx, req.ViewerID, req.ClusterID, items)
+}
+
+func (s *Service) QuerySecurityPolicyEvents(ctx context.Context, req QueryEventsRequest) ([]domain.AuditEvent, error) {
+	req.ActionPrefix = "securitypolicy."
+	req.ResourceType = SecurityPolicyAuditResourceType
+	return s.QueryEvents(ctx, req)
 }
 
 func (s *Service) SubmitExport(ctx context.Context, operatorID uint64, req SubmitExportRequest) (*repository.AuditExportTask, error) {
@@ -273,7 +283,7 @@ func (s *Service) filterVisibleEvents(
 	allowedClusterSet := make(map[uint64]struct{})
 	if viewerID != 0 && s.scopeAccess != nil {
 		constrained = true
-		permissions := []string{"access:project:read", "gitops:read"}
+		permissions := []string{"access:project:read", "gitops:read", "securitypolicy:read"}
 		for _, permission := range permissions {
 			allowedClusterIDs, hasScopeConstraint, err := s.scopeAccess.ListClusterIDsByPermission(ctx, viewerID, permission)
 			if err != nil {
@@ -359,6 +369,34 @@ func resolveEventClusterID(event domain.AuditEvent) (uint64, bool) {
 		return 0, false
 	}
 	return authSvc.ParseClusterIDFromReference(targetRef)
+}
+
+func filterEventsByActionPrefix(items []domain.AuditEvent, actionPrefix string) []domain.AuditEvent {
+	prefix := strings.ToLower(strings.TrimSpace(actionPrefix))
+	if prefix == "" {
+		return items
+	}
+	filtered := make([]domain.AuditEvent, 0, len(items))
+	for i := range items {
+		if strings.HasPrefix(strings.ToLower(strings.TrimSpace(items[i].Action)), prefix) {
+			filtered = append(filtered, items[i])
+		}
+	}
+	return filtered
+}
+
+func filterEventsByResourceType(items []domain.AuditEvent, resourceType string) []domain.AuditEvent {
+	target := strings.ToLower(strings.TrimSpace(resourceType))
+	if target == "" {
+		return items
+	}
+	filtered := make([]domain.AuditEvent, 0, len(items))
+	for i := range items {
+		if strings.EqualFold(strings.TrimSpace(items[i].ResourceType), target) {
+			filtered = append(filtered, items[i])
+		}
+	}
+	return filtered
 }
 
 func firstNonEmpty(values ...string) string {

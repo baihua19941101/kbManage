@@ -19,24 +19,27 @@ import (
 )
 
 const (
-	PermissionWorkspaceRead       = "access:workspace:read"
-	PermissionProjectRead         = "access:project:read"
-	PermissionProjectWrite        = "access:project:write"
-	PermissionBindingRead         = "access:binding:read"
-	PermissionBindingWrite        = "access:binding:write"
-	PermissionObservabilityRead   = "observability:read"
-	PermissionObservabilityWrite  = "observability:write"
-	PermissionWorkloadOpsRead     = "workloadops:read"
-	PermissionWorkloadOpsExecute  = "workloadops:execute"
-	PermissionWorkloadOpsTerminal = "workloadops:terminal"
-	PermissionWorkloadOpsRollback = "workloadops:rollback"
-	PermissionWorkloadOpsBatch    = "workloadops:batch"
-	PermissionGitOpsRead          = "gitops:read"
-	PermissionGitOpsManageSource  = "gitops:manage-source"
-	PermissionGitOpsSync          = "gitops:sync"
-	PermissionGitOpsPromote       = "gitops:promote"
-	PermissionGitOpsRollback      = "gitops:rollback"
-	PermissionGitOpsOverride      = "gitops:override"
+	PermissionWorkspaceRead         = "access:workspace:read"
+	PermissionProjectRead           = "access:project:read"
+	PermissionProjectWrite          = "access:project:write"
+	PermissionBindingRead           = "access:binding:read"
+	PermissionBindingWrite          = "access:binding:write"
+	PermissionObservabilityRead     = "observability:read"
+	PermissionObservabilityWrite    = "observability:write"
+	PermissionWorkloadOpsRead       = "workloadops:read"
+	PermissionWorkloadOpsExecute    = "workloadops:execute"
+	PermissionWorkloadOpsTerminal   = "workloadops:terminal"
+	PermissionWorkloadOpsRollback   = "workloadops:rollback"
+	PermissionWorkloadOpsBatch      = "workloadops:batch"
+	PermissionGitOpsRead            = "gitops:read"
+	PermissionGitOpsManageSource    = "gitops:manage-source"
+	PermissionGitOpsSync            = "gitops:sync"
+	PermissionGitOpsPromote         = "gitops:promote"
+	PermissionGitOpsRollback        = "gitops:rollback"
+	PermissionGitOpsOverride        = "gitops:override"
+	PermissionSecurityPolicyRead    = "securitypolicy:read"
+	PermissionSecurityPolicyManage  = "securitypolicy:manage"
+	PermissionSecurityPolicyEnforce = "securitypolicy:enforce"
 )
 
 func RequireWorkspaceScope(scopeAccess *auth.ScopeAccessService, permission string) gin.HandlerFunc {
@@ -964,4 +967,152 @@ func findValueByKey(data map[string]any, key string) (any, bool) {
 		}
 	}
 	return nil, false
+}
+
+func RequireSecurityPolicyScopeFromRequest(scopeAccess *auth.ScopeAccessService, permission string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if scopeAccess == nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "security policy authorization is not configured"})
+			return
+		}
+		userID := c.GetUint64(UserIDKey)
+		if userID == 0 {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing authenticated user"})
+			return
+		}
+		workspaceID, projectID, err := parseSecurityPolicyScopeFromQueryOrBody(c)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if workspaceID == 0 && projectID == 0 {
+			c.Next()
+			return
+		}
+		if err := checkSecurityPolicyScopePermission(c, scopeAccess, userID, workspaceID, projectID, permission); err != nil {
+			c.AbortWithStatusJSON(statusCodeForSecurityPolicyScopeErr(err), gin.H{"error": err.Error()})
+			return
+		}
+		c.Next()
+	}
+}
+
+func RequireSecurityPolicyEntityScope(
+	scopeAccess *auth.ScopeAccessService,
+	policyRepo *repository.SecurityPolicyRepository,
+	permission string,
+) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if scopeAccess == nil || policyRepo == nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "security policy authorization is not configured"})
+			return
+		}
+		userID := c.GetUint64(UserIDKey)
+		if userID == 0 {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing authenticated user"})
+			return
+		}
+		policyID, err := strconv.ParseUint(strings.TrimSpace(c.Param("policyId")), 10, 64)
+		if err != nil || policyID == 0 {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid policyId"})
+			return
+		}
+		item, err := policyRepo.GetByID(c.Request.Context(), policyID)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "policy not found"})
+			return
+		}
+		if err := checkSecurityPolicyScopePermission(c, scopeAccess, userID, derefUint64(item.WorkspaceID), derefUint64(item.ProjectID), permission); err != nil {
+			c.AbortWithStatusJSON(statusCodeForSecurityPolicyScopeErr(err), gin.H{"error": err.Error()})
+			return
+		}
+		c.Next()
+	}
+}
+
+func parseSecurityPolicyScopeFromQueryOrBody(c *gin.Context) (uint64, uint64, error) {
+	workspaceID, err := parseUint64Any(c.Query("workspaceId"))
+	if err != nil {
+		return 0, 0, errors.New("invalid workspaceId")
+	}
+	projectID, err := parseUint64Any(c.Query("projectId"))
+	if err != nil {
+		return 0, 0, errors.New("invalid projectId")
+	}
+	if workspaceID != 0 || projectID != 0 {
+		return workspaceID, projectID, nil
+	}
+
+	body, err := c.GetRawData()
+	if err != nil {
+		return 0, 0, errors.New("invalid request body")
+	}
+	c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
+	if len(bytes.TrimSpace(body)) == 0 {
+		return 0, 0, nil
+	}
+
+	var payload map[string]any
+	if err := json.Unmarshal(body, &payload); err != nil {
+		return 0, 0, errors.New("invalid request body")
+	}
+	if rawWorkspaceID, ok := payload["workspaceId"]; ok {
+		workspaceID, err = parseUint64Any(rawWorkspaceID)
+		if err != nil {
+			return 0, 0, errors.New("invalid workspaceId")
+		}
+	}
+	if rawProjectID, ok := payload["projectId"]; ok {
+		projectID, err = parseUint64Any(rawProjectID)
+		if err != nil {
+			return 0, 0, errors.New("invalid projectId")
+		}
+	}
+	return workspaceID, projectID, nil
+}
+
+func checkSecurityPolicyScopePermission(
+	c *gin.Context,
+	scopeAccess *auth.ScopeAccessService,
+	userID uint64,
+	workspaceID uint64,
+	projectID uint64,
+	permission string,
+) error {
+	targetType := domain.ScopeTypeWorkspace
+	if projectID != 0 {
+		targetType = domain.ScopeTypeProject
+	}
+	allowed, err := scopeAccess.HasScopePermission(
+		c.Request.Context(),
+		userID,
+		targetType,
+		workspaceID,
+		projectID,
+		permission,
+	)
+	if err != nil {
+		return err
+	}
+	if !allowed {
+		return errors.New("security policy scope access denied")
+	}
+	return nil
+}
+
+func statusCodeForSecurityPolicyScopeErr(err error) int {
+	if err == nil {
+		return http.StatusOK
+	}
+	lower := strings.ToLower(err.Error())
+	switch {
+	case strings.Contains(lower, "configured"):
+		return http.StatusInternalServerError
+	case strings.Contains(lower, "authenticated"):
+		return http.StatusUnauthorized
+	case strings.Contains(lower, "invalid"), strings.Contains(lower, "required"), strings.Contains(lower, "request body"):
+		return http.StatusBadRequest
+	default:
+		return http.StatusForbidden
+	}
 }
