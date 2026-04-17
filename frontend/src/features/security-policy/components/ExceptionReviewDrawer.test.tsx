@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest';
+import type { ReactElement } from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ExceptionReviewDrawer } from '@/features/security-policy/components/ExceptionReviewDrawer';
@@ -15,7 +16,7 @@ vi.mock('@/services/securityPolicy', async () => {
   };
 });
 
-const renderWithClient = (ui: JSX.Element) => {
+const renderWithClient = (ui: ReactElement) => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
 };

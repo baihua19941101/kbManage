@@ -22,6 +22,11 @@
 - 已根据用户明确授权将 `006-compliance-and-hardening` 合并到 `main`。
 - 合并前验证情况：`cd backend && go test ./...` 通过；`cd frontend && npm run lint` 通过；`cd frontend && npm run build` 失败，当前仓库仍存在跨模块前端测试类型错误，详见交付说明。
 
+## 修复更新（2026-04-17）
+
+- 已修复跨模块前端测试类型错误，覆盖 006 合规扫描页、GitOps 组件测试、可观测告警权限测试、安全策略抽屉测试和工作负载运维权限测试。
+- 修复后验证情况：`cd frontend && npm run lint` 通过；`cd frontend && npm run build` 通过。
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - 统一基线选择与多范围合规扫描 (Priority: P1)

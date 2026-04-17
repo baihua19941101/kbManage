@@ -49,7 +49,12 @@ describe('AlertCenterPermissions', () => {
         }
       ]
     });
-    vi.mocked(acknowledgeAlert).mockResolvedValue({});
+    vi.mocked(acknowledgeAlert).mockResolvedValue({
+      id: 'inc-1',
+      severity: 'warning',
+      status: 'acknowledged',
+      summary: 'mock alert'
+    });
     vi.mocked(createAlertHandlingRecord).mockResolvedValue({
       id: 'record-1',
       incidentId: 'inc-1',

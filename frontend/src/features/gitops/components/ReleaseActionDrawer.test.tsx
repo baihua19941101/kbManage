@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest';
+import type { ReactElement } from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from '@/features/auth/store';
@@ -15,7 +16,7 @@ vi.mock('@/services/gitops', async () => {
   };
 });
 
-const renderWithClient = (ui: JSX.Element) => {
+const renderWithClient = (ui: ReactElement) => {
   const client = new QueryClient({
     defaultOptions: {
       queries: { retry: false },

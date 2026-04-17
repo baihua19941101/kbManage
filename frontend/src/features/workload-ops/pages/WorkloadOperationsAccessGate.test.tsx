@@ -30,7 +30,9 @@ vi.mock('@/services/workloadOps', () => ({
   }),
   submitWorkloadAction: vi.fn().mockResolvedValue({
     id: 1,
-    status: 'submitted'
+    actionType: 'restart',
+    riskLevel: 'medium',
+    status: 'pending'
   }),
   createTerminalSession: vi.fn().mockResolvedValue({ id: 1, status: 'active' }),
   closeTerminalSession: vi.fn().mockResolvedValue({})
@@ -55,7 +57,9 @@ describe('WorkloadOperationsAccessGate', () => {
     vi.mocked(listWorkloadOpsRevisions).mockResolvedValue({ items: [] });
     vi.mocked(submitWorkloadAction).mockResolvedValue({
       id: 1,
-      status: 'submitted'
+      actionType: 'restart',
+      riskLevel: 'medium',
+      status: 'pending'
     });
   });
 

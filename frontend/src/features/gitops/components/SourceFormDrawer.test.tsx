@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest';
+import type { ReactElement } from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SourceFormDrawer } from '@/features/gitops/components/SourceFormDrawer';
@@ -18,7 +19,7 @@ vi.mock('@/services/gitops', async () => {
   };
 });
 
-const renderWithClient = (ui: JSX.Element) => {
+const renderWithClient = (ui: ReactElement) => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
 };
@@ -105,8 +106,8 @@ describe('SourceFormDrawer', () => {
           endpoint: 'https://git.example.com/payments.git',
           defaultRef: 'main',
           credentialRef: 'git-credential-prod',
-          workspaceId: 1001,
-          projectId: 2001,
+          workspaceId: '1001',
+          projectId: '2001',
           status: 'ready'
         }}
       />
