@@ -20,6 +20,14 @@ export type PolicyPermission =
   | 'securitypolicy:manage'
   | 'securitypolicy:enforce';
 
+export type CompliancePermission =
+  | 'compliance:read'
+  | 'compliance:manage-baseline'
+  | 'compliance:execute-scan'
+  | 'compliance:manage-remediation'
+  | 'compliance:review-exception'
+  | 'compliance:export-archive';
+
 type AuthUser = {
   id: string;
   username: string;
@@ -172,6 +180,44 @@ const POLICY_APPROVE_EXCEPTION_IDENTIFIERS: readonly string[] = [
   'securitypolicy:manage',
   'securitypolicy:enforce'
 ];
+const COMPLIANCE_READ_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'audit-reader',
+  'readonly',
+  'compliance:read'
+];
+const COMPLIANCE_MANAGE_BASELINE_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'compliance:manage-baseline'
+];
+const COMPLIANCE_EXECUTE_SCAN_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'compliance:execute-scan'
+];
+const COMPLIANCE_MANAGE_REMEDIATION_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'compliance:manage-remediation'
+];
+const COMPLIANCE_REVIEW_EXCEPTION_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'compliance:review-exception'
+];
+const COMPLIANCE_EXPORT_ARCHIVE_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'audit-reader',
+  'compliance:export-archive'
+];
+const COMPLIANCE_AUDIT_READ_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'audit-reader',
+  'compliance:read',
+  'compliance:export-archive'
+];
 
 const getUserRoles = (user: AuthUser | null | undefined): string[] => {
   if (!user || !Array.isArray(user.platformRoles)) {
@@ -250,6 +296,27 @@ export const canAssignPolicy = (user: AuthUser | null | undefined): boolean =>
 
 export const canApprovePolicyException = (user: AuthUser | null | undefined): boolean =>
   hasAnyRole(user, POLICY_APPROVE_EXCEPTION_IDENTIFIERS);
+
+export const canReadCompliance = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, COMPLIANCE_READ_IDENTIFIERS);
+
+export const canManageComplianceBaseline = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, COMPLIANCE_MANAGE_BASELINE_IDENTIFIERS);
+
+export const canExecuteComplianceScan = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, COMPLIANCE_EXECUTE_SCAN_IDENTIFIERS);
+
+export const canManageComplianceRemediation = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, COMPLIANCE_MANAGE_REMEDIATION_IDENTIFIERS);
+
+export const canReviewComplianceException = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, COMPLIANCE_REVIEW_EXCEPTION_IDENTIFIERS);
+
+export const canExportComplianceArchive = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, COMPLIANCE_EXPORT_ARCHIVE_IDENTIFIERS);
+
+export const canReadComplianceAudit = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, COMPLIANCE_AUDIT_READ_IDENTIFIERS);
 
 export const useAuthStore = create<AuthState>((set) => ({
   ...initialState,

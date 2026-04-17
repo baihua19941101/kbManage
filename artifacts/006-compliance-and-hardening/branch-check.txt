@@ -1,0 +1,6 @@
+feature: 006-compliance-and-hardening
+checked_at: 2026-04-15 22:08:30 +0800
+current_branch: 006-compliance-and-hardening
+mainline_block: 禁止在 main/master 直接开发
+pr_gate: 未获用户明确同意不得合并
+previous_feature_gate: 005-security-and-policy 已确认完成主 PR 流并合并到 main

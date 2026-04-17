@@ -19,27 +19,33 @@ import (
 )
 
 const (
-	PermissionWorkspaceRead         = "access:workspace:read"
-	PermissionProjectRead           = "access:project:read"
-	PermissionProjectWrite          = "access:project:write"
-	PermissionBindingRead           = "access:binding:read"
-	PermissionBindingWrite          = "access:binding:write"
-	PermissionObservabilityRead     = "observability:read"
-	PermissionObservabilityWrite    = "observability:write"
-	PermissionWorkloadOpsRead       = "workloadops:read"
-	PermissionWorkloadOpsExecute    = "workloadops:execute"
-	PermissionWorkloadOpsTerminal   = "workloadops:terminal"
-	PermissionWorkloadOpsRollback   = "workloadops:rollback"
-	PermissionWorkloadOpsBatch      = "workloadops:batch"
-	PermissionGitOpsRead            = "gitops:read"
-	PermissionGitOpsManageSource    = "gitops:manage-source"
-	PermissionGitOpsSync            = "gitops:sync"
-	PermissionGitOpsPromote         = "gitops:promote"
-	PermissionGitOpsRollback        = "gitops:rollback"
-	PermissionGitOpsOverride        = "gitops:override"
-	PermissionSecurityPolicyRead    = "securitypolicy:read"
-	PermissionSecurityPolicyManage  = "securitypolicy:manage"
-	PermissionSecurityPolicyEnforce = "securitypolicy:enforce"
+	PermissionWorkspaceRead               = "access:workspace:read"
+	PermissionProjectRead                 = "access:project:read"
+	PermissionProjectWrite                = "access:project:write"
+	PermissionBindingRead                 = "access:binding:read"
+	PermissionBindingWrite                = "access:binding:write"
+	PermissionObservabilityRead           = "observability:read"
+	PermissionObservabilityWrite          = "observability:write"
+	PermissionWorkloadOpsRead             = "workloadops:read"
+	PermissionWorkloadOpsExecute          = "workloadops:execute"
+	PermissionWorkloadOpsTerminal         = "workloadops:terminal"
+	PermissionWorkloadOpsRollback         = "workloadops:rollback"
+	PermissionWorkloadOpsBatch            = "workloadops:batch"
+	PermissionGitOpsRead                  = "gitops:read"
+	PermissionGitOpsManageSource          = "gitops:manage-source"
+	PermissionGitOpsSync                  = "gitops:sync"
+	PermissionGitOpsPromote               = "gitops:promote"
+	PermissionGitOpsRollback              = "gitops:rollback"
+	PermissionGitOpsOverride              = "gitops:override"
+	PermissionSecurityPolicyRead          = "securitypolicy:read"
+	PermissionSecurityPolicyManage        = "securitypolicy:manage"
+	PermissionSecurityPolicyEnforce       = "securitypolicy:enforce"
+	PermissionComplianceRead              = "compliance:read"
+	PermissionComplianceManageBaseline    = "compliance:manage-baseline"
+	PermissionComplianceExecuteScan       = "compliance:execute-scan"
+	PermissionComplianceManageRemediation = "compliance:manage-remediation"
+	PermissionComplianceReviewException   = "compliance:review-exception"
+	PermissionComplianceExportArchive     = "compliance:export-archive"
 )
 
 func RequireWorkspaceScope(scopeAccess *auth.ScopeAccessService, permission string) gin.HandlerFunc {
@@ -198,6 +204,81 @@ func parseUint64Any(v any) (uint64, error) {
 	default:
 		return 0, errors.New("unsupported")
 	}
+}
+
+func RequireComplianceScopeFromRequest(scopeAccess *auth.ScopeAccessService, permission string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if scopeAccess == nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "scope authorization is not configured"})
+			return
+		}
+		userID := c.GetUint64(UserIDKey)
+		if userID == 0 {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing authenticated user"})
+			return
+		}
+		workspaceID, projectID, err := parseComplianceScopeFromQueryOrBody(c)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if workspaceID == 0 && projectID == 0 {
+			c.Next()
+			return
+		}
+		targetType := domain.ScopeTypeWorkspace
+		if projectID != 0 {
+			targetType = domain.ScopeTypeProject
+		}
+		allowed, err := scopeAccess.HasScopePermission(c.Request.Context(), userID, targetType, workspaceID, projectID, permission)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if !allowed {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+			return
+		}
+		c.Next()
+	}
+}
+
+func parseComplianceScopeFromQueryOrBody(c *gin.Context) (uint64, uint64, error) {
+	workspaceID, err := parseOptionalQueryUint64(c, "workspaceId")
+	if err != nil {
+		return 0, 0, err
+	}
+	projectID, err := parseOptionalQueryUint64(c, "projectId")
+	if err != nil {
+		return 0, 0, err
+	}
+	if workspaceID != nil || projectID != nil {
+		return derefUint64(workspaceID), derefUint64(projectID), nil
+	}
+	if c.Request.Method == http.MethodGet || c.Request.Body == nil {
+		return 0, 0, nil
+	}
+	body, err := c.GetRawData()
+	if err != nil {
+		return 0, 0, errors.New("invalid request body")
+	}
+	c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
+	var payload struct {
+		WorkspaceID any `json:"workspaceId"`
+		ProjectID   any `json:"projectId"`
+	}
+	if err := json.Unmarshal(body, &payload); err != nil {
+		return 0, 0, nil
+	}
+	workspace, err := parseUint64Any(payload.WorkspaceID)
+	if err != nil {
+		return 0, 0, errors.New("invalid workspaceId")
+	}
+	project, err := parseUint64Any(payload.ProjectID)
+	if err != nil {
+		return 0, 0, errors.New("invalid projectId")
+	}
+	return workspace, project, nil
 }
 
 func RequireGitOpsScopeFromRequest(scopeAccess *auth.ScopeAccessService, permission string) gin.HandlerFunc {
@@ -1115,4 +1196,16 @@ func statusCodeForSecurityPolicyScopeErr(err error) int {
 	default:
 		return http.StatusForbidden
 	}
+}
+
+func parseOptionalQueryUint64(c *gin.Context, key string) (*uint64, error) {
+	raw := strings.TrimSpace(c.Query(key))
+	if raw == "" {
+		return nil, nil
+	}
+	parsed, err := strconv.ParseUint(raw, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	return &parsed, nil
 }

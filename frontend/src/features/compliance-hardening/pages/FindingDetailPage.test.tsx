@@ -1,0 +1,11 @@
+import '@testing-library/jest-dom/vitest';
+import { render, screen } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { FindingDetailPage } from '@/features/compliance-hardening/pages/FindingDetailPage';
+import { useAuthStore } from '@/features/auth/store';
+import { getComplianceFinding, listComplianceFindings } from '@/services/compliance';
+import { installAntdDomShims } from '@/test/installAntdDomShims';
+vi.mock('@/services/compliance', async () => ({ ...(await vi.importActual<typeof import('@/services/compliance')>('@/services/compliance')), getComplianceFinding: vi.fn(), listComplianceFindings: vi.fn() }));
+const renderPage = () => render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter initialEntries={['/compliance-hardening/findings/1']}><Routes><Route path="/compliance-hardening/findings/:findingId" element={<FindingDetailPage />} /></Routes></MemoryRouter></QueryClientProvider>);
+describe('FindingDetailPage', () => { beforeAll(() => installAntdDomShims()); beforeEach(() => { vi.clearAllMocks(); vi.mocked(getComplianceFinding).mockResolvedValue({ id: '1', controlId: 'CIS-1', controlTitle: 'Audit', result: 'fail', riskLevel: 'high', remediationStatus: 'open', evidences: [] }); vi.mocked(listComplianceFindings).mockResolvedValue({ items: [] }); }); it('shows unauthorized empty', () => { useAuthStore.setState({ isAuthenticated: true, accessToken: 't', refreshToken: 'r', user: { id: 'u', username: 'u', platformRoles: [] } }); renderPage(); expect(screen.getByText('你暂无失败项详情访问权限。')).toBeInTheDocument(); }); it('renders finding detail', async () => { useAuthStore.setState({ isAuthenticated: true, accessToken: 't', refreshToken: 'r', user: { id: 'u', username: 'u', platformRoles: ['platform-admin'] } }); renderPage(); expect(await screen.findByText('Audit')).toBeInTheDocument(); }); });

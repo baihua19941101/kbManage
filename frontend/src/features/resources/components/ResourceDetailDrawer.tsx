@@ -116,6 +116,18 @@ export const ResourceDetailDrawer = ({
             >
               工作负载运维
             </Button>
+            <Button
+              onClick={() => {
+                const params = new URLSearchParams({
+                  clusterId: resource.cluster,
+                  namespace: resource.namespace,
+                  resourceKind: resource.resourceType
+                });
+                void navigate(`/compliance-hardening/scans?${params.toString()}`);
+              }}
+            >
+              合规扫描
+            </Button>
           </Space>
           <ResourceActionPanel resource={resource} onOperationCreated={onOperationCreated} />
         </Space>

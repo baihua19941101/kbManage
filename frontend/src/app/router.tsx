@@ -33,9 +33,7 @@ export const router = createBrowserRouter([
           {
             path: '/resources',
             lazy: async () => {
-              const { ResourcesPage } = await import(
-                '@/features/resources/pages/ResourcesPage'
-              );
+              const { ResourcesPage } = await import('@/features/resources/pages/ResourcesPage');
               return { Component: ResourcesPage };
             }
           },
@@ -74,6 +72,15 @@ export const router = createBrowserRouter([
                 '@/features/audit/pages/SecurityPolicyAuditPage'
               );
               return { Component: SecurityPolicyAuditPage };
+            }
+          },
+          {
+            path: '/audit-events/compliance',
+            lazy: async () => {
+              const { ComplianceAuditPage } = await import(
+                '@/features/audit/pages/ComplianceAuditPage'
+              );
+              return { Component: ComplianceAuditPage };
             }
           },
           {
@@ -171,9 +178,7 @@ export const router = createBrowserRouter([
           {
             path: '/gitops',
             lazy: async () => {
-              const { GitOpsOverviewPage } = await import(
-                '@/features/gitops/pages/GitOpsOverviewPage'
-              );
+              const { GitOpsOverviewPage } = await import('@/features/gitops/pages/GitOpsOverviewPage');
               return { Component: GitOpsOverviewPage };
             }
           },
@@ -216,6 +221,91 @@ export const router = createBrowserRouter([
               );
               return { Component: ViolationCenterPage };
             }
+          },
+          {
+            path: '/compliance-hardening/baselines',
+            lazy: async () => {
+              const { ComplianceBaselinePage } = await import(
+                '@/features/compliance-hardening/pages/ComplianceBaselinePage'
+              );
+              return { Component: ComplianceBaselinePage };
+            }
+          },
+          {
+            path: '/compliance-hardening/scans',
+            lazy: async () => {
+              const { ScanCenterPage } = await import(
+                '@/features/compliance-hardening/pages/ScanCenterPage'
+              );
+              return { Component: ScanCenterPage };
+            }
+          },
+          {
+            path: '/compliance-hardening/findings/:findingId',
+            lazy: async () => {
+              const { FindingDetailPage } = await import(
+                '@/features/compliance-hardening/pages/FindingDetailPage'
+              );
+              return { Component: FindingDetailPage };
+            }
+          },
+          {
+            path: '/compliance-hardening/remediation',
+            lazy: async () => {
+              const { RemediationQueuePage } = await import(
+                '@/features/compliance-hardening/pages/RemediationQueuePage'
+              );
+              return { Component: RemediationQueuePage };
+            }
+          },
+          {
+            path: '/compliance-hardening/exceptions',
+            lazy: async () => {
+              const { ComplianceExceptionPage } = await import(
+                '@/features/compliance-hardening/pages/ComplianceExceptionPage'
+              );
+              return { Component: ComplianceExceptionPage };
+            }
+          },
+          {
+            path: '/compliance-hardening/rechecks',
+            lazy: async () => {
+              const { RecheckCenterPage } = await import(
+                '@/features/compliance-hardening/pages/RecheckCenterPage'
+              );
+              return { Component: RecheckCenterPage };
+            }
+          },
+          {
+            path: '/compliance-hardening/overview',
+            lazy: async () => {
+              const { ComplianceOverviewPage } = await import(
+                '@/features/compliance-hardening/pages/ComplianceOverviewPage'
+              );
+              return { Component: ComplianceOverviewPage };
+            }
+          },
+          {
+            path: '/compliance-hardening/trends',
+            lazy: async () => {
+              const { ComplianceTrendPage } = await import(
+                '@/features/compliance-hardening/pages/ComplianceTrendPage'
+              );
+              return { Component: ComplianceTrendPage };
+            }
+          },
+          {
+            path: '/compliance-hardening/archive',
+            lazy: async () => {
+              const { ComplianceArchivePage } = await import(
+                '@/features/compliance-hardening/pages/ComplianceArchivePage'
+              );
+              return { Component: ComplianceArchivePage };
+            }
+          },
+          {
+            path: '/compliance-hardening/*',
+            element: <Navigate to="/compliance-hardening/overview" replace />
           }
         ]
       }

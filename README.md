@@ -64,6 +64,10 @@ npm config set registry https://registry.npmmirror.com
 - `securityPolicy.exception.max_duration_hours / expiry_scan_interval`
 - `securityPolicy.cache.distribution_ttl / exception_ttl`
 - `securityPolicy.audit.retention_days`
+- `compliance.baselines.source_ref / snapshot_cache_ttl`
+- `compliance.scan.default_timeout / max_parallel_executions / scheduler_interval`
+- `compliance.export.retention_ttl`
+- `compliance.audit.retention_days`
 
 说明：
 
@@ -84,6 +88,7 @@ npm config set registry https://registry.npmmirror.com
 - `VITE_PORT`：前端 dev server 端口（必须通过该变量配置，不在脚本中硬编码）
 - `VITE_GITOPS_OPERATION_POLL_INTERVAL`：GitOps 动作轮询间隔（毫秒）
 - `VITE_GITOPS_DIFF_REFRESH_INTERVAL`：GitOps 差异面板刷新间隔（毫秒）
+- `VITE_COMPLIANCE_REFRESH_INTERVAL`：合规与加固页面刷新间隔（毫秒）
 
 ## 启动方式
 
@@ -162,3 +167,23 @@ npm run build
 ```bash
 bash artifacts/002-observability-center/repro-observability-smoke.sh
 ```
+
+## 006 合规与加固联调要点
+
+- 后端默认读取以下配置：
+  - `compliance.baselines.source_ref`
+  - `compliance.scan.default_timeout`
+  - `compliance.scan.max_parallel_executions`
+  - `compliance.scan.scheduler_interval`
+  - `compliance.export.retention_ttl`
+  - `compliance.audit.retention_days`
+- 前端入口：
+  - `/compliance-hardening/baselines`
+  - `/compliance-hardening/scans`
+  - `/compliance-hardening/remediation`
+  - `/compliance-hardening/exceptions`
+  - `/compliance-hardening/rechecks`
+  - `/compliance-hardening/overview`
+  - `/compliance-hardening/trends`
+  - `/compliance-hardening/archive`
+  - `/audit-events/compliance`

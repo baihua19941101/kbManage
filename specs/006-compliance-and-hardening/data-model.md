@@ -1,0 +1,274 @@
+# Data Model: 多集群 Kubernetes 合规与加固中心
+
+> 说明：006 复用 001 的 `Cluster`、`Workspace`、`Project`、权限与审计底座。本文件仅描述 006 新增或显著扩展的合规与加固域实体。
+
+## 1. ComplianceBaseline
+- Purpose: 表示一个可被平台选择和执行的合规基线标准。
+- Key Fields:
+  - `id`
+  - `name`
+  - `standard_type`: `cis | stig | platform-baseline`
+  - `version`
+  - `description`
+  - `target_levels`: `cluster | node | namespace | resource`
+  - `status`: `draft | active | disabled | archived`
+  - `rule_count`
+  - `created_by`
+  - `created_at` / `updated_at`
+- Relationships:
+  - 可关联多个 `ScanProfile`
+  - 每次 `ScanExecution` 固化一个 `baseline_snapshot`
+- Validation Rules:
+  - 同一 `standard_type + version + name` 组合唯一
+  - `archived` 状态基线不可继续被新扫描配置引用
+- State Transitions:
+  - `draft -> active | disabled`
+  - `active -> disabled | archived`
+
+## 2. ScanProfile
+- Purpose: 描述一次计划性或按需扫描所使用的配置模板。
+- Key Fields:
+  - `id`
+  - `name`
+  - `baseline_id`
+  - `workspace_id`
+  - `project_id`
+  - `scope_type`: `cluster | node | namespace | resource-set`
+  - `cluster_refs`
+  - `node_selectors`
+  - `namespace_refs`
+  - `resource_kinds`
+  - `schedule_mode`: `manual | scheduled`
+  - `cron_expression`
+  - `status`: `draft | active | paused | archived`
+  - `last_run_at`
+  - `created_by`
+  - `created_at` / `updated_at`
+- Relationships:
+  - 属于一个 `ComplianceBaseline`
+  - 可关联多个 `ScanExecution`
+- Validation Rules:
+  - `scheduled` 模式必须提供有效调度表达式
+  - 目标范围必须落在操作者授权边界内
+- State Transitions:
+  - `draft -> active | archived`
+  - `active -> paused | archived`
+  - `paused -> active | archived`
+
+## 3. ScanExecution
+- Purpose: 表示一次具体扫描任务的执行记录。
+- Key Fields:
+  - `id`
+  - `profile_id`
+  - `baseline_snapshot`
+  - `baseline_version_label`
+  - `trigger_source`: `manual | schedule | recheck`
+  - `status`: `pending | running | partially_succeeded | succeeded | failed | canceled`
+  - `coverage_status`: `full | partial | unavailable`
+  - `started_at`
+  - `completed_at`
+  - `score`
+  - `pass_count`
+  - `fail_count`
+  - `warning_count`
+  - `error_summary`
+- Relationships:
+  - 属于一个 `ScanProfile`
+  - 可关联多个 `ComplianceFinding`
+- Validation Rules:
+  - `partially_succeeded` 必须给出未覆盖范围或失败原因摘要
+  - `completed_at` 不可早于 `started_at`
+- State Transitions:
+  - `pending -> running | canceled`
+  - `running -> succeeded | partially_succeeded | failed | canceled`
+
+## 4. ComplianceFinding
+- Purpose: 表示某条检查项在具体范围上的检查结果。
+- Key Fields:
+  - `id`
+  - `scan_execution_id`
+  - `control_id`
+  - `control_title`
+  - `result`: `pass | fail | warn | skipped | error`
+  - `risk_level`: `low | medium | high | critical`
+  - `cluster_id`
+  - `node_name`
+  - `namespace`
+  - `resource_kind`
+  - `resource_name`
+  - `resource_uid`
+  - `summary`
+  - `remediation_status`: `open | in_progress | exception_active | ready_for_recheck | closed`
+  - `detected_at`
+- Relationships:
+  - 属于一个 `ScanExecution`
+  - 可关联多个 `EvidenceRecord`
+  - 可关联多个 `RemediationTask`
+  - 可关联零或多个 `ComplianceExceptionRequest`
+  - 可关联多个 `RecheckTask`
+- Validation Rules:
+  - `fail` 或 `warn` 结果必须具备失败摘要或解释说明
+  - 关闭前必须有整改完成、例外生效或复检通过中的一种结论
+- State Transitions:
+  - `open -> in_progress | exception_active | ready_for_recheck | closed`
+  - `in_progress -> ready_for_recheck | exception_active | closed`
+  - `ready_for_recheck -> closed | in_progress`
+
+## 5. EvidenceRecord
+- Purpose: 保存支撑失败项判断的证据快照。
+- Key Fields:
+  - `id`
+  - `finding_id`
+  - `evidence_type`: `configuration | workload-state | node-state | permission | network | scanner-output`
+  - `source_ref`
+  - `collected_at`
+  - `confidence`: `high | medium | low`
+  - `summary`
+  - `artifact_ref`
+  - `redaction_status`: `raw | masked`
+- Relationships:
+  - 属于一个 `ComplianceFinding`
+- Validation Rules:
+  - 若证据包含敏感上下文，必须标记脱敏状态
+  - `artifact_ref` 可为空，但 `summary` 不可为空
+
+## 6. RemediationTask
+- Purpose: 表示针对失败项发起的整改任务。
+- Key Fields:
+  - `id`
+  - `finding_id`
+  - `title`
+  - `owner`
+  - `priority`: `low | medium | high | critical`
+  - `status`: `todo | in_progress | blocked | done | canceled`
+  - `due_at`
+  - `resolution_summary`
+  - `created_by`
+  - `created_at`
+  - `completed_at`
+- Relationships:
+  - 属于一个 `ComplianceFinding`
+- Validation Rules:
+  - `done` 状态必须有完成时间和结论摘要
+  - `due_at` 可为空，但高风险任务建议必填
+- State Transitions:
+  - `todo -> in_progress | blocked | canceled`
+  - `in_progress -> blocked | done | canceled`
+  - `blocked -> in_progress | canceled`
+
+## 7. ComplianceExceptionRequest
+- Purpose: 表示针对失败项提出的受控例外申请。
+- Key Fields:
+  - `id`
+  - `finding_id`
+  - `scope_snapshot`
+  - `reason`
+  - `requested_by`
+  - `reviewed_by`
+  - `status`: `pending | approved | rejected | active | expired | revoked`
+  - `starts_at`
+  - `expires_at`
+  - `review_comment`
+  - `created_at` / `updated_at`
+- Relationships:
+  - 关联一个 `ComplianceFinding`
+- Validation Rules:
+  - `expires_at` 必须晚于 `starts_at`
+  - `active` 状态例外必须在有效期内
+- State Transitions:
+  - `pending -> approved | rejected`
+  - `approved -> active`
+  - `active -> expired | revoked`
+
+## 8. RecheckTask
+- Purpose: 表示面向已整改或需复核对象发起的复检任务。
+- Key Fields:
+  - `id`
+  - `finding_id`
+  - `trigger_source`: `manual | remediation_done | exception_expired`
+  - `status`: `pending | running | passed | failed | canceled`
+  - `target_scope_snapshot`
+  - `result_scan_execution_id`
+  - `requested_by`
+  - `started_at`
+  - `completed_at`
+  - `summary`
+- Relationships:
+  - 关联一个 `ComplianceFinding`
+  - 可回指一个 `ScanExecution`
+- Validation Rules:
+  - `passed` 或 `failed` 状态必须绑定新的检查结果或执行摘要
+- State Transitions:
+  - `pending -> running | canceled`
+  - `running -> passed | failed | canceled`
+
+## 9. ComplianceTrendSnapshot
+- Purpose: 汇总某个时间周期和范围下的合规趋势数据。
+- Key Fields:
+  - `id`
+  - `workspace_id`
+  - `project_id`
+  - `scope_type`
+  - `scope_ref`
+  - `baseline_id`
+  - `baseline_version`
+  - `window_start`
+  - `window_end`
+  - `coverage_rate`
+  - `score_avg`
+  - `open_findings_count`
+  - `high_risk_open_count`
+  - `remediation_completion_rate`
+  - `exception_active_count`
+  - `generated_at`
+- Relationships:
+  - 可关联多个 `ScanExecution` 汇总结果
+- Validation Rules:
+  - 同一范围和时间窗口下快照唯一
+  - `window_end` 必须晚于 `window_start`
+
+## 10. ArchiveExportTask
+- Purpose: 表示一次合规复盘归档导出任务。
+- Key Fields:
+  - `id`
+  - `workspace_id`
+  - `project_id`
+  - `baseline_id`
+  - `export_scope`: `scans | findings | trends | audit | bundle`
+  - `filters_snapshot`
+  - `status`: `pending | running | succeeded | failed | expired`
+  - `artifact_ref`
+  - `requested_by`
+  - `started_at`
+  - `completed_at`
+  - `failure_reason`
+- Relationships:
+  - 可聚合多个 `ScanExecution`、`ComplianceFinding`、`ComplianceTrendSnapshot`、`ComplianceAuditEvent`
+- Validation Rules:
+  - `succeeded` 状态必须提供产物引用
+  - `failed` 状态必须记录失败原因
+- State Transitions:
+  - `pending -> running | failed`
+  - `running -> succeeded | failed | expired`
+
+## 11. ComplianceAuditEvent
+- Purpose: 描述合规治理关键动作的标准化审计对象。
+- Key Fields:
+  - `action`: `compliance.baseline.create | compliance.baseline.update | compliance.scan.execute | compliance.scan.complete | compliance.remediation.create | compliance.remediation.update | compliance.exception.request | compliance.exception.review | compliance.recheck.create | compliance.recheck.complete | compliance.archive.export`
+  - `operator_id`
+  - `workspace_id`
+  - `project_id`
+  - `baseline_id`
+  - `profile_id`
+  - `scan_execution_id`
+  - `finding_id`
+  - `remediation_task_id`
+  - `exception_request_id`
+  - `recheck_task_id`
+  - `outcome`
+  - `details_json`
+  - `occurred_at`
+- Relationships:
+  - 复用 001 审计查询框架
+- Validation Rules:
+  - 关键动作必须保留影响范围、结果摘要和必要说明

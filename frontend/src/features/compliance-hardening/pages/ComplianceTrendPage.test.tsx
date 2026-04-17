@@ -1,0 +1,11 @@
+import '@testing-library/jest-dom/vitest';
+import { render, screen } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
+import { ComplianceTrendPage } from '@/features/compliance-hardening/pages/ComplianceTrendPage';
+import { useAuthStore } from '@/features/auth/store';
+import { getComplianceTrends } from '@/services/compliance';
+import { installAntdDomShims } from '@/test/installAntdDomShims';
+vi.mock('@/services/compliance', async () => ({ ...(await vi.importActual<typeof import('@/services/compliance')>('@/services/compliance')), getComplianceTrends: vi.fn() }));
+const renderPage = () => render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><ComplianceTrendPage /></MemoryRouter></QueryClientProvider>);
+describe('ComplianceTrendPage', () => { beforeAll(() => installAntdDomShims()); beforeEach(() => { vi.clearAllMocks(); vi.mocked(getComplianceTrends).mockResolvedValue({ points: [{ windowStart: '2026-04-14T00:00:00Z', windowEnd: '2026-04-15T00:00:00Z', scoreAvg: 80, coverageRate: 90, remediationCompletionRate: 60, highRiskOpenCount: 1, baselineVersion: '1.9.0' }], comparisonBasis: { baselineVersions: ['1.9.0'] } }); }); it('shows unauthorized empty', () => { useAuthStore.setState({ isAuthenticated: true, accessToken: 't', refreshToken: 'r', user: { id: 'u', username: 'u', platformRoles: [] } }); renderPage(); expect(screen.getByText('你暂无趋势复盘访问权限。')).toBeInTheDocument(); }); it('renders trend page title', async () => { useAuthStore.setState({ isAuthenticated: true, accessToken: 't', refreshToken: 'r', user: { id: 'u', username: 'u', platformRoles: ['platform-admin'] } }); renderPage(); expect(await screen.findByText('合规趋势复盘')).toBeInTheDocument(); }); });

@@ -148,6 +148,14 @@ export const ClusterOverviewPage = () => {
                 >
                   指标
                 </Button>
+                <Button
+                  onClick={() => {
+                    const params = new URLSearchParams({ clusterId: item.id });
+                    void navigate(`/compliance-hardening/scans?${params.toString()}`);
+                  }}
+                >
+                  合规
+                </Button>
               </Space>
             </List.Item>
           )}

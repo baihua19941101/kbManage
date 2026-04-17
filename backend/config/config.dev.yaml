@@ -160,3 +160,23 @@ securityPolicy:
   audit:
     # 策略治理审计保留天数
     retention_days: 365
+
+compliance:
+  baselines:
+    # 基线包来源，可为本地目录、对象存储前缀或镜像仓库引用
+    source_ref: "file://./artifacts/compliance/baselines"
+    # 基线快照缓存 TTL
+    snapshot_cache_ttl: "10m"
+  scan:
+    # 默认扫描超时
+    default_timeout: "20m"
+    # 同时运行的最大扫描任务数
+    max_parallel_executions: 2
+    # 计划性扫描轮询间隔
+    scheduler_interval: "1m"
+  export:
+    # 归档导出任务保留时长
+    retention_ttl: "168h"
+  audit:
+    # 合规审计保留天数
+    retention_days: 365

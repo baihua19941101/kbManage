@@ -1,10 +1,11 @@
 # Quickstart: 多集群 Kubernetes 安全与策略治理中心
 
-## 当前执行状态（2026-04-14）
+## 当前执行状态（2026-04-15）
 
-- 005 已完成 `specify/plan/tasks`，当前处于 implement 阶段。
+- 005 已完成 `specify/plan/tasks/implement`，当前处于 PR 准备阶段。
 - 2026-04-14 已完成一次实施前数据库备份与恢复抽样验证，详见 `artifacts/005-security-and-policy/backup-manifest.txt`。
 - 治理证据文件已补齐：`branch-check.txt`、`mirror-and-remote-check.txt`。
+- 合并主线前仍需用户明确同意。
 
 ## 1. 前提
 

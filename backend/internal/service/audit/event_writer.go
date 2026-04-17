@@ -71,6 +71,18 @@ const (
 	SecurityPolicyAuditActionExceptionReview      = "securitypolicy.exception.review"
 	SecurityPolicyAuditActionHitQuery             = "securitypolicy.hit.query"
 	SecurityPolicyAuditActionHitRemediationUpdate = "securitypolicy.hit.remediation.update"
+
+	ComplianceAuditResourceType            = "compliance"
+	ComplianceAuditActionBaselineCreate    = "compliance.baseline.create"
+	ComplianceAuditActionBaselineUpdate    = "compliance.baseline.update"
+	ComplianceAuditActionScanExecute       = "compliance.scan.execute"
+	ComplianceAuditActionRemediationCreate = "compliance.remediation.create"
+	ComplianceAuditActionRemediationUpdate = "compliance.remediation.update"
+	ComplianceAuditActionExceptionRequest  = "compliance.exception.request"
+	ComplianceAuditActionExceptionReview   = "compliance.exception.review"
+	ComplianceAuditActionRecheckCreate     = "compliance.recheck.create"
+	ComplianceAuditActionRecheckComplete   = "compliance.recheck.complete"
+	ComplianceAuditActionArchiveExport     = "compliance.archive_export.create"
 )
 
 type EventWriter struct {
@@ -220,6 +232,21 @@ func (w *EventWriter) WriteGitOpsEvent(
 		outcome,
 		details,
 	)
+}
+
+func (w *EventWriter) WriteComplianceEvent(
+	ctx context.Context,
+	requestID string,
+	actorID *uint64,
+	action string,
+	resourceID string,
+	outcome domain.AuditOutcome,
+	details map[string]any,
+) error {
+	if details == nil {
+		details = map[string]any{}
+	}
+	return w.Write(ctx, requestID, actorID, action, ComplianceAuditResourceType, strings.TrimSpace(resourceID), outcome, details)
 }
 
 func (w *EventWriter) WriteSecurityPolicyEvent(

@@ -2,9 +2,10 @@ import { Spin } from 'antd';
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import {
+  canReadCompliance,
   canReadGitOps,
-  canReadWorkloadOps,
   canReadObservability,
+  canReadWorkloadOps,
   hasAnyRole,
   useAuthStore
 } from '@/features/auth/store';
@@ -17,8 +18,14 @@ type RouteGuard = {
 
 const routeGuards: RouteGuard[] = [
   { pathPrefix: '/workspaces', canAccess: (user) => hasAnyRole(user, ['platform-admin']) },
-  { pathPrefix: '/projects', canAccess: (user) => hasAnyRole(user, ['platform-admin', 'ops-operator']) },
-  { pathPrefix: '/audit-events', canAccess: (user) => hasAnyRole(user, ['platform-admin', 'audit-reader']) },
+  {
+    pathPrefix: '/projects',
+    canAccess: (user) => hasAnyRole(user, ['platform-admin', 'ops-operator'])
+  },
+  {
+    pathPrefix: '/audit-events',
+    canAccess: (user) => hasAnyRole(user, ['platform-admin', 'audit-reader'])
+  },
   {
     pathPrefix: '/observability',
     canAccess: canReadObservability
@@ -30,6 +37,10 @@ const routeGuards: RouteGuard[] = [
   {
     pathPrefix: '/gitops',
     canAccess: canReadGitOps
+  },
+  {
+    pathPrefix: '/compliance-hardening',
+    canAccess: canReadCompliance
   }
 ];
 
@@ -43,9 +54,6 @@ export const ProtectedRoute = () => {
     let cancelled = false;
 
     const runRefresh = async () => {
-      // Avoid eager refresh when access token is already present.
-      // In React StrictMode (dev), effects can run twice and aggressive refresh
-      // may revoke the just-issued refresh token, forcing users to login again.
       if (!isAuthenticated || !refreshToken || accessToken) {
         setRefreshChecked(true);
         return;

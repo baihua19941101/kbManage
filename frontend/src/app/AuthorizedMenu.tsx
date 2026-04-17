@@ -4,12 +4,15 @@ import { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   canBatchWorkloadOps,
+  canExportComplianceArchive,
   canManageObservability,
-  canReadPolicyAudit,
-  canReadPolicy,
-  canReadGitOpsAudit,
+  canReadCompliance,
+  canReadComplianceAudit,
   canReadGitOps,
+  canReadGitOpsAudit,
   canReadObservability,
+  canReadPolicy,
+  canReadPolicyAudit,
   canReadWorkloadOps,
   hasAnyRole,
   useAuthStore
@@ -33,7 +36,11 @@ const allMenuItems: MenuItemConfig[] = [
     label: '资源',
     visibleWhen: (user) => hasAnyRole(user, ['platform-admin', 'ops-operator', 'readonly'])
   },
-  { key: '/workspaces', label: '工作空间', visibleWhen: (user) => hasAnyRole(user, ['platform-admin']) },
+  {
+    key: '/workspaces',
+    label: '工作空间',
+    visibleWhen: (user) => hasAnyRole(user, ['platform-admin'])
+  },
   {
     key: '/projects',
     label: '项目',
@@ -48,6 +55,16 @@ const allMenuItems: MenuItemConfig[] = [
     key: '/audit-events/gitops',
     label: 'GitOps审计',
     visibleWhen: canReadGitOpsAudit
+  },
+  {
+    key: '/audit-events/security-policy',
+    label: '策略审计',
+    visibleWhen: canReadPolicyAudit
+  },
+  {
+    key: '/audit-events/compliance',
+    label: '合规审计',
+    visibleWhen: canReadComplianceAudit
   },
   {
     key: '/observability',
@@ -100,9 +117,44 @@ const allMenuItems: MenuItemConfig[] = [
     visibleWhen: canReadPolicy
   },
   {
-    key: '/audit-events/security-policy',
-    label: '策略审计',
-    visibleWhen: canReadPolicyAudit
+    key: '/compliance-hardening/baselines',
+    label: '合规基线',
+    visibleWhen: canReadCompliance
+  },
+  {
+    key: '/compliance-hardening/scans',
+    label: '扫描中心',
+    visibleWhen: canReadCompliance
+  },
+  {
+    key: '/compliance-hardening/remediation',
+    label: '整改工作台',
+    visibleWhen: canReadCompliance
+  },
+  {
+    key: '/compliance-hardening/exceptions',
+    label: '例外审批',
+    visibleWhen: canReadCompliance
+  },
+  {
+    key: '/compliance-hardening/rechecks',
+    label: '复检中心',
+    visibleWhen: canReadCompliance
+  },
+  {
+    key: '/compliance-hardening/overview',
+    label: '合规总览',
+    visibleWhen: canReadCompliance
+  },
+  {
+    key: '/compliance-hardening/trends',
+    label: '趋势复盘',
+    visibleWhen: canReadCompliance
+  },
+  {
+    key: '/compliance-hardening/archive',
+    label: '归档导出',
+    visibleWhen: (user) => canReadCompliance(user) || canExportComplianceArchive(user)
   }
 ];
 
@@ -111,9 +163,11 @@ const findBestSelectedKey = (pathname: string, keys: string[]): string => {
     return pathname;
   }
 
-  return keys
-    .filter((key) => pathname.startsWith(key) && key !== '/')
-    .sort((a, b) => b.length - a.length)[0] ?? '/';
+  return (
+    keys
+      .filter((key) => pathname.startsWith(key) && key !== '/')
+      .sort((a, b) => b.length - a.length)[0] ?? '/'
+  );
 };
 
 export const AuthorizedMenu = () => {

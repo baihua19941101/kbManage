@@ -67,6 +67,20 @@ export const queryKeys = {
       ['securityPolicy', 'detail', policyId ?? 'unknown'] as const,
     assignments: (policyId?: number | string) =>
       ['securityPolicy', 'assignments', policyId ?? 'unknown'] as const
+  },
+  compliance: {
+    all: ['compliance'] as const,
+    baselines: (scope?: string) => ['compliance', 'baselines', scope ?? 'default'] as const,
+    profiles: (scope?: string) => ['compliance', 'profiles', scope ?? 'default'] as const,
+    scans: (scope?: string) => ['compliance', 'scans', scope ?? 'default'] as const,
+    findings: (scope?: string) => ['compliance', 'findings', scope ?? 'default'] as const,
+    remediation: (scope?: string) => ['compliance', 'remediation', scope ?? 'default'] as const,
+    exceptions: (scope?: string) => ['compliance', 'exceptions', scope ?? 'default'] as const,
+    rechecks: (scope?: string) => ['compliance', 'rechecks', scope ?? 'default'] as const,
+    overview: (scope?: string) => ['compliance', 'overview', scope ?? 'default'] as const,
+    trends: (scope?: string) => ['compliance', 'trends', scope ?? 'default'] as const,
+    exports: (scope?: string) => ['compliance', 'exports', scope ?? 'default'] as const,
+    audit: (scope?: string) => ['compliance', 'audit', scope ?? 'default'] as const
   }
 };
 
