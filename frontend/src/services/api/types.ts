@@ -549,3 +549,40 @@ export type ReviewExceptionRequestDTO = {
   decision: ReviewExceptionDecision;
   comment?: string;
 };
+
+
+export type ComplianceBaselineDTO = {
+  id: string | number;
+  name: string;
+  standardType?: string;
+  version?: string;
+  status?: string;
+  ruleCount?: number;
+  description?: string;
+};
+
+export type ComplianceScanProfileDTO = {
+  id: string | number;
+  name: string;
+  baselineId?: string | number;
+  workspaceId?: string | number;
+  projectId?: string | number;
+  scopeType?: string;
+  scheduleMode?: string;
+  cronExpression?: string;
+  status?: string;
+};
+
+export type ComplianceScanExecutionDTO = {
+  id: string | number;
+  profileId?: string | number;
+  triggerSource?: string;
+  status?: string;
+  coverageStatus?: string;
+  score?: number;
+  passCount?: number;
+  failCount?: number;
+  warningCount?: number;
+  startedAt?: string;
+  completedAt?: string;
+};

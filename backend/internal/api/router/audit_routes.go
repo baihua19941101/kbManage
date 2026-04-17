@@ -40,6 +40,10 @@ func RegisterAuditRoutes(group *gin.RouterGroup, db *gorm.DB) {
 		middleware.RequireSecurityPolicyScopeFromRequest(scopeAccess, middleware.PermissionSecurityPolicyRead),
 		h.ListSecurityPolicyEvents,
 	)
+	group.GET(
+		"/audit/compliance/events",
+		h.ListComplianceEvents,
+	)
 	group.POST("/audits/exports", h.SubmitExport)
 	group.GET("/audits/exports/:taskId", h.GetExportStatus)
 	group.GET("/audits/exports/:taskId/download", h.DownloadExport)

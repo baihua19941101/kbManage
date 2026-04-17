@@ -1,0 +1,11 @@
+import '@testing-library/jest-dom/vitest';
+import { render, screen } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
+import { ComplianceExceptionPage } from '@/features/compliance-hardening/pages/ComplianceExceptionPage';
+import { useAuthStore } from '@/features/auth/store';
+import { listComplianceExceptions } from '@/services/compliance';
+import { installAntdDomShims } from '@/test/installAntdDomShims';
+vi.mock('@/services/compliance', async () => ({ ...(await vi.importActual<typeof import('@/services/compliance')>('@/services/compliance')), listComplianceExceptions: vi.fn(), reviewComplianceException: vi.fn() }));
+const renderPage = () => render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><ComplianceExceptionPage /></MemoryRouter></QueryClientProvider>);
+describe('ComplianceExceptionPage', () => { beforeAll(() => installAntdDomShims()); beforeEach(() => { vi.clearAllMocks(); vi.mocked(listComplianceExceptions).mockResolvedValue({ items: [] }); }); it('shows unauthorized empty', () => { useAuthStore.setState({ isAuthenticated: true, accessToken: 't', refreshToken: 'r', user: { id: 'u', username: 'u', platformRoles: [] } }); renderPage(); expect(screen.getByText('你暂无例外审批访问权限。')).toBeInTheDocument(); }); it('renders exception list', async () => { useAuthStore.setState({ isAuthenticated: true, accessToken: 't', refreshToken: 'r', user: { id: 'u', username: 'u', platformRoles: ['platform-admin'] } }); vi.mocked(listComplianceExceptions).mockResolvedValue({ items: [{ id: 'e1', reason: 'legacy', status: 'pending', startsAt: '2026-04-15T00:00:00Z', expiresAt: '2026-04-16T00:00:00Z' }] }); renderPage(); expect(await screen.findByText('legacy')).toBeInTheDocument(); }); });

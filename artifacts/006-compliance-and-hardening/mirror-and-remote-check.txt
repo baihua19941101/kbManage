@@ -1,0 +1,10 @@
+checked_at: 2026-04-15 22:08:30 +0800
+go_proxy: GOPROXY=https://goproxy.cn,direct
+npm_registry: https://registry.npmmirror.com
+scanner_images: 优先使用阿里云、DaoCloud 或经批准的国内代理镜像
+baseline_packages: 优先使用国内镜像或经批准代理，不允许默认境外源直连
+git_remote: git@github.com:baihua19941101/kbManage.git
+pr_workflow: 推送 006-compliance-and-hardening 分支，提交中文 PR，附备份证据、测试结果、风险说明，未获用户明确同意不得合并
+commit_standard: 提交说明必须专业、中文、可审计
+subagent_model: gpt-5.4 medium（本轮用户指定实现模式）
+memory_strategy: 测试使用低并发，避免同时运行多个高内存测试进程

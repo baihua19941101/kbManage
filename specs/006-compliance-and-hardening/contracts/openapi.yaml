@@ -1,0 +1,1274 @@
+openapi: 3.1.0
+info:
+  title: kbManage Compliance Hardening API
+  version: 0.1.0
+  description: >-
+    006 合规与加固中心 API 契约，覆盖基线标准、扫描配置、扫描执行、
+    失败项、整改任务、例外审批、复检、趋势与审计检索。
+servers:
+  - url: /api/v1
+paths:
+  /compliance/baselines:
+    get:
+      summary: 查询基线标准列表
+      operationId: listComplianceBaselines
+      parameters:
+        - in: query
+          name: standardType
+          schema:
+            type: string
+            enum: [cis, stig, platform-baseline]
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [draft, active, disabled, archived]
+      responses:
+        '200':
+          description: 基线标准列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ComplianceBaseline'
+    post:
+      summary: 创建基线标准
+      operationId: createComplianceBaseline
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateComplianceBaselineRequest'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceBaseline'
+  /compliance/baselines/{baselineId}:
+    get:
+      summary: 获取基线标准详情
+      operationId: getComplianceBaseline
+      parameters:
+        - $ref: '#/components/parameters/BaselineId'
+      responses:
+        '200':
+          description: 基线标准详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceBaseline'
+    patch:
+      summary: 更新基线标准
+      operationId: updateComplianceBaseline
+      parameters:
+        - $ref: '#/components/parameters/BaselineId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateComplianceBaselineRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceBaseline'
+  /compliance/scan-profiles:
+    get:
+      summary: 查询扫描配置列表
+      operationId: listScanProfiles
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceIdOptional'
+        - $ref: '#/components/parameters/ProjectIdOptional'
+        - in: query
+          name: scopeType
+          schema:
+            type: string
+            enum: [cluster, node, namespace, resource-set]
+        - in: query
+          name: scheduleMode
+          schema:
+            type: string
+            enum: [manual, scheduled]
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [draft, active, paused, archived]
+      responses:
+        '200':
+          description: 扫描配置列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ScanProfile'
+    post:
+      summary: 创建扫描配置
+      operationId: createScanProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateScanProfileRequest'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanProfile'
+  /compliance/scan-profiles/{profileId}:
+    get:
+      summary: 获取扫描配置详情
+      operationId: getScanProfile
+      parameters:
+        - $ref: '#/components/parameters/ProfileId'
+      responses:
+        '200':
+          description: 扫描配置详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanProfile'
+    patch:
+      summary: 更新扫描配置
+      operationId: updateScanProfile
+      parameters:
+        - $ref: '#/components/parameters/ProfileId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateScanProfileRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanProfile'
+  /compliance/scan-profiles/{profileId}/execute:
+    post:
+      summary: 触发按需扫描
+      operationId: executeScanProfile
+      parameters:
+        - $ref: '#/components/parameters/ProfileId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecuteScanRequest'
+      responses:
+        '202':
+          description: 扫描任务已提交
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanExecution'
+  /compliance/scans:
+    get:
+      summary: 查询扫描执行列表
+      operationId: listScanExecutions
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceIdOptional'
+        - $ref: '#/components/parameters/ProjectIdOptional'
+        - in: query
+          name: profileId
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, running, partially_succeeded, succeeded, failed, canceled]
+        - in: query
+          name: triggerSource
+          schema:
+            type: string
+            enum: [manual, schedule, recheck]
+        - $ref: '#/components/parameters/TimeFrom'
+        - $ref: '#/components/parameters/TimeTo'
+      responses:
+        '200':
+          description: 扫描执行列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ScanExecution'
+  /compliance/scans/{scanId}:
+    get:
+      summary: 获取扫描执行详情
+      operationId: getScanExecution
+      parameters:
+        - $ref: '#/components/parameters/ScanId'
+      responses:
+        '200':
+          description: 扫描执行详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanExecution'
+  /compliance/scans/{scanId}/findings:
+    get:
+      summary: 查询指定扫描的失败项
+      operationId: listScanFindings
+      parameters:
+        - $ref: '#/components/parameters/ScanId'
+        - in: query
+          name: result
+          schema:
+            type: string
+            enum: [pass, fail, warn, skipped, error]
+        - in: query
+          name: riskLevel
+          schema:
+            type: string
+            enum: [low, medium, high, critical]
+      responses:
+        '200':
+          description: 扫描失败项列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ComplianceFinding'
+  /compliance/findings:
+    get:
+      summary: 查询失败项列表
+      operationId: listComplianceFindings
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceIdOptional'
+        - $ref: '#/components/parameters/ProjectIdOptional'
+        - in: query
+          name: baselineId
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: clusterId
+          schema:
+            type: string
+        - in: query
+          name: namespace
+          schema:
+            type: string
+        - in: query
+          name: remediationStatus
+          schema:
+            type: string
+            enum: [open, in_progress, exception_active, ready_for_recheck, closed]
+        - in: query
+          name: riskLevel
+          schema:
+            type: string
+            enum: [low, medium, high, critical]
+        - $ref: '#/components/parameters/TimeFrom'
+        - $ref: '#/components/parameters/TimeTo'
+      responses:
+        '200':
+          description: 失败项列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ComplianceFinding'
+  /compliance/findings/{findingId}:
+    get:
+      summary: 获取失败项详情
+      operationId: getComplianceFinding
+      parameters:
+        - $ref: '#/components/parameters/FindingId'
+      responses:
+        '200':
+          description: 失败项详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceFindingDetail'
+  /compliance/findings/{findingId}/remediation-tasks:
+    post:
+      summary: 创建整改任务
+      operationId: createRemediationTask
+      parameters:
+        - $ref: '#/components/parameters/FindingId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRemediationTaskRequest'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemediationTask'
+  /compliance/remediation-tasks/{taskId}:
+    patch:
+      summary: 更新整改任务状态
+      operationId: updateRemediationTask
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRemediationTaskRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemediationTask'
+  /compliance/remediation-tasks:
+    get:
+      summary: 查询整改任务列表
+      operationId: listRemediationTasks
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceIdOptional'
+        - $ref: '#/components/parameters/ProjectIdOptional'
+        - in: query
+          name: owner
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [todo, in_progress, blocked, done, canceled]
+        - in: query
+          name: priority
+          schema:
+            type: string
+            enum: [low, medium, high, critical]
+        - $ref: '#/components/parameters/TimeFrom'
+        - $ref: '#/components/parameters/TimeTo'
+      responses:
+        '200':
+          description: 整改任务列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RemediationTask'
+  /compliance/findings/{findingId}/exceptions:
+    post:
+      summary: 提交合规例外申请
+      operationId: createComplianceException
+      parameters:
+        - $ref: '#/components/parameters/FindingId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateComplianceExceptionRequest'
+      responses:
+        '201':
+          description: 申请已创建
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceExceptionRequest'
+  /compliance/exceptions:
+    get:
+      summary: 查询合规例外申请列表
+      operationId: listComplianceExceptions
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceIdOptional'
+        - $ref: '#/components/parameters/ProjectIdOptional'
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, approved, rejected, active, expired, revoked]
+        - in: query
+          name: baselineId
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 例外申请列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ComplianceExceptionRequest'
+  /compliance/exceptions/{exceptionId}/review:
+    post:
+      summary: 审批合规例外申请
+      operationId: reviewComplianceException
+      parameters:
+        - $ref: '#/components/parameters/ExceptionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewComplianceExceptionRequest'
+      responses:
+        '200':
+          description: 审批结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceExceptionRequest'
+  /compliance/findings/{findingId}/rechecks:
+    post:
+      summary: 创建复检任务
+      operationId: createRecheckTask
+      parameters:
+        - $ref: '#/components/parameters/FindingId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRecheckTaskRequest'
+      responses:
+        '202':
+          description: 复检任务已提交
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecheckTask'
+  /compliance/rechecks/{recheckId}:
+    get:
+      summary: 获取复检任务详情
+      operationId: getRecheckTask
+      parameters:
+        - $ref: '#/components/parameters/RecheckId'
+      responses:
+        '200':
+          description: 复检任务详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecheckTask'
+  /compliance/rechecks:
+    get:
+      summary: 查询复检任务列表
+      operationId: listRecheckTasks
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceIdOptional'
+        - $ref: '#/components/parameters/ProjectIdOptional'
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, running, passed, failed, canceled]
+        - in: query
+          name: triggerSource
+          schema:
+            type: string
+            enum: [manual, remediation_done, exception_expired]
+        - $ref: '#/components/parameters/TimeFrom'
+        - $ref: '#/components/parameters/TimeTo'
+      responses:
+        '200':
+          description: 复检任务列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RecheckTask'
+  /compliance/overview:
+    get:
+      summary: 查询合规覆盖率与遗留风险总览
+      operationId: getComplianceOverview
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceIdOptional'
+        - $ref: '#/components/parameters/ProjectIdOptional'
+        - in: query
+          name: groupBy
+          schema:
+            type: string
+            enum: [cluster, workspace, project, baseline]
+        - $ref: '#/components/parameters/TimeFrom'
+        - $ref: '#/components/parameters/TimeTo'
+      responses:
+        '200':
+          description: 总览结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceOverview'
+  /compliance/trends:
+    get:
+      summary: 查询合规趋势与历史对比
+      operationId: getComplianceTrends
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceIdOptional'
+        - $ref: '#/components/parameters/ProjectIdOptional'
+        - in: query
+          name: baselineId
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: scopeType
+          schema:
+            type: string
+            enum: [cluster, workspace, project]
+        - in: query
+          name: scopeRef
+          schema:
+            type: string
+        - $ref: '#/components/parameters/TimeFrom'
+        - $ref: '#/components/parameters/TimeTo'
+      responses:
+        '200':
+          description: 趋势结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceTrendResponse'
+  /compliance/archive-exports:
+    get:
+      summary: 查询合规归档导出任务列表
+      operationId: listComplianceArchiveExports
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceIdOptional'
+        - $ref: '#/components/parameters/ProjectIdOptional'
+        - in: query
+          name: exportScope
+          schema:
+            type: string
+            enum: [scans, findings, trends, audit, bundle]
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, running, succeeded, failed, expired]
+        - $ref: '#/components/parameters/TimeFrom'
+        - $ref: '#/components/parameters/TimeTo'
+      responses:
+        '200':
+          description: 归档导出任务列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ArchiveExportTask'
+    post:
+      summary: 创建合规归档导出任务
+      operationId: createComplianceArchiveExport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateArchiveExportTaskRequest'
+      responses:
+        '202':
+          description: 归档导出任务已提交
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArchiveExportTask'
+  /compliance/archive-exports/{exportId}:
+    get:
+      summary: 获取合规归档导出任务详情
+      operationId: getComplianceArchiveExport
+      parameters:
+        - $ref: '#/components/parameters/ExportId'
+      responses:
+        '200':
+          description: 归档导出任务详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArchiveExportTask'
+  /audit/compliance/events:
+    get:
+      summary: 查询合规治理审计事件
+      operationId: listComplianceAuditEvents
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceIdOptional'
+        - $ref: '#/components/parameters/ProjectIdOptional'
+        - in: query
+          name: baselineId
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: action
+          schema:
+            type: string
+        - in: query
+          name: outcome
+          schema:
+            type: string
+        - $ref: '#/components/parameters/TimeFrom'
+        - $ref: '#/components/parameters/TimeTo'
+      responses:
+        '200':
+          description: 审计事件列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ComplianceAuditEvent'
+components:
+  parameters:
+    BaselineId:
+      in: path
+      name: baselineId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ProfileId:
+      in: path
+      name: profileId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ScanId:
+      in: path
+      name: scanId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    FindingId:
+      in: path
+      name: findingId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    TaskId:
+      in: path
+      name: taskId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ExceptionId:
+      in: path
+      name: exceptionId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    RecheckId:
+      in: path
+      name: recheckId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ExportId:
+      in: path
+      name: exportId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    WorkspaceIdOptional:
+      in: query
+      name: workspaceId
+      required: false
+      schema:
+        type: string
+        format: uuid
+    ProjectIdOptional:
+      in: query
+      name: projectId
+      required: false
+      schema:
+        type: string
+        format: uuid
+    TimeFrom:
+      in: query
+      name: timeFrom
+      required: false
+      schema:
+        type: string
+        format: date-time
+    TimeTo:
+      in: query
+      name: timeTo
+      required: false
+      schema:
+        type: string
+        format: date-time
+  schemas:
+    ComplianceBaseline:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        standardType:
+          type: string
+          enum: [cis, stig, platform-baseline]
+        version:
+          type: string
+        status:
+          type: string
+          enum: [draft, active, disabled, archived]
+        ruleCount:
+          type: integer
+        description:
+          type: string
+    CreateComplianceBaselineRequest:
+      type: object
+      required: [name, standardType, version]
+      properties:
+        name:
+          type: string
+        standardType:
+          type: string
+          enum: [cis, stig, platform-baseline]
+        version:
+          type: string
+        description:
+          type: string
+    UpdateComplianceBaselineRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [draft, active, disabled, archived]
+    ScanProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        baselineId:
+          type: string
+          format: uuid
+        workspaceId:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        scopeType:
+          type: string
+          enum: [cluster, node, namespace, resource-set]
+        clusterRefs:
+          type: array
+          items:
+            type: string
+        nodeSelectors:
+          type: object
+          additionalProperties:
+            type: string
+        namespaceRefs:
+          type: array
+          items:
+            type: string
+        resourceKinds:
+          type: array
+          items:
+            type: string
+        scheduleMode:
+          type: string
+          enum: [manual, scheduled]
+        cronExpression:
+          type: string
+        status:
+          type: string
+          enum: [draft, active, paused, archived]
+        lastRunAt:
+          type: string
+          format: date-time
+    CreateScanProfileRequest:
+      type: object
+      required: [name, baselineId, scopeType, scheduleMode]
+      properties:
+        name:
+          type: string
+        baselineId:
+          type: string
+          format: uuid
+        workspaceId:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        scopeType:
+          type: string
+          enum: [cluster, node, namespace, resource-set]
+        clusterRefs:
+          type: array
+          items:
+            type: string
+        nodeSelectors:
+          type: object
+          additionalProperties:
+            type: string
+        namespaceRefs:
+          type: array
+          items:
+            type: string
+        resourceKinds:
+          type: array
+          items:
+            type: string
+        scheduleMode:
+          type: string
+          enum: [manual, scheduled]
+        cronExpression:
+          type: string
+    UpdateScanProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        status:
+          type: string
+          enum: [draft, active, paused, archived]
+        nodeSelectors:
+          type: object
+          additionalProperties:
+            type: string
+        cronExpression:
+          type: string
+    ExecuteScanRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+    ScanExecution:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        profileId:
+          type: string
+          format: uuid
+        baselineSnapshot:
+          $ref: '#/components/schemas/BaselineSnapshot'
+        triggerSource:
+          type: string
+          enum: [manual, schedule, recheck]
+        status:
+          type: string
+          enum: [pending, running, partially_succeeded, succeeded, failed, canceled]
+        coverageStatus:
+          type: string
+          enum: [full, partial, unavailable]
+        score:
+          type: number
+        passCount:
+          type: integer
+        failCount:
+          type: integer
+        warningCount:
+          type: integer
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        errorSummary:
+          type: string
+    ComplianceFinding:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        scanExecutionId:
+          type: string
+          format: uuid
+        controlId:
+          type: string
+        controlTitle:
+          type: string
+        result:
+          type: string
+          enum: [pass, fail, warn, skipped, error]
+        riskLevel:
+          type: string
+          enum: [low, medium, high, critical]
+        clusterId:
+          type: string
+        namespace:
+          type: string
+        resourceKind:
+          type: string
+        resourceName:
+          type: string
+        remediationStatus:
+          type: string
+          enum: [open, in_progress, exception_active, ready_for_recheck, closed]
+        summary:
+          type: string
+    ComplianceFindingDetail:
+      allOf:
+        - $ref: '#/components/schemas/ComplianceFinding'
+        - type: object
+          properties:
+            evidences:
+              type: array
+              items:
+                $ref: '#/components/schemas/EvidenceRecord'
+            remediationTasks:
+              type: array
+              items:
+                $ref: '#/components/schemas/RemediationTask'
+            exceptions:
+              type: array
+              items:
+                $ref: '#/components/schemas/ComplianceExceptionRequest'
+            rechecks:
+              type: array
+              items:
+                $ref: '#/components/schemas/RecheckTask'
+    EvidenceRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        evidenceType:
+          type: string
+        sourceRef:
+          type: string
+        collectedAt:
+          type: string
+          format: date-time
+        confidence:
+          type: string
+          enum: [high, medium, low]
+        summary:
+          type: string
+        artifactRef:
+          type: string
+        redactionStatus:
+          type: string
+          enum: [raw, masked]
+    RemediationTask:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        findingId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        owner:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+        status:
+          type: string
+          enum: [todo, in_progress, blocked, done, canceled]
+        dueAt:
+          type: string
+          format: date-time
+        resolutionSummary:
+          type: string
+    CreateRemediationTaskRequest:
+      type: object
+      required: [title, owner, priority]
+      properties:
+        title:
+          type: string
+        owner:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+        dueAt:
+          type: string
+          format: date-time
+        summary:
+          type: string
+    UpdateRemediationTaskRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [todo, in_progress, blocked, done, canceled]
+        resolutionSummary:
+          type: string
+    ComplianceExceptionRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        findingId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, approved, rejected, active, expired, revoked]
+        reason:
+          type: string
+        startsAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        reviewComment:
+          type: string
+    CreateComplianceExceptionRequest:
+      type: object
+      required: [reason, startsAt, expiresAt]
+      properties:
+        reason:
+          type: string
+        startsAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+    ReviewComplianceExceptionRequest:
+      type: object
+      required: [decision]
+      properties:
+        decision:
+          type: string
+          enum: [approve, reject, revoke]
+        reviewComment:
+          type: string
+    RecheckTask:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        findingId:
+          type: string
+          format: uuid
+        triggerSource:
+          type: string
+          enum: [manual, remediation_done, exception_expired]
+        status:
+          type: string
+          enum: [pending, running, passed, failed, canceled]
+        resultScanExecutionId:
+          type: string
+          format: uuid
+        summary:
+          type: string
+    CreateRecheckTaskRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+    ComplianceOverview:
+      type: object
+      properties:
+        coverageRate:
+          type: number
+        openFindingsCount:
+          type: integer
+        highRiskOpenCount:
+          type: integer
+        remediationCompletionRate:
+          type: number
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/ComplianceOverviewGroup'
+    ComplianceOverviewGroup:
+      type: object
+      properties:
+        groupKey:
+          type: string
+        scoreAvg:
+          type: number
+        coverageRate:
+          type: number
+        openFindingsCount:
+          type: integer
+        highRiskOpenCount:
+          type: integer
+    ComplianceTrendResponse:
+      type: object
+      properties:
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/ComplianceTrendPoint'
+        comparisonBasis:
+          $ref: '#/components/schemas/TrendComparisonBasis'
+    ComplianceTrendPoint:
+      type: object
+      properties:
+        windowStart:
+          type: string
+          format: date-time
+        windowEnd:
+          type: string
+          format: date-time
+        scoreAvg:
+          type: number
+        coverageRate:
+          type: number
+        remediationCompletionRate:
+          type: number
+        highRiskOpenCount:
+          type: integer
+        baselineVersion:
+          type: string
+    TrendComparisonBasis:
+      type: object
+      properties:
+        baselineId:
+          type: string
+          format: uuid
+        baselineVersions:
+          type: array
+          items:
+            type: string
+        mixedBaselineFlag:
+          type: boolean
+    BaselineSnapshot:
+      type: object
+      properties:
+        baselineId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        standardType:
+          type: string
+          enum: [cis, stig, platform-baseline]
+        version:
+          type: string
+    ArchiveExportTask:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        exportScope:
+          type: string
+          enum: [scans, findings, trends, audit, bundle]
+        status:
+          type: string
+          enum: [pending, running, succeeded, failed, expired]
+        artifactRef:
+          type: string
+        requestedBy:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        failureReason:
+          type: string
+    CreateArchiveExportTaskRequest:
+      type: object
+      required: [exportScope]
+      properties:
+        workspaceId:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        baselineId:
+          type: string
+          format: uuid
+        exportScope:
+          type: string
+          enum: [scans, findings, trends, audit, bundle]
+        timeFrom:
+          type: string
+          format: date-time
+        timeTo:
+          type: string
+          format: date-time
+        filters:
+          type: object
+          additionalProperties: true
+    ComplianceAuditEvent:
+      type: object
+      properties:
+        action:
+          type: string
+        operatorId:
+          type: string
+        outcome:
+          type: string
+        occurredAt:
+          type: string
+          format: date-time
+        details:
+          type: object
+          additionalProperties: true

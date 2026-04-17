@@ -266,3 +266,48 @@ func firstNonZero(items []uint64) uint64 {
 	}
 	return 0
 }
+
+func (a *ScopeAuthorizer) CanAccessCompliance(
+	grantedType domain.ScopeType,
+	grantedWorkspaceID uint64,
+	grantedProjectID uint64,
+	targetWorkspaceID uint64,
+	targetProjectID uint64,
+	clusterScoped bool,
+) bool {
+	if clusterScoped && targetWorkspaceID == 0 && targetProjectID == 0 {
+		return grantedType == domain.ScopeTypePlatform
+	}
+	targetType := domain.ScopeTypeWorkspace
+	if targetProjectID != 0 {
+		targetType = domain.ScopeTypeProject
+	}
+	return a.CanAccess(grantedType, grantedWorkspaceID, grantedProjectID, targetType, targetWorkspaceID, targetProjectID)
+}
+
+func (a *ScopeAuthorizer) CanAccessComplianceMapped(
+	grantedType domain.ScopeType,
+	grantedWorkspaceID uint64,
+	grantedProjectID uint64,
+	targetWorkspaceIDs []uint64,
+	targetProjectIDs []uint64,
+	clusterScoped bool,
+) bool {
+	if grantedType == domain.ScopeTypePlatform {
+		return true
+	}
+	for _, workspaceID := range targetWorkspaceIDs {
+		if workspaceID != 0 && a.CanAccessCompliance(grantedType, grantedWorkspaceID, grantedProjectID, workspaceID, 0, clusterScoped) {
+			return true
+		}
+	}
+	for _, projectID := range targetProjectIDs {
+		if projectID != 0 && a.CanAccessCompliance(grantedType, grantedWorkspaceID, grantedProjectID, 0, projectID, clusterScoped) {
+			return true
+		}
+	}
+	if clusterScoped {
+		return false
+	}
+	return a.CanAccessCompliance(grantedType, grantedWorkspaceID, grantedProjectID, firstNonZero(targetWorkspaceIDs), firstNonZero(targetProjectIDs), false)
+}

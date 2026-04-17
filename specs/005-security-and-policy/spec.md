@@ -2,20 +2,18 @@
 
 **Feature Branch**: `005-security-and-policy`  
 **Created**: 2026-04-14  
-**Status**: Draft  
+**Status**: Implement 已完成（待 PR）  
 **Input**: User description: "我要新增 005-security-and-policy，严格对标 Rancher 在安全与策略治理方面的能力，覆盖策略中心、准入控制和工作负载安全基线。面向平台管理员、安全管理员、合规负责人和项目管理员，在多集群 Kubernetes 环境中提供统一的策略定义、分发、执行和违规治理能力。用户需要能够管理平台级、工作空间级和项目级的安全策略与准入规则，按集群、命名空间、项目或资源类型分配策略，配置审计、告警、仅提示和强制执行等模式，查看策略命中结果、违规对象、风险级别、例外申请、例外时效和整改状态，并管理 Pod安全等级、镜像来源限制、资源约束、标签规范、网络和准入相关控制策略。平台必须支持分阶段启用策略、灰度验证和例外管理，避免一次性强制执行引发大面积影响，并且所有策略变更和违规处置都必须可审计、可追踪。首期范围聚焦策略治理与准入控制，不包含CIS 或 STIG 合规扫描、平台身份源整合、应用发布和灾备恢复。"
 
-## 当前状态/执行说明（2026-04-14）
+## 当前状态/执行说明（2026-04-15）
 
-- 已完成 `/speckit.specify`，005 规格和质量清单已生成。
-- 已完成 `/speckit.plan`，生成 `plan.md`、`research.md`、`data-model.md`、`contracts/openapi.yaml` 和 `quickstart.md`。
-- 已完成 `/speckit.tasks`，`tasks.md` 已生成并按 Governance、Setup、Foundational、US1、US2、US3、Polish 分阶段组织。
-- 已进入 `/speckit.implement` 阶段，并完成首批治理证据文件：`artifacts/005-security-and-policy/branch-check.txt`、`artifacts/005-security-and-policy/backup-manifest.txt`、`artifacts/005-security-and-policy/mirror-and-remote-check.txt`。
+- 已完成 `/speckit.specify`、`/speckit.plan`、`/speckit.tasks` 和 `/speckit.implement`，005 全量实现任务已落地。
+- 已补齐治理证据文件：`artifacts/005-security-and-policy/branch-check.txt`、`artifacts/005-security-and-policy/backup-manifest.txt`、`artifacts/005-security-and-policy/mirror-and-remote-check.txt`。
 - 当前执行分支为 `005-security-and-policy`。
-- 005 实现已启动；后续若发生新的高风险数据库变更，仍需再次执行备份并留存证据。
 - implement 进展：已完成 Phase 0（T001-T004）、Phase 1（T005-T009）、Phase 2（T010-T019）、US1（T020-T032）、US2（T033-T044）、US3（T045-T055）和 Final Phase（T056-T059）全量任务。
 - 已完成低并发验证：`cd backend && go test -p 1 ./...` 通过；`frontend` 安全策略新增页面测试与 ESLint 通过（测试使用 `--maxWorkers=1`）。
-- 当前状态：005 implement 已完成，待你确认后进入 PR 提交流程（仍需“用户明确同意后再合并”）。
+- 2026-04-15 已将规格顶部状态字段与当前实现进度对齐为“Implement 已完成（待 PR）”。
+- 当前状态：005 implement 已完成，待你确认后进入 PR 提交流程；如后续发生新的高风险数据库变更，仍需再次执行备份并留存证据。
 - 后续交付仍需遵守“中文 PR + 用户明确同意后再合并”的治理门槛。
 
 ## User Scenarios & Testing *(mandatory)*

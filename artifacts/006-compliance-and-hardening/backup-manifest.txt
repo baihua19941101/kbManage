@@ -1,0 +1,10 @@
+checked_at: 2026-04-15 22:08:30 +0800
+backup_file: artifacts/006-compliance-and-hardening/mysql-backup-20260415-220830.sql
+backup_command: docker exec mysql8 sh -lc 'mysqldump -hlocalhost -P3306 -uroot -p123456 --all-databases --single-transaction --quick --routines --events --triggers' > artifacts/006-compliance-and-hardening/mysql-backup-20260415-220830.sql
+credential_policy: 规范要求 admin/123456；当前容器 admin 不可用，实际使用 root/123456
+admin_check: docker exec mysql8 sh -lc 'MYSQL_PWD=123456 mysql -hlocalhost -P3306 -uadmin -N -B -e "SELECT 1;"' -> ERROR 1045 (28000)
+root_check: docker exec mysql8 sh -lc 'MYSQL_PWD=123456 mysql -hlocalhost -P3306 -uroot -N -B -e "SELECT 1;"' -> success
+restore_validation: 使用临时容器 mysql8-restore-check-006 导入备份，并通过 SHOW DATABASES 抽样验证
+restore_command: docker run -d --rm --name mysql8-restore-check-006 -e MYSQL_ROOT_PASSWORD=123456 mysql:8.0 && cat artifacts/006-compliance-and-hardening/mysql-backup-20260415-220830.sql | docker exec -i mysql8-restore-check-006 sh -lc 'MYSQL_PWD=123456 mysql -h127.0.0.1 -uroot' && docker exec mysql8-restore-check-006 sh -lc 'MYSQL_PWD=123456 mysql -h127.0.0.1 -N -B -uroot -e "SHOW DATABASES;"'
+restore_sample_databases: cdn_manage, kb_manage, kubemanage, mysql, information_schema, performance_schema, sys
+notes: 首次恢复验证因容器尚未 ready 失败，二次使用 mysqladmin ping + TCP 连接校验通过

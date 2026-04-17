@@ -1,0 +1,11 @@
+import '@testing-library/jest-dom/vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
+import { ComplianceAuditPage } from '@/features/audit/pages/ComplianceAuditPage';
+import { useAuthStore } from '@/features/auth/store';
+import { listComplianceAuditEvents } from '@/services/compliance';
+import { installAntdDomShims } from '@/test/installAntdDomShims';
+vi.mock('@/services/compliance', async () => ({ ...(await vi.importActual<typeof import('@/services/compliance')>('@/services/compliance')), listComplianceAuditEvents: vi.fn() }));
+const renderPage = () => render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><ComplianceAuditPage /></MemoryRouter></QueryClientProvider>);
+describe('ComplianceAuditPage', () => { beforeAll(() => installAntdDomShims()); beforeEach(() => { vi.clearAllMocks(); vi.mocked(listComplianceAuditEvents).mockResolvedValue({ items: [] }); }); it('shows unauthorized empty', () => { useAuthStore.setState({ isAuthenticated: true, accessToken: 't', refreshToken: 'r', user: { id: 'u', username: 'u', platformRoles: [] } }); renderPage(); expect(screen.getByText('你暂无合规审计访问权限。')).toBeInTheDocument(); }); it('queries audit events', async () => { useAuthStore.setState({ isAuthenticated: true, accessToken: 't', refreshToken: 'r', user: { id: 'u', username: 'u', platformRoles: ['audit-reader'] } }); vi.mocked(listComplianceAuditEvents).mockResolvedValue({ items: [{ action: 'compliance.exception.review', outcome: 'success', occurredAt: '2026-04-15T00:00:00Z', details: {} }] }); renderPage(); await waitFor(() => expect(listComplianceAuditEvents).toHaveBeenCalled()); expect(await screen.findByText('compliance.exception.review')).toBeInTheDocument(); }); });
