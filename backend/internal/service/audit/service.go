@@ -122,6 +122,12 @@ func (s *Service) QueryComplianceEvents(ctx context.Context, req QueryEventsRequ
 	return s.QueryEvents(ctx, req)
 }
 
+func (s *Service) QueryClusterLifecycleEvents(ctx context.Context, req QueryEventsRequest) ([]domain.AuditEvent, error) {
+	req.ActionPrefix = "clusterlifecycle."
+	req.ResourceType = ClusterLifecycleAuditResourceType
+	return s.QueryEvents(ctx, req)
+}
+
 func (s *Service) QuerySecurityPolicyEvents(ctx context.Context, req QueryEventsRequest) ([]domain.AuditEvent, error) {
 	req.ActionPrefix = "securitypolicy."
 	req.ResourceType = SecurityPolicyAuditResourceType
@@ -289,7 +295,7 @@ func (s *Service) filterVisibleEvents(
 	allowedClusterSet := make(map[uint64]struct{})
 	if viewerID != 0 && s.scopeAccess != nil {
 		constrained = true
-		permissions := []string{"access:project:read", "gitops:read", "securitypolicy:read"}
+		permissions := []string{"access:project:read", "gitops:read", "securitypolicy:read", "compliance:read", "clusterlifecycle:read"}
 		for _, permission := range permissions {
 			allowedClusterIDs, hasScopeConstraint, err := s.scopeAccess.ListClusterIDsByPermission(ctx, viewerID, permission)
 			if err != nil {

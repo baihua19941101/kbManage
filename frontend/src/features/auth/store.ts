@@ -28,6 +28,15 @@ export type CompliancePermission =
   | 'compliance:review-exception'
   | 'compliance:export-archive';
 
+export type ClusterLifecyclePermission =
+  | 'clusterlifecycle:read'
+  | 'clusterlifecycle:import'
+  | 'clusterlifecycle:create'
+  | 'clusterlifecycle:upgrade'
+  | 'clusterlifecycle:manage-nodepool'
+  | 'clusterlifecycle:retire'
+  | 'clusterlifecycle:manage-driver';
+
 type AuthUser = {
   id: string;
   username: string;
@@ -218,6 +227,47 @@ const COMPLIANCE_AUDIT_READ_IDENTIFIERS: readonly string[] = [
   'compliance:read',
   'compliance:export-archive'
 ];
+const CLUSTER_LIFECYCLE_READ_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'audit-reader',
+  'readonly',
+  'clusterlifecycle:read'
+];
+const CLUSTER_LIFECYCLE_IMPORT_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'clusterlifecycle:import'
+];
+const CLUSTER_LIFECYCLE_CREATE_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'clusterlifecycle:create'
+];
+const CLUSTER_LIFECYCLE_UPGRADE_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'clusterlifecycle:upgrade'
+];
+const CLUSTER_LIFECYCLE_NODEPOOL_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'clusterlifecycle:manage-nodepool'
+];
+const CLUSTER_LIFECYCLE_RETIRE_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'clusterlifecycle:retire'
+];
+const CLUSTER_LIFECYCLE_DRIVER_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'clusterlifecycle:manage-driver'
+];
+const CLUSTER_LIFECYCLE_AUDIT_READ_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'audit-reader',
+  'clusterlifecycle:read'
+];
 
 const getUserRoles = (user: AuthUser | null | undefined): string[] => {
   if (!user || !Array.isArray(user.platformRoles)) {
@@ -317,6 +367,30 @@ export const canExportComplianceArchive = (user: AuthUser | null | undefined): b
 
 export const canReadComplianceAudit = (user: AuthUser | null | undefined): boolean =>
   hasAnyRole(user, COMPLIANCE_AUDIT_READ_IDENTIFIERS);
+
+export const canReadClusterLifecycle = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, CLUSTER_LIFECYCLE_READ_IDENTIFIERS);
+
+export const canImportClusterLifecycle = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, CLUSTER_LIFECYCLE_IMPORT_IDENTIFIERS);
+
+export const canCreateClusterLifecycle = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, CLUSTER_LIFECYCLE_CREATE_IDENTIFIERS);
+
+export const canUpgradeClusterLifecycle = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, CLUSTER_LIFECYCLE_UPGRADE_IDENTIFIERS);
+
+export const canManageClusterLifecycleNodePool = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, CLUSTER_LIFECYCLE_NODEPOOL_IDENTIFIERS);
+
+export const canRetireClusterLifecycle = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, CLUSTER_LIFECYCLE_RETIRE_IDENTIFIERS);
+
+export const canManageClusterLifecycleDriver = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, CLUSTER_LIFECYCLE_DRIVER_IDENTIFIERS);
+
+export const canReadClusterLifecycleAudit = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, CLUSTER_LIFECYCLE_AUDIT_READ_IDENTIFIERS);
 
 export const useAuthStore = create<AuthState>((set) => ({
   ...initialState,

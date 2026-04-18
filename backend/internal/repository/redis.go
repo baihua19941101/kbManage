@@ -73,6 +73,18 @@ func PolicyExceptionKey(parts ...string) string {
 	return prefixedRedisKey("securitypolicy:exception", parts...)
 }
 
+func ClusterLifecycleProgressKey(parts ...string) string {
+	return prefixedRedisKey("clusterlifecycle:progress", parts...)
+}
+
+func ClusterLifecycleValidationKey(parts ...string) string {
+	return prefixedRedisKey("clusterlifecycle:validation", parts...)
+}
+
+func ClusterLifecycleLockKey(parts ...string) string {
+	return prefixedRedisKey("clusterlifecycle:lock", parts...)
+}
+
 func prefixedRedisKey(prefix string, parts ...string) string {
 	if len(parts) == 0 {
 		return prefix

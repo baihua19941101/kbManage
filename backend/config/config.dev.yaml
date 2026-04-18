@@ -180,3 +180,28 @@ compliance:
   audit:
     # 合规审计保留天数
     retention_days: 365
+
+clusterLifecycle:
+  driver:
+    # 驱动探测或元数据同步超时
+    probe_timeout: "20s"
+    # 驱动版本缓存 TTL
+    version_cache_ttl: "10m"
+  validation:
+    # 创建前/升级前校验默认超时
+    default_timeout: "2m"
+    # 校验结果缓存 TTL
+    result_cache_ttl: "5m"
+  operation:
+    # 创建、升级、停用、退役默认动作超时
+    default_timeout: "30m"
+    # 生命周期动作幂等窗口
+    idempotency_ttl: "15m"
+    # 关键动作互斥锁 TTL
+    lock_ttl: "30m"
+  nodePool:
+    # 单次节点池扩缩最大调整步长
+    max_step: 20
+  audit:
+    # 生命周期审计保留天数
+    retention_days: 365

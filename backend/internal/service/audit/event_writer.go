@@ -83,6 +83,18 @@ const (
 	ComplianceAuditActionRecheckCreate     = "compliance.recheck.create"
 	ComplianceAuditActionRecheckComplete   = "compliance.recheck.complete"
 	ComplianceAuditActionArchiveExport     = "compliance.archive_export.create"
+
+	ClusterLifecycleAuditResourceType         = "clusterlifecycle"
+	ClusterLifecycleAuditActionImportSubmit   = "clusterlifecycle.import.submit"
+	ClusterLifecycleAuditActionRegisterSubmit = "clusterlifecycle.register.submit"
+	ClusterLifecycleAuditActionCreateSubmit   = "clusterlifecycle.create.submit"
+	ClusterLifecycleAuditActionValidateSubmit = "clusterlifecycle.validate.submit"
+	ClusterLifecycleAuditActionUpgradeSubmit  = "clusterlifecycle.upgrade.submit"
+	ClusterLifecycleAuditActionNodePoolScale  = "clusterlifecycle.nodepool.scale.submit"
+	ClusterLifecycleAuditActionDisableSubmit  = "clusterlifecycle.disable.submit"
+	ClusterLifecycleAuditActionRetireSubmit   = "clusterlifecycle.retire.submit"
+	ClusterLifecycleAuditActionDriverUpsert   = "clusterlifecycle.driver.upsert"
+	ClusterLifecycleAuditActionTemplateUpsert = "clusterlifecycle.template.upsert"
 )
 
 type EventWriter struct {
@@ -247,6 +259,21 @@ func (w *EventWriter) WriteComplianceEvent(
 		details = map[string]any{}
 	}
 	return w.Write(ctx, requestID, actorID, action, ComplianceAuditResourceType, strings.TrimSpace(resourceID), outcome, details)
+}
+
+func (w *EventWriter) WriteClusterLifecycleEvent(
+	ctx context.Context,
+	requestID string,
+	actorID *uint64,
+	action string,
+	resourceID string,
+	outcome domain.AuditOutcome,
+	details map[string]any,
+) error {
+	if details == nil {
+		details = map[string]any{}
+	}
+	return w.Write(ctx, requestID, actorID, action, ClusterLifecycleAuditResourceType, strings.TrimSpace(resourceID), outcome, details)
 }
 
 func (w *EventWriter) WriteSecurityPolicyEvent(
@@ -505,6 +532,24 @@ func classifyAuditMetadata(action string, details map[string]any) (string, strin
 			actionScope = "exception"
 		case strings.Contains(action, ".hit.") || strings.Contains(action, ".remediation."):
 			actionScope = "hit"
+		}
+	}
+	if strings.HasPrefix(action, "clusterlifecycle.") {
+		category = "clusterlifecycle"
+		actionScope = "cluster"
+		switch {
+		case strings.Contains(action, ".driver."):
+			actionScope = "driver"
+		case strings.Contains(action, ".template."):
+			actionScope = "template"
+		case strings.Contains(action, ".nodepool."):
+			actionScope = "nodepool"
+		case strings.Contains(action, ".upgrade."):
+			actionScope = "upgrade"
+		case strings.Contains(action, ".retire.") || strings.Contains(action, ".disable."):
+			actionScope = "retirement"
+		case strings.Contains(action, ".validate."):
+			actionScope = "validation"
 		}
 	}
 

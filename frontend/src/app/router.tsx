@@ -84,6 +84,15 @@ export const router = createBrowserRouter([
             }
           },
           {
+            path: '/audit-events/cluster-lifecycle',
+            lazy: async () => {
+              const { ClusterLifecycleAuditPage } = await import(
+                '@/features/audit/pages/ClusterLifecycleAuditPage'
+              );
+              return { Component: ClusterLifecycleAuditPage };
+            }
+          },
+          {
             path: '/observability',
             lazy: async () => {
               const { ObservabilityOverviewPage } = await import(
@@ -221,6 +230,100 @@ export const router = createBrowserRouter([
               );
               return { Component: ViolationCenterPage };
             }
+          },
+          {
+            path: '/cluster-lifecycle',
+            lazy: async () => {
+              const { ClusterLifecycleListPage } = await import(
+                '@/features/cluster-lifecycle/pages/ClusterLifecycleListPage'
+              );
+              return { Component: ClusterLifecycleListPage };
+            }
+          },
+          {
+            path: '/cluster-lifecycle/register',
+            lazy: async () => {
+              const { ClusterRegistrationPage } = await import(
+                '@/features/cluster-lifecycle/pages/ClusterRegistrationPage'
+              );
+              return { Component: ClusterRegistrationPage };
+            }
+          },
+          {
+            path: '/cluster-lifecycle/provision',
+            lazy: async () => {
+              const { ClusterProvisionPage } = await import(
+                '@/features/cluster-lifecycle/pages/ClusterProvisionPage'
+              );
+              return { Component: ClusterProvisionPage };
+            }
+          },
+          {
+            path: '/cluster-lifecycle/upgrades',
+            lazy: async () => {
+              const { ClusterUpgradePage } = await import(
+                '@/features/cluster-lifecycle/pages/ClusterUpgradePage'
+              );
+              return { Component: ClusterUpgradePage };
+            }
+          },
+          {
+            path: '/cluster-lifecycle/node-pools',
+            lazy: async () => {
+              const { NodePoolPage } = await import(
+                '@/features/cluster-lifecycle/pages/NodePoolPage'
+              );
+              return { Component: NodePoolPage };
+            }
+          },
+          {
+            path: '/cluster-lifecycle/retirement',
+            lazy: async () => {
+              const { ClusterRetirementPage } = await import(
+                '@/features/cluster-lifecycle/pages/ClusterRetirementPage'
+              );
+              return { Component: ClusterRetirementPage };
+            }
+          },
+          {
+            path: '/cluster-lifecycle/drivers',
+            lazy: async () => {
+              const { ClusterDriverPage } = await import(
+                '@/features/cluster-lifecycle/pages/ClusterDriverPage'
+              );
+              return { Component: ClusterDriverPage };
+            }
+          },
+          {
+            path: '/cluster-lifecycle/templates',
+            lazy: async () => {
+              const { ClusterTemplatePage } = await import(
+                '@/features/cluster-lifecycle/pages/ClusterTemplatePage'
+              );
+              return { Component: ClusterTemplatePage };
+            }
+          },
+          {
+            path: '/cluster-lifecycle/capabilities',
+            lazy: async () => {
+              const { CapabilityMatrixPage } = await import(
+                '@/features/cluster-lifecycle/pages/CapabilityMatrixPage'
+              );
+              return { Component: CapabilityMatrixPage };
+            }
+          },
+          {
+            path: '/cluster-lifecycle/:clusterId',
+            lazy: async () => {
+              const { ClusterLifecycleDetailPage } = await import(
+                '@/features/cluster-lifecycle/pages/ClusterLifecycleDetailPage'
+              );
+              return { Component: ClusterLifecycleDetailPage };
+            }
+          },
+          {
+            path: '/cluster-lifecycle/*',
+            element: <Navigate to="/cluster-lifecycle" replace />
           },
           {
             path: '/compliance-hardening/baselines',

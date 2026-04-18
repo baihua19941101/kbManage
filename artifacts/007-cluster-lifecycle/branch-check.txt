@@ -1,0 +1,10 @@
+feature: 007-cluster-lifecycle
+checked_at: 2026-04-17
+current_branch: 007-cluster-lifecycle
+mainline_forbidden: true
+previous_feature_merged: 006-compliance-and-hardening
+merge_requires_user_approval: true
+notes:
+  - 007 必须在独立功能分支开发，禁止直接在 main/master 实现
+  - 006 已完成并合并到 origin/main，可作为 007 起点
+  - 未获用户明确同意前不得合并 007 分支
