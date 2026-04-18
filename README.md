@@ -68,6 +68,11 @@ npm config set registry https://registry.npmmirror.com
 - `compliance.scan.default_timeout / max_parallel_executions / scheduler_interval`
 - `compliance.export.retention_ttl`
 - `compliance.audit.retention_days`
+- `clusterLifecycle.driver.probe_timeout / version_cache_ttl`
+- `clusterLifecycle.validation.default_timeout / result_cache_ttl`
+- `clusterLifecycle.operation.default_timeout / idempotency_ttl / lock_ttl`
+- `clusterLifecycle.nodePool.max_step`
+- `clusterLifecycle.audit.retention_days`
 
 说明：
 
@@ -89,6 +94,7 @@ npm config set registry https://registry.npmmirror.com
 - `VITE_GITOPS_OPERATION_POLL_INTERVAL`：GitOps 动作轮询间隔（毫秒）
 - `VITE_GITOPS_DIFF_REFRESH_INTERVAL`：GitOps 差异面板刷新间隔（毫秒）
 - `VITE_COMPLIANCE_REFRESH_INTERVAL`：合规与加固页面刷新间隔（毫秒）
+- `VITE_CLUSTER_LIFECYCLE_REFRESH_INTERVAL`：集群生命周期页面刷新间隔（毫秒）
 
 ## 启动方式
 
@@ -149,6 +155,7 @@ npm run build
 - 004-gitops-and-release 已完成 US1/US2/US3，当前进入 Final Phase（文档收尾、验证基线与 PR 就绪材料）。
 - GitOps 审计查询入口：`/audit-events/gitops`。
 - 005-security-and-policy 已进入 implement 阶段，已落地策略中心 US1 前后端主干与治理证据。
+- 007-cluster-lifecycle 已完成规格、规划和任务拆解，当前进入 implement 阶段。
 
 ## 002 可观测联调要点
 
@@ -187,3 +194,27 @@ bash artifacts/002-observability-center/repro-observability-smoke.sh
   - `/compliance-hardening/trends`
   - `/compliance-hardening/archive`
   - `/audit-events/compliance`
+
+## 007 集群生命周期联调要点
+
+- 后端默认读取以下配置：
+  - `clusterLifecycle.driver.probe_timeout`
+  - `clusterLifecycle.driver.version_cache_ttl`
+  - `clusterLifecycle.validation.default_timeout`
+  - `clusterLifecycle.validation.result_cache_ttl`
+  - `clusterLifecycle.operation.default_timeout`
+  - `clusterLifecycle.operation.idempotency_ttl`
+  - `clusterLifecycle.operation.lock_ttl`
+  - `clusterLifecycle.nodePool.max_step`
+  - `clusterLifecycle.audit.retention_days`
+- 前端入口：
+  - `/cluster-lifecycle`
+  - `/cluster-lifecycle/register`
+  - `/cluster-lifecycle/provision`
+  - `/cluster-lifecycle/upgrades`
+  - `/cluster-lifecycle/node-pools`
+  - `/cluster-lifecycle/retirement`
+  - `/cluster-lifecycle/drivers`
+  - `/cluster-lifecycle/templates`
+  - `/cluster-lifecycle/capabilities`
+  - `/audit-events/cluster-lifecycle`

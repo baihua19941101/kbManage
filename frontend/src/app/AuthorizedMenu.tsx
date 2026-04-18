@@ -4,8 +4,12 @@ import { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   canBatchWorkloadOps,
+  canCreateClusterLifecycle,
   canExportComplianceArchive,
+  canManageClusterLifecycleDriver,
   canManageObservability,
+  canReadClusterLifecycle,
+  canReadClusterLifecycleAudit,
   canReadCompliance,
   canReadComplianceAudit,
   canReadGitOps,
@@ -67,6 +71,11 @@ const allMenuItems: MenuItemConfig[] = [
     visibleWhen: canReadComplianceAudit
   },
   {
+    key: '/audit-events/cluster-lifecycle',
+    label: '生命周期审计',
+    visibleWhen: canReadClusterLifecycleAudit
+  },
+  {
     key: '/observability',
     label: '可观测',
     visibleWhen: canReadObservability
@@ -115,6 +124,31 @@ const allMenuItems: MenuItemConfig[] = [
     key: '/security-policies/violations',
     label: '违规中心',
     visibleWhen: canReadPolicy
+  },
+  {
+    key: '/cluster-lifecycle',
+    label: '集群生命周期',
+    visibleWhen: canReadClusterLifecycle
+  },
+  {
+    key: '/cluster-lifecycle/provision',
+    label: '集群创建',
+    visibleWhen: canCreateClusterLifecycle
+  },
+  {
+    key: '/cluster-lifecycle/drivers',
+    label: '驱动管理',
+    visibleWhen: canManageClusterLifecycleDriver
+  },
+  {
+    key: '/cluster-lifecycle/templates',
+    label: '模板管理',
+    visibleWhen: canReadClusterLifecycle
+  },
+  {
+    key: '/cluster-lifecycle/capabilities',
+    label: '能力矩阵',
+    visibleWhen: canReadClusterLifecycle
   },
   {
     key: '/compliance-hardening/baselines',

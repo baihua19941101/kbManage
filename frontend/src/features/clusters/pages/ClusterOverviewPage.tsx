@@ -156,6 +156,9 @@ export const ClusterOverviewPage = () => {
                 >
                   合规
                 </Button>
+                <Button onClick={() => void navigate('/cluster-lifecycle')}>
+                  生命周期
+                </Button>
               </Space>
             </List.Item>
           )}

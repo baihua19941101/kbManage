@@ -1,0 +1,588 @@
+openapi: 3.1.0
+info:
+  title: kbManage Cluster Lifecycle API
+  version: 0.1.0
+  description: >
+    007 集群生命周期中心首期接口契约，覆盖导入、注册、创建、升级、节点池管理、
+    停用与退役、驱动与模板管理、能力矩阵查询及生命周期审计。
+servers:
+  - url: /api/v1
+tags:
+  - name: ClusterLifecycle
+  - name: ClusterDrivers
+  - name: ClusterTemplates
+  - name: LifecycleAudit
+paths:
+  /cluster-lifecycle/clusters:
+    get:
+      tags: [ClusterLifecycle]
+      summary: 查询集群生命周期列表
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string }
+        - in: query
+          name: infrastructureType
+          schema: { type: string }
+        - in: query
+          name: driverKey
+          schema: { type: string }
+        - in: query
+          name: keyword
+          schema: { type: string }
+      responses:
+        '200':
+          description: 集群列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterLifecycleListResponse'
+    post:
+      tags: [ClusterLifecycle]
+      summary: 创建新集群
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateClusterRequest'
+      responses:
+        '202':
+          description: 创建动作已受理
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LifecycleOperation'
+  /cluster-lifecycle/clusters/import:
+    post:
+      tags: [ClusterLifecycle]
+      summary: 导入已有集群
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportClusterRequest'
+      responses:
+        '202':
+          description: 导入动作已受理
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LifecycleOperation'
+  /cluster-lifecycle/clusters/register:
+    post:
+      tags: [ClusterLifecycle]
+      summary: 注册新纳管集群
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterClusterRequest'
+      responses:
+        '201':
+          description: 注册引导已创建
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistrationBundle'
+  /cluster-lifecycle/clusters/{clusterId}:
+    get:
+      tags: [ClusterLifecycle]
+      summary: 查询集群生命周期详情
+      parameters:
+        - $ref: '#/components/parameters/ClusterId'
+      responses:
+        '200':
+          description: 集群详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterLifecycleRecord'
+  /cluster-lifecycle/clusters/{clusterId}/validate:
+    post:
+      tags: [ClusterLifecycle]
+      summary: 执行创建前或变更前校验
+      parameters:
+        - $ref: '#/components/parameters/ClusterId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidationRequest'
+      responses:
+        '200':
+          description: 校验结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResult'
+  /cluster-lifecycle/clusters/{clusterId}/upgrade-plans:
+    post:
+      tags: [ClusterLifecycle]
+      summary: 创建升级计划
+      parameters:
+        - $ref: '#/components/parameters/ClusterId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUpgradePlanRequest'
+      responses:
+        '201':
+          description: 升级计划
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpgradePlan'
+  /cluster-lifecycle/clusters/{clusterId}/upgrade-plans/{planId}/execute:
+    post:
+      tags: [ClusterLifecycle]
+      summary: 执行升级计划
+      parameters:
+        - $ref: '#/components/parameters/ClusterId'
+        - $ref: '#/components/parameters/PlanId'
+      responses:
+        '202':
+          description: 升级动作已受理
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LifecycleOperation'
+  /cluster-lifecycle/clusters/{clusterId}/node-pools:
+    get:
+      tags: [ClusterLifecycle]
+      summary: 查询节点池列表
+      parameters:
+        - $ref: '#/components/parameters/ClusterId'
+      responses:
+        '200':
+          description: 节点池列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/NodePoolProfile'
+  /cluster-lifecycle/clusters/{clusterId}/node-pools/{nodePoolId}/scale:
+    post:
+      tags: [ClusterLifecycle]
+      summary: 调整节点池容量
+      parameters:
+        - $ref: '#/components/parameters/ClusterId'
+        - $ref: '#/components/parameters/NodePoolId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScaleNodePoolRequest'
+      responses:
+        '202':
+          description: 扩缩动作已受理
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LifecycleOperation'
+  /cluster-lifecycle/clusters/{clusterId}/disable:
+    post:
+      tags: [ClusterLifecycle]
+      summary: 发起停用流程
+      parameters:
+        - $ref: '#/components/parameters/ClusterId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisableClusterRequest'
+      responses:
+        '202':
+          description: 停用动作已受理
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LifecycleOperation'
+  /cluster-lifecycle/clusters/{clusterId}/retire:
+    post:
+      tags: [ClusterLifecycle]
+      summary: 发起退役流程
+      parameters:
+        - $ref: '#/components/parameters/ClusterId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RetireClusterRequest'
+      responses:
+        '202':
+          description: 退役动作已受理
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LifecycleOperation'
+  /cluster-lifecycle/drivers:
+    get:
+      tags: [ClusterDrivers]
+      summary: 查询驱动版本列表
+      responses:
+        '200':
+          description: 驱动列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClusterDriverVersion'
+    post:
+      tags: [ClusterDrivers]
+      summary: 创建或登记驱动版本
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDriverRequest'
+      responses:
+        '201':
+          description: 驱动版本
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterDriverVersion'
+  /cluster-lifecycle/drivers/{driverId}/capabilities:
+    get:
+      tags: [ClusterDrivers]
+      summary: 查询驱动能力矩阵
+      parameters:
+        - $ref: '#/components/parameters/DriverId'
+      responses:
+        '200':
+          description: 能力矩阵
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CapabilityMatrixEntry'
+  /cluster-lifecycle/templates:
+    get:
+      tags: [ClusterTemplates]
+      summary: 查询集群模板列表
+      responses:
+        '200':
+          description: 模板列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClusterTemplate'
+    post:
+      tags: [ClusterTemplates]
+      summary: 创建集群模板
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTemplateRequest'
+      responses:
+        '201':
+          description: 模板详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterTemplate'
+  /cluster-lifecycle/templates/{templateId}/validate:
+    post:
+      tags: [ClusterTemplates]
+      summary: 校验模板与目标环境兼容性
+      parameters:
+        - $ref: '#/components/parameters/TemplateId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateValidationRequest'
+      responses:
+        '200':
+          description: 校验结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResult'
+  /audit/cluster-lifecycle/events:
+    get:
+      tags: [LifecycleAudit]
+      summary: 查询生命周期审计事件
+      parameters:
+        - in: query
+          name: actorUserId
+          schema: { type: string }
+        - in: query
+          name: action
+          schema: { type: string }
+        - in: query
+          name: outcome
+          schema: { type: string }
+        - in: query
+          name: infrastructureType
+          schema: { type: string }
+      responses:
+        '200':
+          description: 审计事件列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LifecycleAuditEvent'
+components:
+  parameters:
+    ClusterId:
+      in: path
+      name: clusterId
+      required: true
+      schema: { type: string }
+    PlanId:
+      in: path
+      name: planId
+      required: true
+      schema: { type: string }
+    NodePoolId:
+      in: path
+      name: nodePoolId
+      required: true
+      schema: { type: string }
+    DriverId:
+      in: path
+      name: driverId
+      required: true
+      schema: { type: string }
+    TemplateId:
+      in: path
+      name: templateId
+      required: true
+      schema: { type: string }
+  schemas:
+    ClusterLifecycleListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClusterLifecycleRecord'
+    ClusterLifecycleRecord:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        lifecycleMode: { type: string }
+        infrastructureType: { type: string }
+        driverRef: { type: string }
+        driverVersion: { type: string }
+        status: { type: string }
+        registrationStatus: { type: string }
+        healthStatus: { type: string }
+        kubernetesVersion: { type: string }
+        targetVersion: { type: string }
+        lastValidationStatus: { type: string }
+        lastValidationAt: { type: string, format: date-time }
+    LifecycleOperation:
+      type: object
+      properties:
+        id: { type: string }
+        clusterId: { type: string }
+        operationType: { type: string }
+        status: { type: string }
+        riskLevel: { type: string }
+        resultSummary: { type: string }
+        failureReason: { type: string }
+        startedAt: { type: string, format: date-time }
+        completedAt: { type: string, format: date-time }
+    RegistrationBundle:
+      type: object
+      properties:
+        clusterId: { type: string }
+        registrationToken: { type: string }
+        commandSnippet: { type: string }
+        expiresAt: { type: string, format: date-time }
+    ClusterDriverVersion:
+      type: object
+      properties:
+        id: { type: string }
+        driverKey: { type: string }
+        version: { type: string }
+        displayName: { type: string }
+        providerType: { type: string }
+        status: { type: string }
+    CapabilityMatrixEntry:
+      type: object
+      properties:
+        id: { type: string }
+        capabilityDomain: { type: string }
+        supportLevel: { type: string }
+        compatibilityStatus: { type: string }
+        constraintsSummary: { type: string }
+    ClusterTemplate:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        infrastructureType: { type: string }
+        driverKey: { type: string }
+        driverVersionRange: { type: string }
+        status: { type: string }
+    UpgradePlan:
+      type: object
+      properties:
+        id: { type: string }
+        clusterId: { type: string }
+        fromVersion: { type: string }
+        toVersion: { type: string }
+        precheckStatus: { type: string }
+        status: { type: string }
+    NodePoolProfile:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        role: { type: string }
+        desiredCount: { type: integer }
+        currentCount: { type: integer }
+        status: { type: string }
+        version: { type: string }
+    LifecycleAuditEvent:
+      type: object
+      properties:
+        id: { type: string }
+        action: { type: string }
+        actorUserId: { type: string }
+        targetType: { type: string }
+        targetRef: { type: string }
+        outcome: { type: string }
+        occurredAt: { type: string, format: date-time }
+    ImportClusterRequest:
+      type: object
+      required: [name, infrastructureType, accessEndpoint]
+      properties:
+        name: { type: string }
+        infrastructureType: { type: string }
+        accessEndpoint: { type: string }
+        credentialRef: { type: string }
+        workspaceId: { type: string }
+        projectId: { type: string }
+    RegisterClusterRequest:
+      type: object
+      required: [name, infrastructureType]
+      properties:
+        name: { type: string }
+        infrastructureType: { type: string }
+        workspaceId: { type: string }
+        projectId: { type: string }
+    CreateClusterRequest:
+      type: object
+      required: [name, infrastructureType, driverRef, templateId]
+      properties:
+        name: { type: string }
+        infrastructureType: { type: string }
+        driverRef: { type: string }
+        templateId: { type: string }
+        parameterOverrides:
+          type: object
+          additionalProperties: true
+        workspaceId: { type: string }
+        projectId: { type: string }
+    ValidationRequest:
+      type: object
+      properties:
+        templateId: { type: string }
+        driverRef: { type: string }
+        targetVersion: { type: string }
+    ValidationResult:
+      type: object
+      properties:
+        overallStatus: { type: string }
+        blockers:
+          type: array
+          items: { type: string }
+        warnings:
+          type: array
+          items: { type: string }
+        passedChecks:
+          type: array
+          items: { type: string }
+    CreateUpgradePlanRequest:
+      type: object
+      required: [toVersion]
+      properties:
+        toVersion: { type: string }
+        windowStart: { type: string, format: date-time }
+        windowEnd: { type: string, format: date-time }
+        reason: { type: string }
+    ScaleNodePoolRequest:
+      type: object
+      required: [desiredCount]
+      properties:
+        desiredCount: { type: integer }
+        reason: { type: string }
+    DisableClusterRequest:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string }
+        confirmation: { type: boolean }
+    RetireClusterRequest:
+      type: object
+      required: [reason, confirmation]
+      properties:
+        reason: { type: string }
+        confirmation: { type: boolean }
+        evidenceNote: { type: string }
+    CreateDriverRequest:
+      type: object
+      required: [driverKey, version, providerType]
+      properties:
+        driverKey: { type: string }
+        version: { type: string }
+        providerType: { type: string }
+        displayName: { type: string }
+    CreateTemplateRequest:
+      type: object
+      required: [name, infrastructureType, driverKey]
+      properties:
+        name: { type: string }
+        infrastructureType: { type: string }
+        driverKey: { type: string }
+        driverVersionRange: { type: string }
+        requiredCapabilities:
+          type: array
+          items: { type: string }
+    TemplateValidationRequest:
+      type: object
+      properties:
+        driverRef: { type: string }
+        environmentSnapshot:
+          type: object
+          additionalProperties: true

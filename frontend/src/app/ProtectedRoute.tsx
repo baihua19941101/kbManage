@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import {
   canReadCompliance,
+  canReadClusterLifecycle,
   canReadGitOps,
   canReadObservability,
   canReadWorkloadOps,
@@ -37,6 +38,10 @@ const routeGuards: RouteGuard[] = [
   {
     pathPrefix: '/gitops',
     canAccess: canReadGitOps
+  },
+  {
+    pathPrefix: '/cluster-lifecycle',
+    canAccess: canReadClusterLifecycle
   },
   {
     pathPrefix: '/compliance-hardening',
