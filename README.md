@@ -87,6 +87,11 @@ npm config set registry https://registry.npmmirror.com
 - `platformMarketplace.distribution.default_timeout / idempotency_ttl`
 - `platformMarketplace.extension.validation_timeout / compatibility_cache_ttl`
 - `platformMarketplace.audit.retention_days`
+- `sreScale.health.overview_timeout / snapshot_cache_ttl`
+- `sreScale.ha.failover_cache_ttl / check_timeout`
+- `sreScale.upgrade.precheck_timeout / rollout_timeout / idempotency_ttl`
+- `sreScale.scale.forecast_cache_ttl / analysis_timeout`
+- `sreScale.audit.retention_days`
 
 说明：
 
@@ -112,6 +117,7 @@ npm config set registry https://registry.npmmirror.com
 - `VITE_BACKUP_RESTORE_REFRESH_INTERVAL`：备份恢复与演练页面刷新间隔（毫秒）
 - `VITE_IDENTITY_TENANCY_REFRESH_INTERVAL`：身份与多租户治理页面刷新间隔（毫秒）
 - `VITE_PLATFORM_MARKETPLACE_REFRESH_INTERVAL`：平台应用目录与扩展市场页面刷新间隔（毫秒）
+- `VITE_SRE_SCALE_REFRESH_INTERVAL`：平台 SRE 与规模化治理页面刷新间隔（毫秒）
 
 ## 启动方式
 
@@ -176,6 +182,7 @@ npm run build
 - 008-backup-restore-dr 已完成规格、规划和任务拆解，当前进入 implement 阶段。
 - 009-identity-tenancy 已完成规格、规划、任务拆解与实现，当前等待审查与后续 GitHub 提交流程。
 - 010-platform-marketplace 已完成应用目录、模板分发、扩展注册与市场审计主干，当前等待审查与后续 GitHub 提交流程。
+- 011-sre-scale 已完成规格、规划、任务拆解，当前进入 implement 阶段。
 
 ## 002 可观测联调要点
 
@@ -296,6 +303,28 @@ bash artifacts/002-observability-center/repro-observability-smoke.sh
 ```bash
 bash artifacts/010-platform-marketplace/repro-platform-marketplace-smoke.sh
 ```
+
+## 011 平台 SRE 与规模化治理联调要点
+
+- 后端默认读取以下配置：
+  - `sreScale.health.overview_timeout`
+  - `sreScale.health.snapshot_cache_ttl`
+  - `sreScale.ha.failover_cache_ttl`
+  - `sreScale.ha.check_timeout`
+  - `sreScale.upgrade.precheck_timeout`
+  - `sreScale.upgrade.rollout_timeout`
+  - `sreScale.upgrade.idempotency_ttl`
+  - `sreScale.scale.forecast_cache_ttl`
+  - `sreScale.scale.analysis_timeout`
+  - `sreScale.audit.retention_days`
+- 前端入口：
+  - `/sre-scale`
+  - `/sre-scale/ha`
+  - `/sre-scale/upgrades`
+  - `/sre-scale/rollback`
+  - `/sre-scale/capacity`
+  - `/sre-scale/runbooks`
+  - `/audit-events/sre`
 - 前端入口：
   - `/identity-tenancy`
   - `/identity-tenancy/sources`

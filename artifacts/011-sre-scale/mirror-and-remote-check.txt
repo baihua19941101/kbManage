@@ -1,0 +1,5 @@
+go_proxy=GOPROXY=https://goproxy.cn,direct
+npm_registry=https://registry.npmmirror.com
+sre_mirror_strategy=prefer_domestic_mirrors_for_loadtest_or_timeseries_dependencies
+git_remote=git@github.com:baihua19941101/kbManage.git
+pr_flow=push_feature_branch_then_open_or_update_chinese_pr_before_merge

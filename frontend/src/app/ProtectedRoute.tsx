@@ -8,6 +8,7 @@ import {
   canReadGitOps,
   canReadIdentityTenancy,
   canReadPlatformMarketplace,
+  canReadSREScale,
   canReadObservability,
   canReadWorkloadOps,
   hasAnyRole,
@@ -57,6 +58,10 @@ const routeGuards: RouteGuard[] = [
   {
     pathPrefix: '/platform-marketplace',
     canAccess: canReadPlatformMarketplace
+  },
+  {
+    pathPrefix: '/sre-scale',
+    canAccess: canReadSREScale
   },
   {
     pathPrefix: '/compliance-hardening',

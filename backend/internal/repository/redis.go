@@ -97,6 +97,18 @@ func PlatformMarketplaceCompatibilityKey(parts ...string) string {
 	return prefixedRedisKey("platformmarketplace:compatibility", parts...)
 }
 
+func PlatformSREHealthKey(parts ...string) string {
+	return prefixedRedisKey("platformsre:health", parts...)
+}
+
+func PlatformSREUpgradeKey(parts ...string) string {
+	return prefixedRedisKey("platformsre:upgrade", parts...)
+}
+
+func PlatformSREScaleKey(parts ...string) string {
+	return prefixedRedisKey("platformsre:scale", parts...)
+}
+
 func PrefixedRedisKey(prefix string, parts ...string) string {
 	return prefixedRedisKey(prefix, parts...)
 }

@@ -1,0 +1,4 @@
+branch=011-sre-scale
+forbid_main=true
+feature_010_merged=true
+merge_requires_user_approval=true

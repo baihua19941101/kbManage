@@ -129,6 +129,16 @@ const (
 	PlatformMarketplaceAuditActionExtensionEnable     = "platformmarketplace.extension.enable"
 	PlatformMarketplaceAuditActionExtensionDisable    = "platformmarketplace.extension.disable"
 	PlatformMarketplaceAuditActionCompatibilityQuery  = "platformmarketplace.compatibility.query"
+
+	SREAuditResourceType                  = "sre"
+	SREAuditActionHAPolicyUpsert          = "sre.ha-policy.upsert"
+	SREAuditActionHealthOverviewRead      = "sre.health-overview.read"
+	SREAuditActionMaintenanceWindowUpsert = "sre.maintenance-window.upsert"
+	SREAuditActionUpgradePrecheck         = "sre.upgrade.precheck"
+	SREAuditActionUpgradeCreate           = "sre.upgrade.create"
+	SREAuditActionRollbackValidate        = "sre.rollback.validate"
+	SREAuditActionScaleEvidenceRead       = "sre.scale-evidence.read"
+	SREAuditActionRunbookRead             = "sre.runbook.read"
 )
 
 type EventWriter struct {
@@ -367,6 +377,30 @@ func (w *EventWriter) WriteIdentityTenancyEvent(
 		actorID,
 		action,
 		IdentityTenancyAuditResourceType,
+		strings.TrimSpace(resourceID),
+		outcome,
+		details,
+	)
+}
+
+func (w *EventWriter) WriteSREEvent(
+	ctx context.Context,
+	requestID string,
+	actorID *uint64,
+	action string,
+	resourceID string,
+	outcome domain.AuditOutcome,
+	details map[string]any,
+) error {
+	if details == nil {
+		details = map[string]any{}
+	}
+	return w.Write(
+		ctx,
+		requestID,
+		actorID,
+		action,
+		SREAuditResourceType,
 		strings.TrimSpace(resourceID),
 		outcome,
 		details,

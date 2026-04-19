@@ -1,0 +1,499 @@
+openapi: 3.0.3
+info:
+  title: kbManage SRE & Scale API
+  version: 0.1.0
+  description: >
+    011 平台 SRE 与规模化治理首期接口契约，覆盖高可用策略、运行健康总览、
+    升级治理、容量趋势、运行手册和市场级审计查询能力。
+servers:
+  - url: /api/v1
+paths:
+  /sre/ha-policies:
+    get:
+      summary: 查询高可用策略列表
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+        - in: query
+          name: keyword
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/HAPolicy'
+    post:
+      summary: 新增或更新高可用策略
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HAPolicyInput'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HAPolicy'
+
+  /sre/health/overview:
+    get:
+      summary: 查询平台健康总览
+      parameters:
+        - in: query
+          name: snapshotWindow
+          schema:
+            type: string
+        - in: query
+          name: riskLevel
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformHealthOverview'
+
+  /sre/maintenance-windows:
+    get:
+      summary: 查询维护窗口
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MaintenanceWindow'
+    post:
+      summary: 新增维护窗口
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaintenanceWindowInput'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceWindow'
+
+  /sre/upgrades/prechecks:
+    post:
+      summary: 执行升级前检查
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpgradePrecheckInput'
+      responses:
+        '200':
+          description: 检查结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpgradePrecheckResult'
+
+  /sre/upgrades:
+    get:
+      summary: 查询升级计划
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UpgradePlan'
+    post:
+      summary: 创建升级计划并发起滚动升级
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpgradePlanInput'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpgradePlan'
+
+  /sre/upgrades/{upgradeId}/rollback-validations:
+    post:
+      summary: 提交回退验证结果
+      parameters:
+        - in: path
+          name: upgradeId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RollbackValidationInput'
+      responses:
+        '201':
+          description: 提交成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RollbackValidation'
+
+  /sre/capacity/baselines:
+    get:
+      summary: 查询容量基线与趋势
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CapacityBaseline'
+
+  /sre/scale-evidence:
+    get:
+      summary: 查询压测、预测和自诊断证据
+      parameters:
+        - in: query
+          name: evidenceType
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ScaleEvidence'
+
+  /sre/runbooks:
+    get:
+      summary: 查询运行手册
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RunbookArticle'
+
+  /audit/sre/events:
+    get:
+      summary: 查询 SRE 与规模化治理审计事件
+      parameters:
+        - in: query
+          name: action
+          schema:
+            type: string
+        - in: query
+          name: outcome
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuditEvent'
+
+components:
+  schemas:
+    HAPolicy:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        deploymentMode:
+          type: string
+        replicaExpectation:
+          type: integer
+        failoverTriggerPolicy:
+          type: string
+        takeoverStatus:
+          type: string
+        lastRecoveryResult:
+          type: string
+        status:
+          type: string
+    HAPolicyInput:
+      type: object
+      required: [name, deploymentMode, replicaExpectation, failoverTriggerPolicy]
+      properties:
+        name:
+          type: string
+        deploymentMode:
+          type: string
+        replicaExpectation:
+          type: integer
+        failoverTriggerPolicy:
+          type: string
+        failoverCooldown:
+          type: string
+
+    MaintenanceWindow:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        windowType:
+          type: string
+        startAt:
+          type: string
+        endAt:
+          type: string
+        status:
+          type: string
+        postCheckStatus:
+          type: string
+    MaintenanceWindowInput:
+      type: object
+      required: [name, windowType, startAt, endAt]
+      properties:
+        name:
+          type: string
+        windowType:
+          type: string
+        startAt:
+          type: string
+        endAt:
+          type: string
+        allowedOperations:
+          type: array
+          items:
+            type: string
+
+    PlatformHealthOverview:
+      type: object
+      properties:
+        overallStatus:
+          type: string
+        componentHealthSummary:
+          type: string
+        dependencyHealthSummary:
+          type: string
+        taskBacklogSummary:
+          type: string
+        capacityRiskLevel:
+          type: string
+        throttlingStatus:
+          type: string
+        recoverySummary:
+          type: string
+        recommendedActions:
+          type: array
+          items:
+            type: string
+
+    UpgradePrecheckInput:
+      type: object
+      required: [currentVersion, targetVersion]
+      properties:
+        currentVersion:
+          type: string
+        targetVersion:
+          type: string
+        scope:
+          type: string
+    UpgradePrecheckResult:
+      type: object
+      properties:
+        decision:
+          type: string
+        compatibilitySummary:
+          type: string
+        blockingItems:
+          type: array
+          items:
+            type: string
+        warnings:
+          type: array
+          items:
+            type: string
+
+    UpgradePlan:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        currentVersion:
+          type: string
+        targetVersion:
+          type: string
+        executionStage:
+          type: string
+        executionProgress:
+          type: string
+        acceptanceResult:
+          type: string
+        rollbackReadiness:
+          type: string
+        status:
+          type: string
+    UpgradePlanInput:
+      type: object
+      required: [name, currentVersion, targetVersion, rolloutStrategy]
+      properties:
+        name:
+          type: string
+        currentVersion:
+          type: string
+        targetVersion:
+          type: string
+        rolloutStrategy:
+          type: string
+        maintenanceWindowId:
+          type: string
+
+    RollbackValidation:
+      type: object
+      properties:
+        id:
+          type: string
+        result:
+          type: string
+        remainingRisk:
+          type: string
+        validatedAt:
+          type: string
+    RollbackValidationInput:
+      type: object
+      required: [result]
+      properties:
+        result:
+          type: string
+        remainingRisk:
+          type: string
+        preconditions:
+          type: array
+          items:
+            type: string
+
+    CapacityBaseline:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        resourceDimension:
+          type: string
+        baselineRange:
+          type: string
+        growthTrend:
+          type: string
+        forecastResult:
+          type: string
+        confidenceLevel:
+          type: string
+        status:
+          type: string
+
+    ScaleEvidence:
+      type: object
+      properties:
+        id:
+          type: string
+        evidenceType:
+          type: string
+        summary:
+          type: string
+        bottleneckSummary:
+          type: string
+        forecastSummary:
+          type: string
+        confidenceLevel:
+          type: string
+        capturedAt:
+          type: string
+
+    RunbookArticle:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        scenarioType:
+          type: string
+        riskLevel:
+          type: string
+        checklistSummary:
+          type: string
+        recoverySteps:
+          type: string
+        verificationSummary:
+          type: string
+
+    AuditEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        action:
+          type: string
+        outcome:
+          type: string
+        targetType:
+          type: string
+        targetRef:
+          type: string
+        occurredAt:
+          type: string

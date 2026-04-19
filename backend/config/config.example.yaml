@@ -253,3 +253,30 @@ platformMarketplace:
   audit:
     # 平台市场审计保留天数
     retention_days: 365
+
+sreScale:
+  health:
+    # 平台健康总览聚合超时
+    overview_timeout: "20s"
+    # 平台健康快照缓存 TTL
+    snapshot_cache_ttl: "30s"
+  ha:
+    # 故障切换状态缓存 TTL
+    failover_cache_ttl: "5m"
+    # 高可用检查默认超时
+    check_timeout: "30s"
+  upgrade:
+    # 升级前检查默认超时
+    precheck_timeout: "2m"
+    # 升级滚动执行默认超时
+    rollout_timeout: "45m"
+    # 升级协调幂等窗口
+    idempotency_ttl: "15m"
+  scale:
+    # 容量预测缓存 TTL
+    forecast_cache_ttl: "10m"
+    # 自诊断与压测证据分析默认超时
+    analysis_timeout: "2m"
+  audit:
+    # SRE 与规模化治理审计保留天数
+    retention_days: 365

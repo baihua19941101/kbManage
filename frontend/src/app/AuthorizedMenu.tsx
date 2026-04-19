@@ -12,11 +12,16 @@ import {
   canManageIdentitySource,
   canManagePlatformMarketplaceExtension,
   canManagePlatformMarketplaceSource,
+  canManageSREHA,
+  canManageSREScale,
+  canManageSREUpgrade,
   canPublishPlatformMarketplaceTemplate,
   canReadIdentityTenancy,
   canReadIdentityTenancyAudit,
   canReadPlatformMarketplace,
   canReadPlatformMarketplaceAudit,
+  canReadSREAudit,
+  canReadSREScale,
   canBatchWorkloadOps,
   canCreateClusterLifecycle,
   canExportComplianceArchive,
@@ -103,6 +108,11 @@ const allMenuItems: MenuItemConfig[] = [
     key: '/audit-events/platform-marketplace',
     label: '市场审计',
     visibleWhen: canReadPlatformMarketplaceAudit
+  },
+  {
+    key: '/audit-events/sre',
+    label: 'SRE审计',
+    visibleWhen: canReadSREAudit
   },
   {
     key: '/observability',
@@ -238,6 +248,26 @@ const allMenuItems: MenuItemConfig[] = [
     key: '/platform-marketplace/extensions',
     label: '扩展中心',
     visibleWhen: canManagePlatformMarketplaceExtension
+  },
+  {
+    key: '/sre-scale',
+    label: '平台SRE',
+    visibleWhen: canReadSREScale
+  },
+  {
+    key: '/sre-scale/ha',
+    label: '高可用治理',
+    visibleWhen: canManageSREHA
+  },
+  {
+    key: '/sre-scale/upgrades',
+    label: '升级治理',
+    visibleWhen: canManageSREUpgrade
+  },
+  {
+    key: '/sre-scale/capacity',
+    label: '容量性能',
+    visibleWhen: canManageSREScale
   },
   {
     key: '/compliance-hardening/baselines',
