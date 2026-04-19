@@ -215,3 +215,21 @@ backupRestore:
   audit:
     # 备份恢复与灾备审计保留天数
     retention_days: 365
+
+identityTenancy:
+  source:
+    # 身份源健康检查与目录同步超时
+    healthcheck_timeout: "20s"
+    # 身份源同步结果缓存 TTL
+    sync_result_ttl: "10m"
+  session:
+    # 会话治理缓存 TTL
+    session_cache_ttl: "10m"
+    # 权限回收协调窗口
+    revocation_ttl: "15m"
+  organization:
+    # 组织与成员视图缓存 TTL
+    membership_cache_ttl: "5m"
+  audit:
+    # 身份治理审计保留天数
+    retention_days: 365

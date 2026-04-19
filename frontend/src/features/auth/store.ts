@@ -45,6 +45,14 @@ export type BackupRestorePermission =
   | 'backuprestore:migrate'
   | 'backuprestore:drill';
 
+export type IdentityTenancyPermission =
+  | 'identity:read'
+  | 'identity:manage-source'
+  | 'identity:manage-org'
+  | 'identity:manage-role'
+  | 'identity:delegate'
+  | 'identity:session-govern';
+
 type AuthUser = {
   id: string;
   username: string;
@@ -313,6 +321,43 @@ const BACKUP_RESTORE_AUDIT_READ_IDENTIFIERS: readonly string[] = [
   'audit-reader',
   'backuprestore:read'
 ];
+const IDENTITY_TENANCY_READ_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'audit-reader',
+  'readonly',
+  'identity:read'
+];
+const IDENTITY_TENANCY_MANAGE_SOURCE_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'identity:manage-source'
+];
+const IDENTITY_TENANCY_MANAGE_ORG_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'identity:manage-org'
+];
+const IDENTITY_TENANCY_MANAGE_ROLE_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'identity:manage-role'
+];
+const IDENTITY_TENANCY_DELEGATE_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'identity:delegate'
+];
+const IDENTITY_TENANCY_SESSION_GOVERN_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'identity:session-govern'
+];
+const IDENTITY_TENANCY_AUDIT_READ_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'audit-reader',
+  'identity:read'
+];
 
 const getUserRoles = (user: AuthUser | null | undefined): string[] => {
   if (!user || !Array.isArray(user.platformRoles)) {
@@ -457,6 +502,27 @@ export const canDrillBackupRestore = (user: AuthUser | null | undefined): boolea
 
 export const canReadBackupRestoreAudit = (user: AuthUser | null | undefined): boolean =>
   hasAnyRole(user, BACKUP_RESTORE_AUDIT_READ_IDENTIFIERS);
+
+export const canReadIdentityTenancy = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, IDENTITY_TENANCY_READ_IDENTIFIERS);
+
+export const canManageIdentitySource = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, IDENTITY_TENANCY_MANAGE_SOURCE_IDENTIFIERS);
+
+export const canManageIdentityOrg = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, IDENTITY_TENANCY_MANAGE_ORG_IDENTIFIERS);
+
+export const canManageIdentityRole = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, IDENTITY_TENANCY_MANAGE_ROLE_IDENTIFIERS);
+
+export const canDelegateIdentity = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, IDENTITY_TENANCY_DELEGATE_IDENTIFIERS);
+
+export const canGovernIdentitySession = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, IDENTITY_TENANCY_SESSION_GOVERN_IDENTIFIERS);
+
+export const canReadIdentityTenancyAudit = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, IDENTITY_TENANCY_AUDIT_READ_IDENTIFIERS);
 
 export const useAuthStore = create<AuthState>((set) => ({
   ...initialState,

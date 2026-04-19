@@ -6,6 +6,7 @@ import {
   canReadCompliance,
   canReadClusterLifecycle,
   canReadGitOps,
+  canReadIdentityTenancy,
   canReadObservability,
   canReadWorkloadOps,
   hasAnyRole,
@@ -47,6 +48,10 @@ const routeGuards: RouteGuard[] = [
   {
     pathPrefix: '/backup-restore',
     canAccess: canReadBackupRestore
+  },
+  {
+    pathPrefix: '/identity-tenancy',
+    canAccess: canReadIdentityTenancy
   },
   {
     pathPrefix: '/compliance-hardening',

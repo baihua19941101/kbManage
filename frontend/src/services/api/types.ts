@@ -51,6 +51,16 @@ export type BackupRestoreAuditEventDTO = {
   occurredAt?: string;
 };
 
+export type IdentityAuditEventDTO = {
+  id: string | number;
+  actorUserId?: string | number;
+  action?: string;
+  outcome?: string;
+  targetType?: string;
+  targetRef?: string;
+  occurredAt?: string;
+};
+
 export type AuditExportTaskDTO = {
   taskId: string;
   status: 'pending' | 'running' | 'succeeded' | 'failed';

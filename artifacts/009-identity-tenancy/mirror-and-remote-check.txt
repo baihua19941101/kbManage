@@ -1,0 +1,6 @@
+go_proxy=GOPROXY=https://goproxy.cn,direct
+npm_registry=https://registry.npmmirror.com
+identity_integration_source=aliyun_or_daocloud_or_approved_proxy
+remote=git@github.com:baihua19941101/kbManage.git
+pr_language=zh-CN
+merge_gate=user_explicit_approval_required

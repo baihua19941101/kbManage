@@ -102,6 +102,15 @@ export const router = createBrowserRouter([
             }
           },
           {
+            path: '/audit-events/identity',
+            lazy: async () => {
+              const { IdentityGovernanceAuditPage } = await import(
+                '@/features/audit/pages/IdentityGovernanceAuditPage'
+              );
+              return { Component: IdentityGovernanceAuditPage };
+            }
+          },
+          {
             path: '/observability',
             lazy: async () => {
               const { ObservabilityOverviewPage } = await import(
@@ -409,6 +418,91 @@ export const router = createBrowserRouter([
           {
             path: '/backup-restore/*',
             element: <Navigate to="/backup-restore" replace />
+          },
+          {
+            path: '/identity-tenancy',
+            lazy: async () => {
+              const { IdentitySourcePage } = await import(
+                '@/features/identity-tenancy/pages/IdentitySourcePage'
+              );
+              return { Component: IdentitySourcePage };
+            }
+          },
+          {
+            path: '/identity-tenancy/sources',
+            lazy: async () => {
+              const { IdentitySourcePage } = await import(
+                '@/features/identity-tenancy/pages/IdentitySourcePage'
+              );
+              return { Component: IdentitySourcePage };
+            }
+          },
+          {
+            path: '/identity-tenancy/sessions',
+            lazy: async () => {
+              const { SessionGovernancePage } = await import(
+                '@/features/identity-tenancy/pages/SessionGovernancePage'
+              );
+              return { Component: SessionGovernancePage };
+            }
+          },
+          {
+            path: '/identity-tenancy/organizations',
+            lazy: async () => {
+              const { OrganizationModelPage } = await import(
+                '@/features/identity-tenancy/pages/OrganizationModelPage'
+              );
+              return { Component: OrganizationModelPage };
+            }
+          },
+          {
+            path: '/identity-tenancy/mappings',
+            lazy: async () => {
+              const { TenantMappingPage } = await import(
+                '@/features/identity-tenancy/pages/TenantMappingPage'
+              );
+              return { Component: TenantMappingPage };
+            }
+          },
+          {
+            path: '/identity-tenancy/roles',
+            lazy: async () => {
+              const { RoleCatalogPage } = await import(
+                '@/features/identity-tenancy/pages/RoleCatalogPage'
+              );
+              return { Component: RoleCatalogPage };
+            }
+          },
+          {
+            path: '/identity-tenancy/assignments',
+            lazy: async () => {
+              const { RoleAssignmentPage } = await import(
+                '@/features/identity-tenancy/pages/RoleAssignmentPage'
+              );
+              return { Component: RoleAssignmentPage };
+            }
+          },
+          {
+            path: '/identity-tenancy/delegations',
+            lazy: async () => {
+              const { DelegationPage } = await import(
+                '@/features/identity-tenancy/pages/DelegationPage'
+              );
+              return { Component: DelegationPage };
+            }
+          },
+          {
+            path: '/identity-tenancy/access-risks',
+            lazy: async () => {
+              const { AccessRiskPage } = await import(
+                '@/features/identity-tenancy/pages/AccessRiskPage'
+              );
+              return { Component: AccessRiskPage };
+            }
+          },
+          {
+            path: '/identity-tenancy/*',
+            element: <Navigate to="/identity-tenancy" replace />
           },
           {
             path: '/compliance-hardening/baselines',

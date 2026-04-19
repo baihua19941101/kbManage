@@ -7,6 +7,11 @@ import {
   canManageBackupPolicy,
   canReadBackupRestore,
   canReadBackupRestoreAudit,
+  canManageIdentityOrg,
+  canManageIdentityRole,
+  canManageIdentitySource,
+  canReadIdentityTenancy,
+  canReadIdentityTenancyAudit,
   canBatchWorkloadOps,
   canCreateClusterLifecycle,
   canExportComplianceArchive,
@@ -83,6 +88,11 @@ const allMenuItems: MenuItemConfig[] = [
     key: '/audit-events/backup-restore',
     label: '备份恢复审计',
     visibleWhen: canReadBackupRestoreAudit
+  },
+  {
+    key: '/audit-events/identity',
+    label: '身份治理审计',
+    visibleWhen: canReadIdentityTenancyAudit
   },
   {
     key: '/observability',
@@ -178,6 +188,26 @@ const allMenuItems: MenuItemConfig[] = [
     key: '/backup-restore/drills',
     label: '灾备演练',
     visibleWhen: canDrillBackupRestore
+  },
+  {
+    key: '/identity-tenancy',
+    label: '身份租户治理',
+    visibleWhen: canReadIdentityTenancy
+  },
+  {
+    key: '/identity-tenancy/organizations',
+    label: '组织模型',
+    visibleWhen: canManageIdentityOrg
+  },
+  {
+    key: '/identity-tenancy/roles',
+    label: '角色授权',
+    visibleWhen: canManageIdentityRole
+  },
+  {
+    key: '/identity-tenancy/sources',
+    label: '身份源',
+    visibleWhen: canManageIdentitySource
   },
   {
     key: '/compliance-hardening/baselines',

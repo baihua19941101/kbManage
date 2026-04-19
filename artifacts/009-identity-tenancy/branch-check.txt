@@ -1,0 +1,4 @@
+current_branch=009-identity-tenancy
+forbid_main=true
+previous_feature_merged=008-backup-restore-dr
+merge_requires_user_approval=true

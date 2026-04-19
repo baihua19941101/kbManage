@@ -59,6 +59,12 @@ const (
 	PermissionBackupRestoreRestore           = "backuprestore:restore"
 	PermissionBackupRestoreMigrate           = "backuprestore:migrate"
 	PermissionBackupRestoreDrill             = "backuprestore:drill"
+	PermissionIdentityRead                   = "identity:read"
+	PermissionIdentityManageSource           = "identity:manage-source"
+	PermissionIdentityManageOrg              = "identity:manage-org"
+	PermissionIdentityManageRole             = "identity:manage-role"
+	PermissionIdentityDelegate               = "identity:delegate"
+	PermissionIdentitySessionGovern          = "identity:session-govern"
 )
 
 func RequireWorkspaceScope(scopeAccess *auth.ScopeAccessService, permission string) gin.HandlerFunc {
