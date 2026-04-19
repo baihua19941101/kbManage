@@ -3,6 +3,10 @@ import type { MenuProps } from 'antd';
 import { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
+  canDrillBackupRestore,
+  canManageBackupPolicy,
+  canReadBackupRestore,
+  canReadBackupRestoreAudit,
   canBatchWorkloadOps,
   canCreateClusterLifecycle,
   canExportComplianceArchive,
@@ -74,6 +78,11 @@ const allMenuItems: MenuItemConfig[] = [
     key: '/audit-events/cluster-lifecycle',
     label: '生命周期审计',
     visibleWhen: canReadClusterLifecycleAudit
+  },
+  {
+    key: '/audit-events/backup-restore',
+    label: '备份恢复审计',
+    visibleWhen: canReadBackupRestoreAudit
   },
   {
     key: '/observability',
@@ -149,6 +158,26 @@ const allMenuItems: MenuItemConfig[] = [
     key: '/cluster-lifecycle/capabilities',
     label: '能力矩阵',
     visibleWhen: canReadClusterLifecycle
+  },
+  {
+    key: '/backup-restore',
+    label: '备份恢复中心',
+    visibleWhen: canReadBackupRestore
+  },
+  {
+    key: '/backup-restore/policies',
+    label: '备份策略',
+    visibleWhen: canManageBackupPolicy
+  },
+  {
+    key: '/backup-restore/restore-jobs',
+    label: '恢复迁移',
+    visibleWhen: canReadBackupRestore
+  },
+  {
+    key: '/backup-restore/drills',
+    label: '灾备演练',
+    visibleWhen: canDrillBackupRestore
   },
   {
     key: '/compliance-hardening/baselines',

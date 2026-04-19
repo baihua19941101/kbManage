@@ -32,6 +32,9 @@ export const ResourcesPage = () => {
             <Button type="primary" onClick={() => void navigate('/gitops')}>
               进入 GitOps 发布中心
             </Button>
+            <Button onClick={() => void navigate('/backup-restore')}>
+              进入备份恢复中心
+            </Button>
             <Button
               disabled={!resourceKeyword}
               onClick={() => {
@@ -40,8 +43,19 @@ export const ResourcesPage = () => {
                 }
                 void navigate(`/gitops?keyword=${encodeURIComponent(resourceKeyword)}`);
               }}
+              >
+                按资源上下文跳转
+              </Button>
+            <Button
+              disabled={!resourceKeyword}
+              onClick={() => {
+                if (!resourceKeyword) {
+                  return;
+                }
+                void navigate(`/backup-restore/restore-points?keyword=${encodeURIComponent(resourceKeyword)}`);
+              }}
             >
-              按资源上下文跳转
+              按资源上下文恢复
             </Button>
           </Space>
         </Space>

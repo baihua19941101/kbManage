@@ -73,6 +73,12 @@ npm config set registry https://registry.npmmirror.com
 - `clusterLifecycle.operation.default_timeout / idempotency_ttl / lock_ttl`
 - `clusterLifecycle.nodePool.max_step`
 - `clusterLifecycle.audit.retention_days`
+- `backupRestore.executor.default_timeout / manifest_cache_ttl`
+- `backupRestore.precheck.default_timeout / result_cache_ttl`
+- `backupRestore.operation.default_timeout / idempotency_ttl / lock_ttl`
+- `backupRestore.retention.default_restore_point_ttl`
+- `backupRestore.drill.default_rpo_target_minutes / default_rto_target_minutes`
+- `backupRestore.audit.retention_days`
 
 说明：
 
@@ -95,6 +101,7 @@ npm config set registry https://registry.npmmirror.com
 - `VITE_GITOPS_DIFF_REFRESH_INTERVAL`：GitOps 差异面板刷新间隔（毫秒）
 - `VITE_COMPLIANCE_REFRESH_INTERVAL`：合规与加固页面刷新间隔（毫秒）
 - `VITE_CLUSTER_LIFECYCLE_REFRESH_INTERVAL`：集群生命周期页面刷新间隔（毫秒）
+- `VITE_BACKUP_RESTORE_REFRESH_INTERVAL`：备份恢复与演练页面刷新间隔（毫秒）
 
 ## 启动方式
 
@@ -156,6 +163,7 @@ npm run build
 - GitOps 审计查询入口：`/audit-events/gitops`。
 - 005-security-and-policy 已进入 implement 阶段，已落地策略中心 US1 前后端主干与治理证据。
 - 007-cluster-lifecycle 已完成规格、规划和任务拆解，当前进入 implement 阶段。
+- 008-backup-restore-dr 已完成规格、规划和任务拆解，当前进入 implement 阶段。
 
 ## 002 可观测联调要点
 
@@ -218,3 +226,26 @@ bash artifacts/002-observability-center/repro-observability-smoke.sh
   - `/cluster-lifecycle/templates`
   - `/cluster-lifecycle/capabilities`
   - `/audit-events/cluster-lifecycle`
+
+## 008 备份恢复与灾备联调要点
+
+- 后端默认读取以下配置：
+  - `backupRestore.executor.default_timeout`
+  - `backupRestore.executor.manifest_cache_ttl`
+  - `backupRestore.precheck.default_timeout`
+  - `backupRestore.precheck.result_cache_ttl`
+  - `backupRestore.operation.default_timeout`
+  - `backupRestore.operation.idempotency_ttl`
+  - `backupRestore.operation.lock_ttl`
+  - `backupRestore.retention.default_restore_point_ttl`
+  - `backupRestore.drill.default_rpo_target_minutes`
+  - `backupRestore.drill.default_rto_target_minutes`
+  - `backupRestore.audit.retention_days`
+- 前端入口：
+  - `/backup-restore`
+  - `/backup-restore/policies`
+  - `/backup-restore/restore-points`
+  - `/backup-restore/restore-jobs`
+  - `/backup-restore/migrations`
+  - `/backup-restore/drills`
+  - `/audit-events/backup-restore`

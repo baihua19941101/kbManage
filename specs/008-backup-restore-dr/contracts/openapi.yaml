@@ -1,0 +1,504 @@
+openapi: 3.1.0
+info:
+  title: kbManage Backup Restore DR API
+  version: 0.1.0
+  description: >
+    008 平台级备份恢复与灾备中心首期接口契约，覆盖备份策略、恢复点、
+    原地恢复、跨集群恢复、环境迁移、定向恢复、演练计划、演练记录、
+    演练报告及备份恢复审计。
+servers:
+  - url: /api/v1
+tags:
+  - name: BackupPolicies
+  - name: RestorePoints
+  - name: RestoreJobs
+  - name: MigrationPlans
+  - name: DRDrills
+  - name: BackupAudit
+paths:
+  /backup-restore/policies:
+    get:
+      tags: [BackupPolicies]
+      summary: 查询备份策略列表
+      parameters:
+        - in: query
+          name: scopeType
+          schema: { type: string }
+        - in: query
+          name: status
+          schema: { type: string }
+      responses:
+        '200':
+          description: 备份策略列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BackupPolicyListResponse'
+    post:
+      tags: [BackupPolicies]
+      summary: 创建备份策略
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBackupPolicyRequest'
+      responses:
+        '201':
+          description: 备份策略
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BackupPolicy'
+  /backup-restore/policies/{policyId}/run:
+    post:
+      tags: [BackupPolicies]
+      summary: 手动触发备份
+      parameters:
+        - $ref: '#/components/parameters/PolicyId'
+      responses:
+        '202':
+          description: 备份动作已受理
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RestorePoint'
+  /backup-restore/restore-points:
+    get:
+      tags: [RestorePoints]
+      summary: 查询恢复点列表
+      parameters:
+        - in: query
+          name: policyId
+          schema: { type: string }
+        - in: query
+          name: result
+          schema: { type: string }
+      responses:
+        '200':
+          description: 恢复点列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RestorePointListResponse'
+  /backup-restore/restore-points/{restorePointId}:
+    get:
+      tags: [RestorePoints]
+      summary: 查询恢复点详情
+      parameters:
+        - $ref: '#/components/parameters/RestorePointId'
+      responses:
+        '200':
+          description: 恢复点详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RestorePoint'
+  /backup-restore/restore-jobs:
+    post:
+      tags: [RestoreJobs]
+      summary: 创建恢复或迁移任务
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRestoreJobRequest'
+      responses:
+        '202':
+          description: 恢复或迁移动作已受理
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RestoreJob'
+    get:
+      tags: [RestoreJobs]
+      summary: 查询恢复或迁移任务列表
+      parameters:
+        - in: query
+          name: jobType
+          schema: { type: string }
+        - in: query
+          name: status
+          schema: { type: string }
+      responses:
+        '200':
+          description: 恢复或迁移任务列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RestoreJobListResponse'
+  /backup-restore/restore-jobs/{jobId}/validate:
+    post:
+      tags: [RestoreJobs]
+      summary: 执行恢复或迁移前校验
+      parameters:
+        - $ref: '#/components/parameters/JobId'
+      responses:
+        '200':
+          description: 校验结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrecheckResult'
+  /backup-restore/migrations:
+    post:
+      tags: [MigrationPlans]
+      summary: 创建环境迁移计划
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMigrationPlanRequest'
+      responses:
+        '201':
+          description: 迁移计划
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MigrationPlan'
+  /backup-restore/drills/plans:
+    get:
+      tags: [DRDrills]
+      summary: 查询灾备演练计划
+      responses:
+        '200':
+          description: 演练计划列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DRDrillPlanListResponse'
+    post:
+      tags: [DRDrills]
+      summary: 创建灾备演练计划
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDRDrillPlanRequest'
+      responses:
+        '201':
+          description: 演练计划
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DRDrillPlan'
+  /backup-restore/drills/plans/{planId}/run:
+    post:
+      tags: [DRDrills]
+      summary: 发起一次灾备演练
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+      responses:
+        '202':
+          description: 演练已启动
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DRDrillRecord'
+  /backup-restore/drills/records/{recordId}:
+    get:
+      tags: [DRDrills]
+      summary: 查询演练记录详情
+      parameters:
+        - $ref: '#/components/parameters/RecordId'
+      responses:
+        '200':
+          description: 演练记录详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DRDrillRecord'
+  /backup-restore/drills/records/{recordId}/report:
+    post:
+      tags: [DRDrills]
+      summary: 生成演练报告
+      parameters:
+        - $ref: '#/components/parameters/RecordId'
+      responses:
+        '201':
+          description: 演练报告
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DRDrillReport'
+  /audit/backup-restore/events:
+    get:
+      tags: [BackupAudit]
+      summary: 查询备份恢复域审计事件
+      parameters:
+        - in: query
+          name: action
+          schema: { type: string }
+        - in: query
+          name: outcome
+          schema: { type: string }
+        - in: query
+          name: targetType
+          schema: { type: string }
+      responses:
+        '200':
+          description: 审计事件列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BackupAuditEventListResponse'
+
+components:
+  parameters:
+    PolicyId:
+      in: path
+      name: policyId
+      required: true
+      schema: { type: string }
+    RestorePointId:
+      in: path
+      name: restorePointId
+      required: true
+      schema: { type: string }
+    JobId:
+      in: path
+      name: jobId
+      required: true
+      schema: { type: string }
+    PlanId:
+      in: path
+      name: planId
+      required: true
+      schema: { type: string }
+    RecordId:
+      in: path
+      name: recordId
+      required: true
+      schema: { type: string }
+  schemas:
+    BackupPolicy:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: string }
+        scopeType: { type: string }
+        scopeRef: { type: string }
+        executionMode: { type: string }
+        scheduleExpression: { type: string }
+        retentionRule: { type: string }
+        consistencyLevel: { type: string }
+        status: { type: string }
+        ownerUserId: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    BackupPolicyListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/BackupPolicy'
+    CreateBackupPolicyRequest:
+      type: object
+      required: [name, scopeType, executionMode, retentionRule, consistencyLevel]
+      properties:
+        name: { type: string }
+        description: { type: string }
+        scopeType: { type: string }
+        scopeRef: { type: string }
+        executionMode: { type: string }
+        scheduleExpression: { type: string }
+        retentionRule: { type: string }
+        consistencyLevel: { type: string }
+    RestorePoint:
+      type: object
+      properties:
+        id: { type: string }
+        policyId: { type: string }
+        scopeSnapshot: { type: object, additionalProperties: true }
+        backupStartedAt: { type: string, format: date-time }
+        backupCompletedAt: { type: string, format: date-time }
+        durationSeconds: { type: integer }
+        result: { type: string }
+        consistencySummary: { type: string }
+        failureReason: { type: string }
+        storageRef: { type: string }
+        expiresAt: { type: string, format: date-time }
+        createdBy: { type: string }
+    RestorePointListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RestorePoint'
+    RestoreJob:
+      type: object
+      properties:
+        id: { type: string }
+        restorePointId: { type: string }
+        jobType: { type: string }
+        sourceEnvironment: { type: string }
+        targetEnvironment: { type: string }
+        scopeSelection: { type: object, additionalProperties: true }
+        conflictSummary: { type: string }
+        consistencyNotice: { type: string }
+        status: { type: string }
+        resultSummary: { type: string }
+        failureReason: { type: string }
+        requestedBy: { type: string }
+        startedAt: { type: string, format: date-time }
+        completedAt: { type: string, format: date-time }
+    RestoreJobListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RestoreJob'
+    CreateRestoreJobRequest:
+      type: object
+      required: [restorePointId, jobType, targetEnvironment, scopeSelection]
+      properties:
+        restorePointId: { type: string }
+        jobType: { type: string }
+        sourceEnvironment: { type: string }
+        targetEnvironment: { type: string }
+        scopeSelection: { type: object, additionalProperties: true }
+    PrecheckResult:
+      type: object
+      properties:
+        status: { type: string }
+        blockers:
+          type: array
+          items: { type: string }
+        warnings:
+          type: array
+          items: { type: string }
+        consistencyNotice: { type: string }
+    MigrationPlan:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        sourceClusterId: { type: string }
+        targetClusterId: { type: string }
+        scopeSelection: { type: object, additionalProperties: true }
+        mappingRules: { type: object, additionalProperties: true }
+        cutoverSteps:
+          type: array
+          items: { type: string }
+        status: { type: string }
+        createdBy: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    CreateMigrationPlanRequest:
+      type: object
+      required: [name, sourceClusterId, targetClusterId, scopeSelection]
+      properties:
+        name: { type: string }
+        sourceClusterId: { type: string }
+        targetClusterId: { type: string }
+        scopeSelection: { type: object, additionalProperties: true }
+        mappingRules: { type: object, additionalProperties: true }
+        cutoverSteps:
+          type: array
+          items: { type: string }
+    DRDrillPlan:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: string }
+        scopeSelection: { type: object, additionalProperties: true }
+        rpoTargetMinutes: { type: integer }
+        rtoTargetMinutes: { type: integer }
+        roleAssignments:
+          type: array
+          items: { type: string }
+        cutoverProcedure:
+          type: array
+          items: { type: string }
+        validationChecklist:
+          type: array
+          items: { type: string }
+        status: { type: string }
+        createdBy: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    DRDrillPlanListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DRDrillPlan'
+    CreateDRDrillPlanRequest:
+      type: object
+      required: [name, scopeSelection, rpoTargetMinutes, rtoTargetMinutes, cutoverProcedure, validationChecklist]
+      properties:
+        name: { type: string }
+        description: { type: string }
+        scopeSelection: { type: object, additionalProperties: true }
+        rpoTargetMinutes: { type: integer }
+        rtoTargetMinutes: { type: integer }
+        roleAssignments:
+          type: array
+          items: { type: string }
+        cutoverProcedure:
+          type: array
+          items: { type: string }
+        validationChecklist:
+          type: array
+          items: { type: string }
+    DRDrillRecord:
+      type: object
+      properties:
+        id: { type: string }
+        planId: { type: string }
+        startedAt: { type: string, format: date-time }
+        completedAt: { type: string, format: date-time }
+        actualRpoMinutes: { type: integer }
+        actualRtoMinutes: { type: integer }
+        status: { type: string }
+        stepResults:
+          type: array
+          items: { type: string }
+        validationResults:
+          type: array
+          items: { type: string }
+        incidentNotes: { type: string }
+        executedBy: { type: string }
+    DRDrillReport:
+      type: object
+      properties:
+        id: { type: string }
+        drillRecordId: { type: string }
+        goalAssessment: { type: string }
+        gapSummary: { type: string }
+        issuesFound:
+          type: array
+          items: { type: string }
+        improvementActions:
+          type: array
+          items: { type: string }
+        publishedAt: { type: string, format: date-time }
+        publishedBy: { type: string }
+    BackupAuditEvent:
+      type: object
+      properties:
+        id: { type: string }
+        action: { type: string }
+        actorUserId: { type: string }
+        targetType: { type: string }
+        targetRef: { type: string }
+        scopeSnapshot: { type: object, additionalProperties: true }
+        outcome: { type: string }
+        detailSnapshot: { type: object, additionalProperties: true }
+        occurredAt: { type: string, format: date-time }
+    BackupAuditEventListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/BackupAuditEvent'

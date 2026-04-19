@@ -37,6 +37,14 @@ export type ClusterLifecyclePermission =
   | 'clusterlifecycle:retire'
   | 'clusterlifecycle:manage-driver';
 
+export type BackupRestorePermission =
+  | 'backuprestore:read'
+  | 'backuprestore:manage-policy'
+  | 'backuprestore:backup'
+  | 'backuprestore:restore'
+  | 'backuprestore:migrate'
+  | 'backuprestore:drill';
+
 type AuthUser = {
   id: string;
   username: string;
@@ -268,6 +276,43 @@ const CLUSTER_LIFECYCLE_AUDIT_READ_IDENTIFIERS: readonly string[] = [
   'audit-reader',
   'clusterlifecycle:read'
 ];
+const BACKUP_RESTORE_READ_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'audit-reader',
+  'readonly',
+  'backuprestore:read'
+];
+const BACKUP_RESTORE_MANAGE_POLICY_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'backuprestore:manage-policy'
+];
+const BACKUP_RESTORE_BACKUP_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'backuprestore:backup'
+];
+const BACKUP_RESTORE_RESTORE_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'backuprestore:restore'
+];
+const BACKUP_RESTORE_MIGRATE_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'backuprestore:migrate'
+];
+const BACKUP_RESTORE_DRILL_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'backuprestore:drill'
+];
+const BACKUP_RESTORE_AUDIT_READ_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'audit-reader',
+  'backuprestore:read'
+];
 
 const getUserRoles = (user: AuthUser | null | undefined): string[] => {
   if (!user || !Array.isArray(user.platformRoles)) {
@@ -391,6 +436,27 @@ export const canManageClusterLifecycleDriver = (user: AuthUser | null | undefine
 
 export const canReadClusterLifecycleAudit = (user: AuthUser | null | undefined): boolean =>
   hasAnyRole(user, CLUSTER_LIFECYCLE_AUDIT_READ_IDENTIFIERS);
+
+export const canReadBackupRestore = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, BACKUP_RESTORE_READ_IDENTIFIERS);
+
+export const canManageBackupPolicy = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, BACKUP_RESTORE_MANAGE_POLICY_IDENTIFIERS);
+
+export const canRunBackup = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, BACKUP_RESTORE_BACKUP_IDENTIFIERS);
+
+export const canExecuteBackupRestore = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, BACKUP_RESTORE_RESTORE_IDENTIFIERS);
+
+export const canMigrateBackupRestore = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, BACKUP_RESTORE_MIGRATE_IDENTIFIERS);
+
+export const canDrillBackupRestore = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, BACKUP_RESTORE_DRILL_IDENTIFIERS);
+
+export const canReadBackupRestoreAudit = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, BACKUP_RESTORE_AUDIT_READ_IDENTIFIERS);
 
 export const useAuthStore = create<AuthState>((set) => ({
   ...initialState,

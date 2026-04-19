@@ -1,6 +1,6 @@
 # kbManage Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-17
+Auto-generated from all feature plans. Last updated: 2026-04-18
 
 ## Active Technologies
 - Go 1.25；TypeScript 5.x；React 19.2 + Gin；client-go；GORM；React；Vite 8；Ant Design 6.3.x；React Router；TanStack Query (001-k8s-ops-platform)
@@ -16,6 +16,8 @@ Auto-generated from all feature plans. Last updated: 2026-04-17
 - MySQL 8.4（基线标准、扫描配置、扫描执行、失败项、证据索引、整改任务、例外审批、复检任务、趋势快照、审计索引）；Redis 8.x（扫描调度队列、进度缓存、短时证据缓存、幂等键、复检协调）；运行时证据与原始检查结果来自 Kubernetes API 与外部扫描器/基线执行适配层 (006-compliance-and-hardening)
 - Go 1.25；TypeScript 5.x；React 19.2 + Gin；client-go；GORM；go-redis；集群驱动访问抽象（导入/注册/创建/升级/节点池操作适配层）；模板与能力矩阵建模抽象；React；Vite 8；Ant Design 6.3.x；React Router；TanStack Query；Zustand (007-cluster-lifecycle)
 - MySQL 8.4（集群生命周期记录、驱动版本、模板、能力矩阵、升级计划、节点池快照、审计索引）；Redis 8.x（创建/升级进度、幂等键、短时校验缓存、异步任务协调）；运行时集群状态与节点信息来自 Kubernetes API 与基础设施驱动适配层 (007-cluster-lifecycle)
+- Go 1.25；TypeScript 5.x；React 19.2 + Gin；client-go；GORM；go-redis；平台级备份编排抽象（备份、恢复、迁移、演练执行适配层）；对象范围与一致性评估抽象；React；Vite 8；Ant Design 6.3.x；React Router；TanStack Query；Zustand；Apache ECharts (008-backup-restore-dr)
+- MySQL 8.4（备份策略、恢复点、恢复任务、迁移任务、演练计划、演练记录、验证清单、报告索引、审计索引）；Redis 8.x（备份/恢复进度、短时一致性评估缓存、幂等键、互斥锁、演练步骤协调）；实际备份数据与恢复介质由外部对象存储、快照仓库或执行器适配层保存 (008-backup-restore-dr)
 
 ## Project Structure
 
@@ -34,9 +36,9 @@ npm test && npm run lint
 Go 1.25；TypeScript 5.x；React 19.2: Follow standard conventions
 
 ## Recent Changes
+- 008-backup-restore-dr: Added Go 1.25；TypeScript 5.x；React 19.2 + Gin；client-go；GORM；go-redis；平台级备份编排抽象（备份、恢复、迁移、演练执行适配层）；对象范围与一致性评估抽象；React；Vite 8；Ant Design 6.3.x；React Router；TanStack Query；Zustand；Apache ECharts
 - 007-cluster-lifecycle: Added Go 1.25；TypeScript 5.x；React 19.2 + Gin；client-go；GORM；go-redis；集群驱动访问抽象（导入/注册/创建/升级/节点池操作适配层）；模板与能力矩阵建模抽象；React；Vite 8；Ant Design 6.3.x；React Router；TanStack Query；Zustand
 - 006-compliance-and-hardening: Added Go 1.25；TypeScript 5.x；React 19.2 + Gin；client-go；GORM；go-redis；合规扫描执行抽象（平台编排 + 外部扫描器/基线包适配层）；React；Vite 8；Ant Design 6.3.x；React Router；TanStack Query；Zustand；Apache ECharts
-- 005-security-and-policy: Added Go 1.25；TypeScript 5.x；React 19.2 + Gin；client-go；GORM；go-redis；策略评估与准入执行抽象（平台内部策略模板 + 规则执行器适配层）；React；Vite 8；Ant Design 6.3.x；React Router；TanStack Query；Zustand
 
 <!-- MANUAL ADDITIONS START -->
 ## Configuration Conventions

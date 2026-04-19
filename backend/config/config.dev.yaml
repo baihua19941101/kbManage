@@ -205,3 +205,33 @@ clusterLifecycle:
   audit:
     # 生命周期审计保留天数
     retention_days: 365
+
+backupRestore:
+  executor:
+    # 备份执行器默认超时
+    default_timeout: "30m"
+    # 恢复点或执行清单缓存 TTL
+    manifest_cache_ttl: "10m"
+  precheck:
+    # 恢复或迁移前校验默认超时
+    default_timeout: "2m"
+    # 校验结果缓存 TTL
+    result_cache_ttl: "5m"
+  operation:
+    # 恢复、迁移和演练动作默认超时
+    default_timeout: "45m"
+    # 关键动作幂等窗口
+    idempotency_ttl: "15m"
+    # 互斥锁 TTL
+    lock_ttl: "45m"
+  retention:
+    # 默认恢复点保留时间
+    default_restore_point_ttl: "168h"
+  drill:
+    # 默认 RPO 目标（分钟）
+    default_rpo_target_minutes: 30
+    # 默认 RTO 目标（分钟）
+    default_rto_target_minutes: 60
+  audit:
+    # 备份恢复与灾备审计保留天数
+    retention_days: 365

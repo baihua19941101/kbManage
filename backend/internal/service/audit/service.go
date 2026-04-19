@@ -128,6 +128,12 @@ func (s *Service) QueryClusterLifecycleEvents(ctx context.Context, req QueryEven
 	return s.QueryEvents(ctx, req)
 }
 
+func (s *Service) QueryBackupRestoreEvents(ctx context.Context, req QueryEventsRequest) ([]domain.AuditEvent, error) {
+	req.ActionPrefix = "backuprestore."
+	req.ResourceType = BackupRestoreAuditResourceType
+	return s.QueryEvents(ctx, req)
+}
+
 func (s *Service) QuerySecurityPolicyEvents(ctx context.Context, req QueryEventsRequest) ([]domain.AuditEvent, error) {
 	req.ActionPrefix = "securitypolicy."
 	req.ResourceType = SecurityPolicyAuditResourceType

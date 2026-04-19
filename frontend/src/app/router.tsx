@@ -93,6 +93,15 @@ export const router = createBrowserRouter([
             }
           },
           {
+            path: '/audit-events/backup-restore',
+            lazy: async () => {
+              const { BackupRestoreAuditPage } = await import(
+                '@/features/audit/pages/BackupRestoreAuditPage'
+              );
+              return { Component: BackupRestoreAuditPage };
+            }
+          },
+          {
             path: '/observability',
             lazy: async () => {
               const { ObservabilityOverviewPage } = await import(
@@ -324,6 +333,82 @@ export const router = createBrowserRouter([
           {
             path: '/cluster-lifecycle/*',
             element: <Navigate to="/cluster-lifecycle" replace />
+          },
+          {
+            path: '/backup-restore',
+            lazy: async () => {
+              const { BackupPolicyPage } = await import(
+                '@/features/backup-restore-dr/pages/BackupPolicyPage'
+              );
+              return { Component: BackupPolicyPage };
+            }
+          },
+          {
+            path: '/backup-restore/policies',
+            lazy: async () => {
+              const { BackupPolicyPage } = await import(
+                '@/features/backup-restore-dr/pages/BackupPolicyPage'
+              );
+              return { Component: BackupPolicyPage };
+            }
+          },
+          {
+            path: '/backup-restore/restore-points',
+            lazy: async () => {
+              const { RestorePointPage } = await import(
+                '@/features/backup-restore-dr/pages/RestorePointPage'
+              );
+              return { Component: RestorePointPage };
+            }
+          },
+          {
+            path: '/backup-restore/restore-jobs',
+            lazy: async () => {
+              const { RestoreJobPage } = await import(
+                '@/features/backup-restore-dr/pages/RestoreJobPage'
+              );
+              return { Component: RestoreJobPage };
+            }
+          },
+          {
+            path: '/backup-restore/migrations',
+            lazy: async () => {
+              const { MigrationPlanPage } = await import(
+                '@/features/backup-restore-dr/pages/MigrationPlanPage'
+              );
+              return { Component: MigrationPlanPage };
+            }
+          },
+          {
+            path: '/backup-restore/drills',
+            lazy: async () => {
+              const { DRDrillPlanPage } = await import(
+                '@/features/backup-restore-dr/pages/DRDrillPlanPage'
+              );
+              return { Component: DRDrillPlanPage };
+            }
+          },
+          {
+            path: '/backup-restore/drills/records/:recordId',
+            lazy: async () => {
+              const { DRDrillRecordPage } = await import(
+                '@/features/backup-restore-dr/pages/DRDrillRecordPage'
+              );
+              return { Component: DRDrillRecordPage };
+            }
+          },
+          {
+            path: '/backup-restore/drills/reports/:recordId',
+            lazy: async () => {
+              const { DRDrillReportPage } = await import(
+                '@/features/backup-restore-dr/pages/DRDrillReportPage'
+              );
+              return { Component: DRDrillReportPage };
+            }
+          },
+          {
+            path: '/backup-restore/*',
+            element: <Navigate to="/backup-restore" replace />
           },
           {
             path: '/compliance-hardening/baselines',
