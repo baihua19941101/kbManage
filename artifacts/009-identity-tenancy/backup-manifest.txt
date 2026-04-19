@@ -1,0 +1,6 @@
+timestamp=20260419-121706
+attempted_command=docker exec mysql8 sh -lc 'MYSQL_PWD=123456 mysqldump -hlocalhost -P3306 -uadmin --all-databases --single-transaction --quick --routines --events --triggers'
+attempted_result=failed
+actual_command=docker exec mysql8 sh -lc 'MYSQL_PWD=123456 mysqldump -hlocalhost -P3306 -uroot --all-databases --single-transaction --quick --routines --events --triggers' > artifacts/009-identity-tenancy/mysql-backup-20260419-121706-root.sql
+restore_check_container=mysql8-restore-check-009
+restore_check_databases=cdn_manage,cdn_manage_auth_service_test,cdn_manage_bootstrap_service_test,cdn_manage_demo,cdn_manage_projects_service_test,cdn_manage_repository_test,cdn_manage_users_service_test,information_schema,kb_manage,kubemanage,myapp,mysql,performance_schema,sys,

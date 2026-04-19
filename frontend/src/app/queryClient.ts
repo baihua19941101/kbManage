@@ -94,6 +94,18 @@ export const queryKeys = {
     drillRecord: (recordId?: number | string) =>
       ['backupRestore', 'drillRecord', recordId ?? 'unknown'] as const,
     audit: (scope?: string) => ['backupRestore', 'audit', scope ?? 'default'] as const
+  },
+  identityTenancy: {
+    all: ['identityTenancy'] as const,
+    sources: (scope?: string) => ['identityTenancy', 'sources', scope ?? 'default'] as const,
+    organizations: (scope?: string) =>
+      ['identityTenancy', 'organizations', scope ?? 'default'] as const,
+    roles: (scope?: string) => ['identityTenancy', 'roles', scope ?? 'default'] as const,
+    assignments: (scope?: string) =>
+      ['identityTenancy', 'assignments', scope ?? 'default'] as const,
+    sessions: (scope?: string) => ['identityTenancy', 'sessions', scope ?? 'default'] as const,
+    risks: (scope?: string) => ['identityTenancy', 'risks', scope ?? 'default'] as const,
+    audit: (scope?: string) => ['identityTenancy', 'audit', scope ?? 'default'] as const
   }
 };
 

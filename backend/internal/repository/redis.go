@@ -85,6 +85,10 @@ func ClusterLifecycleLockKey(parts ...string) string {
 	return prefixedRedisKey("clusterlifecycle:lock", parts...)
 }
 
+func PrefixedRedisKey(prefix string, parts ...string) string {
+	return prefixedRedisKey(prefix, parts...)
+}
+
 func prefixedRedisKey(prefix string, parts ...string) string {
 	if len(parts) == 0 {
 		return prefix

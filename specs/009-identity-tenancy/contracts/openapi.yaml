@@ -1,0 +1,426 @@
+openapi: 3.1.0
+info:
+  title: kbManage Identity Tenancy API
+  version: 0.1.0
+  description: >
+    009 身份与多租户治理中心首期接口契约，覆盖身份源接入、组织建模、
+    细粒度 RBAC、委派、会话治理与访问风险视图。
+servers:
+  - url: /api/v1
+tags:
+  - name: IdentitySources
+  - name: Organizations
+  - name: Roles
+  - name: Sessions
+  - name: AccessRisks
+paths:
+  /identity/sources:
+    get:
+      tags: [IdentitySources]
+      summary: 查询身份源列表
+      responses:
+        '200':
+          description: 身份源列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentitySourceListResponse'
+    post:
+      tags: [IdentitySources]
+      summary: 创建身份源
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIdentitySourceRequest'
+      responses:
+        '201':
+          description: 身份源
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentitySource'
+  /identity/sources/{sourceId}:
+    get:
+      tags: [IdentitySources]
+      summary: 查询身份源详情
+      parameters:
+        - $ref: '#/components/parameters/SourceId'
+      responses:
+        '200':
+          description: 身份源详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentitySource'
+  /identity/organizations:
+    get:
+      tags: [Organizations]
+      summary: 查询组织单元列表
+      parameters:
+        - in: query
+          name: unitType
+          schema: { type: string }
+        - in: query
+          name: parentUnitId
+          schema: { type: string }
+      responses:
+        '200':
+          description: 组织单元列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationUnitListResponse'
+    post:
+      tags: [Organizations]
+      summary: 创建组织单元
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrganizationUnitRequest'
+      responses:
+        '201':
+          description: 组织单元
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationUnit'
+  /identity/organizations/{unitId}/mappings:
+    post:
+      tags: [Organizations]
+      summary: 创建租户范围映射
+      parameters:
+        - $ref: '#/components/parameters/UnitId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTenantScopeMappingRequest'
+      responses:
+        '201':
+          description: 租户范围映射
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantScopeMapping'
+  /identity/roles:
+    get:
+      tags: [Roles]
+      summary: 查询角色定义列表
+      parameters:
+        - in: query
+          name: roleLevel
+          schema: { type: string }
+      responses:
+        '200':
+          description: 角色定义列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleDefinitionListResponse'
+    post:
+      tags: [Roles]
+      summary: 创建角色定义
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoleDefinitionRequest'
+      responses:
+        '201':
+          description: 角色定义
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleDefinition'
+  /identity/assignments:
+    get:
+      tags: [Roles]
+      summary: 查询授权分配列表
+      parameters:
+        - in: query
+          name: subjectRef
+          schema: { type: string }
+        - in: query
+          name: scopeType
+          schema: { type: string }
+      responses:
+        '200':
+          description: 授权分配列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleAssignmentListResponse'
+    post:
+      tags: [Roles]
+      summary: 创建授权分配
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoleAssignmentRequest'
+      responses:
+        '201':
+          description: 授权分配
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleAssignment'
+  /identity/delegations:
+    post:
+      tags: [Roles]
+      summary: 创建委派关系
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDelegationGrantRequest'
+      responses:
+        '201':
+          description: 委派关系
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DelegationGrant'
+  /identity/sessions:
+    get:
+      tags: [Sessions]
+      summary: 查询会话治理视图
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string }
+        - in: query
+          name: riskLevel
+          schema: { type: string }
+      responses:
+        '200':
+          description: 会话列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionRecordListResponse'
+  /identity/access-risks:
+    get:
+      tags: [AccessRisks]
+      summary: 查询访问风险摘要
+      parameters:
+        - in: query
+          name: subjectType
+          schema: { type: string }
+        - in: query
+          name: severity
+          schema: { type: string }
+      responses:
+        '200':
+          description: 风险摘要列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessRiskSnapshotListResponse'
+
+components:
+  parameters:
+    SourceId:
+      in: path
+      name: sourceId
+      required: true
+      schema: { type: string }
+    UnitId:
+      in: path
+      name: unitId
+      required: true
+      schema: { type: string }
+  schemas:
+    IdentitySource:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        sourceType: { type: string }
+        status: { type: string }
+        loginMode: { type: string }
+        scopeMode: { type: string }
+        syncState: { type: string }
+        lastCheckedAt: { type: string, format: date-time }
+    IdentitySourceListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/IdentitySource'
+    CreateIdentitySourceRequest:
+      type: object
+      required: [name, sourceType, loginMode, scopeMode]
+      properties:
+        name: { type: string }
+        sourceType: { type: string }
+        loginMode: { type: string }
+        scopeMode: { type: string }
+    OrganizationUnit:
+      type: object
+      properties:
+        id: { type: string }
+        unitType: { type: string }
+        name: { type: string }
+        description: { type: string }
+        parentUnitId: { type: string }
+        status: { type: string }
+    OrganizationUnitListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrganizationUnit'
+    CreateOrganizationUnitRequest:
+      type: object
+      required: [unitType, name]
+      properties:
+        unitType: { type: string }
+        name: { type: string }
+        description: { type: string }
+        parentUnitId: { type: string }
+    TenantScopeMapping:
+      type: object
+      properties:
+        id: { type: string }
+        unitId: { type: string }
+        scopeType: { type: string }
+        scopeRef: { type: string }
+        inheritanceMode: { type: string }
+        status: { type: string }
+    CreateTenantScopeMappingRequest:
+      type: object
+      required: [scopeType, scopeRef, inheritanceMode]
+      properties:
+        scopeType: { type: string }
+        scopeRef: { type: string }
+        inheritanceMode: { type: string }
+    RoleDefinition:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        roleLevel: { type: string }
+        description: { type: string }
+        permissionSummary: { type: string }
+        inheritancePolicy: { type: string }
+        delegable: { type: boolean }
+        status: { type: string }
+    RoleDefinitionListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleDefinition'
+    CreateRoleDefinitionRequest:
+      type: object
+      required: [name, roleLevel, permissionSummary, inheritancePolicy]
+      properties:
+        name: { type: string }
+        roleLevel: { type: string }
+        description: { type: string }
+        permissionSummary: { type: string }
+        inheritancePolicy: { type: string }
+        delegable: { type: boolean }
+    RoleAssignment:
+      type: object
+      properties:
+        id: { type: string }
+        subjectType: { type: string }
+        subjectRef: { type: string }
+        roleDefinitionId: { type: string }
+        scopeType: { type: string }
+        scopeRef: { type: string }
+        sourceType: { type: string }
+        validFrom: { type: string, format: date-time }
+        validUntil: { type: string, format: date-time }
+        status: { type: string }
+    RoleAssignmentListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleAssignment'
+    CreateRoleAssignmentRequest:
+      type: object
+      required: [subjectType, subjectRef, roleDefinitionId, scopeType, scopeRef]
+      properties:
+        subjectType: { type: string }
+        subjectRef: { type: string }
+        roleDefinitionId: { type: string }
+        scopeType: { type: string }
+        scopeRef: { type: string }
+        validUntil: { type: string, format: date-time }
+    DelegationGrant:
+      type: object
+      properties:
+        id: { type: string }
+        grantorRef: { type: string }
+        delegateRef: { type: string }
+        allowedRoleLevels:
+          type: array
+          items: { type: string }
+        status: { type: string }
+        validFrom: { type: string, format: date-time }
+        validUntil: { type: string, format: date-time }
+        reason: { type: string }
+    CreateDelegationGrantRequest:
+      type: object
+      required: [grantorRef, delegateRef, allowedRoleLevels, validFrom, validUntil]
+      properties:
+        grantorRef: { type: string }
+        delegateRef: { type: string }
+        allowedRoleLevels:
+          type: array
+          items: { type: string }
+        validFrom: { type: string, format: date-time }
+        validUntil: { type: string, format: date-time }
+        reason: { type: string }
+    SessionRecord:
+      type: object
+      properties:
+        id: { type: string }
+        userId: { type: string }
+        identitySourceId: { type: string }
+        loginMethod: { type: string }
+        status: { type: string }
+        riskLevel: { type: string }
+        lastSeenAt: { type: string, format: date-time }
+    SessionRecordListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SessionRecord'
+    AccessRiskSnapshot:
+      type: object
+      properties:
+        id: { type: string }
+        subjectType: { type: string }
+        subjectRef: { type: string }
+        riskType: { type: string }
+        severity: { type: string }
+        summary: { type: string }
+        recommendedAction: { type: string }
+        status: { type: string }
+        generatedAt: { type: string, format: date-time }
+    AccessRiskSnapshotListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccessRiskSnapshot'

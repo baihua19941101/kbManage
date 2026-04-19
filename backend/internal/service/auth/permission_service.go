@@ -50,6 +50,12 @@ func NewPermissionService() *PermissionService {
 				"backuprestore:restore":            {},
 				"backuprestore:migrate":            {},
 				"backuprestore:drill":              {},
+				"identity:read":                    {},
+				"identity:manage-source":           {},
+				"identity:manage-org":              {},
+				"identity:manage-role":             {},
+				"identity:delegate":                {},
+				"identity:session-govern":          {},
 			},
 			"auditor": {
 				"audit:read":                {},
@@ -59,6 +65,7 @@ func NewPermissionService() *PermissionService {
 				"compliance:export-archive": {},
 				"clusterlifecycle:read":     {},
 				"backuprestore:read":        {},
+				"identity:read":             {},
 			},
 			"audit-reader": {
 				"audit:read":                {},
@@ -109,6 +116,12 @@ func NewPermissionService() *PermissionService {
 				"backuprestore:restore":            {},
 				"backuprestore:migrate":            {},
 				"backuprestore:drill":              {},
+				"identity:read":                    {},
+				"identity:manage-source":           {},
+				"identity:manage-org":              {},
+				"identity:manage-role":             {},
+				"identity:delegate":                {},
+				"identity:session-govern":          {},
 			},
 			"readonly": {
 				"resource:read":             {},
@@ -121,6 +134,7 @@ func NewPermissionService() *PermissionService {
 				"compliance:export-archive": {},
 				"clusterlifecycle:read":     {},
 				"backuprestore:read":        {},
+				"identity:read":             {},
 			},
 			"workspace-owner": {
 				"access:workspace:read":            {},
@@ -164,6 +178,11 @@ func NewPermissionService() *PermissionService {
 				"backuprestore:restore":            {},
 				"backuprestore:migrate":            {},
 				"backuprestore:drill":              {},
+				"identity:read":                    {},
+				"identity:manage-org":              {},
+				"identity:manage-role":             {},
+				"identity:delegate":                {},
+				"identity:session-govern":          {},
 			},
 			"workspace-viewer": {
 				"access:workspace:read": {},
@@ -174,6 +193,7 @@ func NewPermissionService() *PermissionService {
 				"gitops:read":           {},
 				"securitypolicy:read":   {},
 				"backuprestore:read":    {},
+				"identity:read":         {},
 			},
 			"project-owner": {
 				"access:project:read":              {},
@@ -215,6 +235,9 @@ func NewPermissionService() *PermissionService {
 				"backuprestore:restore":            {},
 				"backuprestore:migrate":            {},
 				"backuprestore:drill":              {},
+				"identity:read":                    {},
+				"identity:manage-role":             {},
+				"identity:delegate":                {},
 			},
 			"project-viewer": {
 				"access:project:read":       {},
@@ -227,6 +250,7 @@ func NewPermissionService() *PermissionService {
 				"compliance:export-archive": {},
 				"clusterlifecycle:read":     {},
 				"backuprestore:read":        {},
+				"identity:read":             {},
 			},
 		},
 	}

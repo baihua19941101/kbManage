@@ -106,6 +106,17 @@ const (
 	BackupRestoreAuditActionDrillPlanCreate = "backuprestore.drill-plan.create"
 	BackupRestoreAuditActionDrillRun        = "backuprestore.drill.run"
 	BackupRestoreAuditActionReportCreate    = "backuprestore.drill-report.create"
+
+	IdentityTenancyAuditResourceType          = "identitytenancy"
+	IdentityTenancyAuditActionSourceCreate    = "identitytenancy.source.create"
+	IdentityTenancyAuditActionSourceSync      = "identitytenancy.source.sync"
+	IdentityTenancyAuditActionOrganizationCreate = "identitytenancy.organization.create"
+	IdentityTenancyAuditActionTenantMappingCreate = "identitytenancy.tenant-mapping.create"
+	IdentityTenancyAuditActionRoleDefinitionCreate = "identitytenancy.role-definition.create"
+	IdentityTenancyAuditActionRoleAssignmentCreate = "identitytenancy.role-assignment.create"
+	IdentityTenancyAuditActionDelegationCreate = "identitytenancy.delegation.create"
+	IdentityTenancyAuditActionSessionQuery    = "identitytenancy.session.query"
+	IdentityTenancyAuditActionRiskQuery       = "identitytenancy.access-risk.query"
 )
 
 type EventWriter struct {
@@ -320,6 +331,30 @@ func (w *EventWriter) WriteSecurityPolicyEvent(
 		actorID,
 		action,
 		SecurityPolicyAuditResourceType,
+		strings.TrimSpace(resourceID),
+		outcome,
+		details,
+	)
+}
+
+func (w *EventWriter) WriteIdentityTenancyEvent(
+	ctx context.Context,
+	requestID string,
+	actorID *uint64,
+	action string,
+	resourceID string,
+	outcome domain.AuditOutcome,
+	details map[string]any,
+) error {
+	if details == nil {
+		details = map[string]any{}
+	}
+	return w.Write(
+		ctx,
+		requestID,
+		actorID,
+		action,
+		IdentityTenancyAuditResourceType,
 		strings.TrimSpace(resourceID),
 		outcome,
 		details,

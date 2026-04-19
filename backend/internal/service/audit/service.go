@@ -134,6 +134,12 @@ func (s *Service) QueryBackupRestoreEvents(ctx context.Context, req QueryEventsR
 	return s.QueryEvents(ctx, req)
 }
 
+func (s *Service) QueryIdentityTenancyEvents(ctx context.Context, req QueryEventsRequest) ([]domain.AuditEvent, error) {
+	req.ActionPrefix = "identitytenancy."
+	req.ResourceType = IdentityTenancyAuditResourceType
+	return s.QueryEvents(ctx, req)
+}
+
 func (s *Service) QuerySecurityPolicyEvents(ctx context.Context, req QueryEventsRequest) ([]domain.AuditEvent, error) {
 	req.ActionPrefix = "securitypolicy."
 	req.ResourceType = SecurityPolicyAuditResourceType

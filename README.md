@@ -79,6 +79,10 @@ npm config set registry https://registry.npmmirror.com
 - `backupRestore.retention.default_restore_point_ttl`
 - `backupRestore.drill.default_rpo_target_minutes / default_rto_target_minutes`
 - `backupRestore.audit.retention_days`
+- `identityTenancy.source.healthcheck_timeout / sync_result_ttl`
+- `identityTenancy.session.session_cache_ttl / revocation_ttl`
+- `identityTenancy.organization.membership_cache_ttl`
+- `identityTenancy.audit.retention_days`
 
 说明：
 
@@ -102,6 +106,7 @@ npm config set registry https://registry.npmmirror.com
 - `VITE_COMPLIANCE_REFRESH_INTERVAL`：合规与加固页面刷新间隔（毫秒）
 - `VITE_CLUSTER_LIFECYCLE_REFRESH_INTERVAL`：集群生命周期页面刷新间隔（毫秒）
 - `VITE_BACKUP_RESTORE_REFRESH_INTERVAL`：备份恢复与演练页面刷新间隔（毫秒）
+- `VITE_IDENTITY_TENANCY_REFRESH_INTERVAL`：身份与多租户治理页面刷新间隔（毫秒）
 
 ## 启动方式
 
@@ -164,6 +169,7 @@ npm run build
 - 005-security-and-policy 已进入 implement 阶段，已落地策略中心 US1 前后端主干与治理证据。
 - 007-cluster-lifecycle 已完成规格、规划和任务拆解，当前进入 implement 阶段。
 - 008-backup-restore-dr 已完成规格、规划和任务拆解，当前进入 implement 阶段。
+- 009-identity-tenancy 已完成规格、规划、任务拆解与实现，当前等待审查与后续 GitHub 提交流程。
 
 ## 002 可观测联调要点
 
@@ -249,3 +255,24 @@ bash artifacts/002-observability-center/repro-observability-smoke.sh
   - `/backup-restore/migrations`
   - `/backup-restore/drills`
   - `/audit-events/backup-restore`
+
+## 009 身份与多租户治理联调要点
+
+- 后端默认读取以下配置：
+  - `identityTenancy.source.healthcheck_timeout`
+  - `identityTenancy.source.sync_result_ttl`
+  - `identityTenancy.session.session_cache_ttl`
+  - `identityTenancy.session.revocation_ttl`
+  - `identityTenancy.organization.membership_cache_ttl`
+  - `identityTenancy.audit.retention_days`
+- 前端入口：
+  - `/identity-tenancy`
+  - `/identity-tenancy/sources`
+  - `/identity-tenancy/sessions`
+  - `/identity-tenancy/organizations`
+  - `/identity-tenancy/mappings`
+  - `/identity-tenancy/roles`
+  - `/identity-tenancy/assignments`
+  - `/identity-tenancy/delegations`
+  - `/identity-tenancy/access-risks`
+  - `/audit-events/identity`
