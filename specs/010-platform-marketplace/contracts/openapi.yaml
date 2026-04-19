@@ -1,0 +1,138 @@
+openapi: 3.0.3
+info:
+  title: kbManage Platform Marketplace API
+  version: 0.1.0
+  description: 应用目录、模板分发与扩展市场接口契约
+servers:
+  - url: /api/v1
+paths:
+  /marketplace/catalog-sources:
+    get:
+      summary: 查询目录来源
+      tags: [CatalogSource]
+      responses:
+        '200':
+          description: 目录来源列表
+    post:
+      summary: 新增目录来源
+      tags: [CatalogSource]
+      responses:
+        '201':
+          description: 创建成功
+  /marketplace/catalog-sources/{sourceId}/sync:
+    post:
+      summary: 执行目录来源同步
+      tags: [CatalogSource]
+      parameters:
+        - in: path
+          name: sourceId
+          required: true
+          schema:
+            type: string
+      responses:
+        '202':
+          description: 已接受同步请求
+  /marketplace/templates:
+    get:
+      summary: 查询模板中心
+      tags: [Template]
+      responses:
+        '200':
+          description: 模板列表
+  /marketplace/templates/{templateId}:
+    get:
+      summary: 查询模板详情
+      tags: [Template]
+      parameters:
+        - in: path
+          name: templateId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 模板详情
+  /marketplace/templates/{templateId}/releases:
+    get:
+      summary: 查询模板分发记录
+      tags: [TemplateRelease]
+      parameters:
+        - in: path
+          name: templateId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 分发记录列表
+    post:
+      summary: 发布模板到目标范围
+      tags: [TemplateRelease]
+      parameters:
+        - in: path
+          name: templateId
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: 发布成功
+  /marketplace/installations:
+    get:
+      summary: 查询安装记录
+      tags: [Installation]
+      responses:
+        '200':
+          description: 安装记录列表
+  /marketplace/extensions:
+    get:
+      summary: 查询扩展中心
+      tags: [Extension]
+      responses:
+        '200':
+          description: 扩展列表
+    post:
+      summary: 注册扩展包
+      tags: [Extension]
+      responses:
+        '201':
+          description: 注册成功
+  /marketplace/extensions/{extensionId}/enable:
+    post:
+      summary: 启用扩展
+      tags: [Extension]
+      parameters:
+        - in: path
+          name: extensionId
+          required: true
+          schema:
+            type: string
+      responses:
+        '202':
+          description: 启用请求已接受
+  /marketplace/extensions/{extensionId}/disable:
+    post:
+      summary: 停用扩展
+      tags: [Extension]
+      parameters:
+        - in: path
+          name: extensionId
+          required: true
+          schema:
+            type: string
+      responses:
+        '202':
+          description: 停用请求已接受
+  /marketplace/extensions/{extensionId}/compatibility:
+    get:
+      summary: 查询扩展兼容性结论
+      tags: [Extension]
+      parameters:
+        - in: path
+          name: extensionId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 兼容性结论

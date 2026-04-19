@@ -1,0 +1,9 @@
+feature=010-platform-marketplace
+branch=010-platform-marketplace
+backup_artifact=artifacts/010-platform-marketplace/mysql-backup-20260419-155031-root.sql
+backup_mode=root_fallback
+backup_command=docker exec mysql8 sh -lc 'mysqldump -hlocalhost -P3306 -uadmin -p123456 --all-databases --single-transaction --quick --routines --events --triggers'
+fallback_command=docker exec mysql8 sh -lc 'MYSQL_PWD=123456 mysqldump -hlocalhost -P3306 -uroot --all-databases --single-transaction --quick --routines --events --triggers'
+restore_check_container=mysql8-restore-check-010
+restore_validation=passed
+restored_databases=cdn_manage,cdn_manage_auth_service_test,cdn_manage_bootstrap_service_test,cdn_manage_demo,cdn_manage_projects_service_test,cdn_manage_repository_test,cdn_manage_users_service_test,information_schema,kb_manage,kubemanage,myapp,mysql,performance_schema,sys

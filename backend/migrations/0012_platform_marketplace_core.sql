@@ -1,0 +1,115 @@
+CREATE TABLE IF NOT EXISTS marketplace_catalog_sources (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(128) NOT NULL UNIQUE,
+  source_type VARCHAR(32) NOT NULL,
+  endpoint_ref VARCHAR(255) NULL,
+  status VARCHAR(32) NOT NULL,
+  sync_state VARCHAR(32) NOT NULL,
+  last_error TEXT NULL,
+  visible_scope VARCHAR(255) NULL,
+  template_count INT NOT NULL DEFAULT 0,
+  owner_user_id BIGINT UNSIGNED NOT NULL,
+  last_synced_at DATETIME NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS marketplace_application_templates (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  catalog_source_id BIGINT UNSIGNED NOT NULL,
+  name VARCHAR(128) NOT NULL,
+  slug VARCHAR(128) NOT NULL UNIQUE,
+  category VARCHAR(64) NOT NULL,
+  summary TEXT NULL,
+  status VARCHAR(32) NOT NULL,
+  latest_version VARCHAR(64) NULL,
+  scope_summary TEXT NULL,
+  dependency_summary TEXT NULL,
+  release_note_summary TEXT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS marketplace_template_versions (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  application_template_id BIGINT UNSIGNED NOT NULL,
+  version VARCHAR(64) NOT NULL,
+  status VARCHAR(32) NOT NULL,
+  dependency_summary TEXT NULL,
+  release_notes TEXT NULL,
+  form_summary TEXT NULL,
+  constraint_summary TEXT NULL,
+  compatibility_summary TEXT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS marketplace_template_release_scopes (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  application_template_id BIGINT UNSIGNED NOT NULL,
+  template_version_id BIGINT UNSIGNED NOT NULL,
+  version VARCHAR(64) NOT NULL,
+  target_type VARCHAR(32) NOT NULL,
+  target_ref VARCHAR(128) NOT NULL,
+  status VARCHAR(32) NOT NULL,
+  visibility_summary TEXT NULL,
+  release_notes TEXT NULL,
+  restriction_summary TEXT NULL,
+  published_by BIGINT UNSIGNED NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS marketplace_installation_records (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  application_template_id BIGINT UNSIGNED NOT NULL,
+  template_release_scope_id BIGINT UNSIGNED NOT NULL,
+  template_version_id BIGINT UNSIGNED NOT NULL,
+  target_type VARCHAR(32) NOT NULL,
+  target_ref VARCHAR(128) NOT NULL,
+  current_version VARCHAR(64) NOT NULL,
+  latest_version VARCHAR(64) NULL,
+  status VARCHAR(32) NOT NULL,
+  change_summary TEXT NULL,
+  offline_state VARCHAR(32) NULL,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS marketplace_extension_packages (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(128) NOT NULL UNIQUE,
+  version VARCHAR(64) NOT NULL,
+  status VARCHAR(32) NOT NULL,
+  visibility_scope VARCHAR(255) NULL,
+  permission_summary TEXT NULL,
+  compatibility_status VARCHAR(32) NOT NULL,
+  impact_summary TEXT NULL,
+  owner_user_id BIGINT UNSIGNED NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS marketplace_compatibility_statements (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  extension_package_id BIGINT UNSIGNED NOT NULL,
+  platform_version VARCHAR(64) NOT NULL,
+  compatibility_status VARCHAR(32) NOT NULL,
+  summary TEXT NULL,
+  blocked_reasons TEXT NULL,
+  suggested_actions TEXT NULL,
+  permission_impact TEXT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS marketplace_extension_lifecycle_records (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  extension_package_id BIGINT UNSIGNED NOT NULL,
+  action VARCHAR(32) NOT NULL,
+  outcome VARCHAR(32) NOT NULL,
+  reason TEXT NULL,
+  executed_by BIGINT UNSIGNED NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

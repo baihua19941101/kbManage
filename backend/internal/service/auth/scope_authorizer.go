@@ -229,6 +229,33 @@ func (a *ScopeAuthorizer) CanAccessGitOps(
 	)
 }
 
+func (a *ScopeAuthorizer) CanAccessPlatformMarketplace(
+	grantedType domain.ScopeType,
+	grantedWorkspaceID uint64,
+	grantedProjectID uint64,
+	targetWorkspaceID uint64,
+	targetProjectID uint64,
+	clusterScoped bool,
+) bool {
+	if clusterScoped && targetWorkspaceID == 0 && targetProjectID == 0 {
+		return grantedType == domain.ScopeTypePlatform
+	}
+
+	targetType := domain.ScopeTypeWorkspace
+	if targetProjectID != 0 {
+		targetType = domain.ScopeTypeProject
+	}
+
+	return a.CanAccess(
+		grantedType,
+		grantedWorkspaceID,
+		grantedProjectID,
+		targetType,
+		targetWorkspaceID,
+		targetProjectID,
+	)
+}
+
 func (a *ScopeAuthorizer) CanAccessGitOpsMapped(
 	grantedType domain.ScopeType,
 	grantedWorkspaceID uint64,

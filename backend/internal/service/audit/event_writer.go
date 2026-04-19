@@ -107,16 +107,28 @@ const (
 	BackupRestoreAuditActionDrillRun        = "backuprestore.drill.run"
 	BackupRestoreAuditActionReportCreate    = "backuprestore.drill-report.create"
 
-	IdentityTenancyAuditResourceType          = "identitytenancy"
-	IdentityTenancyAuditActionSourceCreate    = "identitytenancy.source.create"
-	IdentityTenancyAuditActionSourceSync      = "identitytenancy.source.sync"
-	IdentityTenancyAuditActionOrganizationCreate = "identitytenancy.organization.create"
-	IdentityTenancyAuditActionTenantMappingCreate = "identitytenancy.tenant-mapping.create"
+	IdentityTenancyAuditResourceType               = "identitytenancy"
+	IdentityTenancyAuditActionSourceCreate         = "identitytenancy.source.create"
+	IdentityTenancyAuditActionSourceSync           = "identitytenancy.source.sync"
+	IdentityTenancyAuditActionOrganizationCreate   = "identitytenancy.organization.create"
+	IdentityTenancyAuditActionTenantMappingCreate  = "identitytenancy.tenant-mapping.create"
 	IdentityTenancyAuditActionRoleDefinitionCreate = "identitytenancy.role-definition.create"
 	IdentityTenancyAuditActionRoleAssignmentCreate = "identitytenancy.role-assignment.create"
-	IdentityTenancyAuditActionDelegationCreate = "identitytenancy.delegation.create"
-	IdentityTenancyAuditActionSessionQuery    = "identitytenancy.session.query"
-	IdentityTenancyAuditActionRiskQuery       = "identitytenancy.access-risk.query"
+	IdentityTenancyAuditActionDelegationCreate     = "identitytenancy.delegation.create"
+	IdentityTenancyAuditActionSessionQuery         = "identitytenancy.session.query"
+	IdentityTenancyAuditActionRiskQuery            = "identitytenancy.access-risk.query"
+
+	PlatformMarketplaceAuditResourceType              = "platformmarketplace"
+	PlatformMarketplaceAuditActionCatalogSourceCreate = "platformmarketplace.catalog-source.create"
+	PlatformMarketplaceAuditActionCatalogSourceSync   = "platformmarketplace.catalog-source.sync"
+	PlatformMarketplaceAuditActionTemplateUpsert      = "platformmarketplace.template.upsert"
+	PlatformMarketplaceAuditActionTemplatePublish     = "platformmarketplace.template.publish"
+	PlatformMarketplaceAuditActionTemplateWithdraw    = "platformmarketplace.template.withdraw"
+	PlatformMarketplaceAuditActionInstallationRead    = "platformmarketplace.installation.read"
+	PlatformMarketplaceAuditActionExtensionRegister   = "platformmarketplace.extension.register"
+	PlatformMarketplaceAuditActionExtensionEnable     = "platformmarketplace.extension.enable"
+	PlatformMarketplaceAuditActionExtensionDisable    = "platformmarketplace.extension.disable"
+	PlatformMarketplaceAuditActionCompatibilityQuery  = "platformmarketplace.compatibility.query"
 )
 
 type EventWriter struct {
@@ -355,6 +367,27 @@ func (w *EventWriter) WriteIdentityTenancyEvent(
 		actorID,
 		action,
 		IdentityTenancyAuditResourceType,
+		strings.TrimSpace(resourceID),
+		outcome,
+		details,
+	)
+}
+
+func (w *EventWriter) WritePlatformMarketplaceEvent(
+	ctx context.Context,
+	requestID string,
+	actorID *uint64,
+	action string,
+	resourceID string,
+	outcome domain.AuditOutcome,
+	details map[string]any,
+) error {
+	return w.Write(
+		ctx,
+		requestID,
+		actorID,
+		action,
+		PlatformMarketplaceAuditResourceType,
 		strings.TrimSpace(resourceID),
 		outcome,
 		details,

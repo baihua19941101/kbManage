@@ -1,0 +1,5 @@
+GOPROXY=https://goproxy.cn,direct
+npm_registry=https://registry.npmmirror.com
+marketplace_source_policy=prefer-approved-cn-mirror-or-proxy
+remote=git@github.com:baihua19941101/kbManage.git
+pr_workflow=push_feature_branch_then_open_or_update_chinese_pr
