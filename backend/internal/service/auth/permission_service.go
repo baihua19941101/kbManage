@@ -60,6 +60,10 @@ func NewPermissionService() *PermissionService {
 				"marketplace:manage-source":        {},
 				"marketplace:publish-template":     {},
 				"marketplace:manage-extension":     {},
+				"sre:read":                         {},
+				"sre:manage-ha":                    {},
+				"sre:manage-upgrade":               {},
+				"sre:manage-scale":                 {},
 			},
 			"auditor": {
 				"audit:read":                {},
@@ -71,6 +75,7 @@ func NewPermissionService() *PermissionService {
 				"backuprestore:read":        {},
 				"identity:read":             {},
 				"marketplace:read":          {},
+				"sre:read":                  {},
 			},
 			"audit-reader": {
 				"audit:read":                {},
@@ -131,6 +136,10 @@ func NewPermissionService() *PermissionService {
 				"marketplace:manage-source":        {},
 				"marketplace:publish-template":     {},
 				"marketplace:manage-extension":     {},
+				"sre:read":                         {},
+				"sre:manage-ha":                    {},
+				"sre:manage-upgrade":               {},
+				"sre:manage-scale":                 {},
 			},
 			"readonly": {
 				"resource:read":             {},
@@ -145,6 +154,7 @@ func NewPermissionService() *PermissionService {
 				"backuprestore:read":        {},
 				"identity:read":             {},
 				"marketplace:read":          {},
+				"sre:read":                  {},
 			},
 			"workspace-owner": {
 				"access:workspace:read":            {},
@@ -197,6 +207,10 @@ func NewPermissionService() *PermissionService {
 				"marketplace:manage-source":        {},
 				"marketplace:publish-template":     {},
 				"marketplace:manage-extension":     {},
+				"sre:read":                         {},
+				"sre:manage-ha":                    {},
+				"sre:manage-upgrade":               {},
+				"sre:manage-scale":                 {},
 			},
 			"workspace-viewer": {
 				"access:workspace:read": {},
@@ -209,6 +223,7 @@ func NewPermissionService() *PermissionService {
 				"backuprestore:read":    {},
 				"identity:read":         {},
 				"marketplace:read":      {},
+				"sre:read":              {},
 			},
 			"project-owner": {
 				"access:project:read":              {},
@@ -255,6 +270,8 @@ func NewPermissionService() *PermissionService {
 				"identity:delegate":                {},
 				"marketplace:read":                 {},
 				"marketplace:publish-template":     {},
+				"sre:read":                         {},
+				"sre:manage-upgrade":               {},
 			},
 			"project-viewer": {
 				"access:project:read":       {},
@@ -269,6 +286,7 @@ func NewPermissionService() *PermissionService {
 				"backuprestore:read":        {},
 				"identity:read":             {},
 				"marketplace:read":          {},
+				"sre:read":                  {},
 			},
 		},
 	}

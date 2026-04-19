@@ -120,6 +120,13 @@ export const router = createBrowserRouter([
             }
           },
           {
+            path: '/audit-events/sre',
+            lazy: async () => {
+              const { SREAuditPage } = await import('@/features/audit/pages/SREAuditPage');
+              return { Component: SREAuditPage };
+            }
+          },
+          {
             path: '/observability',
             lazy: async () => {
               const { ObservabilityOverviewPage } = await import(
@@ -588,6 +595,52 @@ export const router = createBrowserRouter([
           {
             path: '/platform-marketplace/*',
             element: <Navigate to="/platform-marketplace" replace />
+          },
+          {
+            path: '/sre-scale',
+            lazy: async () => {
+              const { HealthOverviewPage } = await import('@/features/sre-scale/pages/HealthOverviewPage');
+              return { Component: HealthOverviewPage };
+            }
+          },
+          {
+            path: '/sre-scale/ha',
+            lazy: async () => {
+              const { HAControlPage } = await import('@/features/sre-scale/pages/HAControlPage');
+              return { Component: HAControlPage };
+            }
+          },
+          {
+            path: '/sre-scale/upgrades',
+            lazy: async () => {
+              const { UpgradeGovernancePage } = await import('@/features/sre-scale/pages/UpgradeGovernancePage');
+              return { Component: UpgradeGovernancePage };
+            }
+          },
+          {
+            path: '/sre-scale/rollback',
+            lazy: async () => {
+              const { RollbackValidationPage } = await import('@/features/sre-scale/pages/RollbackValidationPage');
+              return { Component: RollbackValidationPage };
+            }
+          },
+          {
+            path: '/sre-scale/capacity',
+            lazy: async () => {
+              const { CapacityGovernancePage } = await import('@/features/sre-scale/pages/CapacityGovernancePage');
+              return { Component: CapacityGovernancePage };
+            }
+          },
+          {
+            path: '/sre-scale/runbooks',
+            lazy: async () => {
+              const { RunbookCenterPage } = await import('@/features/sre-scale/pages/RunbookCenterPage');
+              return { Component: RunbookCenterPage };
+            }
+          },
+          {
+            path: '/sre-scale/*',
+            element: <Navigate to="/sre-scale" replace />
           },
           {
             path: '/compliance-hardening/baselines',

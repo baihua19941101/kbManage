@@ -119,6 +119,18 @@ export const queryKeys = {
     compatibility: (scope?: string) =>
       ['platformMarketplace', 'compatibility', scope ?? 'default'] as const,
     audit: (scope?: string) => ['platformMarketplace', 'audit', scope ?? 'default'] as const
+  },
+  sreScale: {
+    all: ['sreScale'] as const,
+    haPolicies: (scope?: string) => ['sreScale', 'haPolicies', scope ?? 'default'] as const,
+    health: (scope?: string) => ['sreScale', 'health', scope ?? 'default'] as const,
+    maintenanceWindows: (scope?: string) =>
+      ['sreScale', 'maintenanceWindows', scope ?? 'default'] as const,
+    upgrades: (scope?: string) => ['sreScale', 'upgrades', scope ?? 'default'] as const,
+    capacity: (scope?: string) => ['sreScale', 'capacity', scope ?? 'default'] as const,
+    scaleEvidence: (scope?: string) => ['sreScale', 'scaleEvidence', scope ?? 'default'] as const,
+    runbooks: (scope?: string) => ['sreScale', 'runbooks', scope ?? 'default'] as const,
+    audit: (scope?: string) => ['sreScale', 'audit', scope ?? 'default'] as const
   }
 };
 

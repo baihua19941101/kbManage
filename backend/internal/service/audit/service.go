@@ -146,6 +146,12 @@ func (s *Service) QueryPlatformMarketplaceEvents(ctx context.Context, req QueryE
 	return s.QueryEvents(ctx, req)
 }
 
+func (s *Service) QuerySREEvents(ctx context.Context, req QueryEventsRequest) ([]domain.AuditEvent, error) {
+	req.ActionPrefix = "sre."
+	req.ResourceType = SREAuditResourceType
+	return s.QueryEvents(ctx, req)
+}
+
 func (s *Service) QuerySecurityPolicyEvents(ctx context.Context, req QueryEventsRequest) ([]domain.AuditEvent, error) {
 	req.ActionPrefix = "securitypolicy."
 	req.ResourceType = SecurityPolicyAuditResourceType

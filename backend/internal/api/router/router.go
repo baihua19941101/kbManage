@@ -52,6 +52,7 @@ func NewRouter(db *gorm.DB, rdb *redis.Client, cfg repository.Config) *gin.Engin
 		RegisterBackupRestoreRoutes(authed, db, rdb)
 		RegisterIdentityTenancyRoutes(authed, db, rdb)
 		RegisterMarketplaceRoutes(authed, db, rdb)
+		RegisterSRERoutes(authed, db, rdb)
 
 		if db != nil {
 			RegisterClusterRoutes(authed, db)

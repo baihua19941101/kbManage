@@ -1,0 +1,8 @@
+feature=011-sre-scale
+branch=011-sre-scale
+backup_method=root-fallback
+backup_artifact=artifacts/011-sre-scale/mysql-backup-20260419-214013-root.sql
+restore_container=mysql8-restore-check-011
+restore_validation=passed
+restore_login=root-password-123456
+restored_databases=information_schema,mysql,performance_schema,sys

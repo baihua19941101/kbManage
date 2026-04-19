@@ -59,6 +59,12 @@ export type PlatformMarketplacePermission =
   | 'marketplace:publish-template'
   | 'marketplace:manage-extension';
 
+export type SREScalePermission =
+  | 'sre:read'
+  | 'sre:manage-ha'
+  | 'sre:manage-upgrade'
+  | 'sre:manage-scale';
+
 type AuthUser = {
   id: string;
   username: string;
@@ -384,6 +390,33 @@ const PLATFORM_MARKETPLACE_AUDIT_READ_IDENTIFIERS: readonly string[] = [
   'audit-reader',
   'marketplace:read'
 ];
+const SRE_SCALE_READ_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'audit-reader',
+  'readonly',
+  'sre:read'
+];
+const SRE_SCALE_MANAGE_HA_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'sre:manage-ha'
+];
+const SRE_SCALE_MANAGE_UPGRADE_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'sre:manage-upgrade'
+];
+const SRE_SCALE_MANAGE_SCALE_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'sre:manage-scale'
+];
+const SRE_SCALE_AUDIT_READ_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'audit-reader',
+  'sre:read'
+];
 const IDENTITY_TENANCY_AUDIT_READ_IDENTIFIERS: readonly string[] = [
   'platform-admin',
   'audit-reader',
@@ -572,6 +605,21 @@ export const canManagePlatformMarketplaceExtension = (
 
 export const canReadPlatformMarketplaceAudit = (user: AuthUser | null | undefined): boolean =>
   hasAnyRole(user, PLATFORM_MARKETPLACE_AUDIT_READ_IDENTIFIERS);
+
+export const canReadSREScale = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, SRE_SCALE_READ_IDENTIFIERS);
+
+export const canManageSREHA = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, SRE_SCALE_MANAGE_HA_IDENTIFIERS);
+
+export const canManageSREUpgrade = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, SRE_SCALE_MANAGE_UPGRADE_IDENTIFIERS);
+
+export const canManageSREScale = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, SRE_SCALE_MANAGE_SCALE_IDENTIFIERS);
+
+export const canReadSREAudit = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, SRE_SCALE_AUDIT_READ_IDENTIFIERS);
 
 export const useAuthStore = create<AuthState>((set) => ({
   ...initialState,
