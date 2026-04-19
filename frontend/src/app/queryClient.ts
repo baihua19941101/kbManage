@@ -81,6 +81,19 @@ export const queryKeys = {
     trends: (scope?: string) => ['compliance', 'trends', scope ?? 'default'] as const,
     exports: (scope?: string) => ['compliance', 'exports', scope ?? 'default'] as const,
     audit: (scope?: string) => ['compliance', 'audit', scope ?? 'default'] as const
+  },
+  backupRestore: {
+    all: ['backupRestore'] as const,
+    policies: (scope?: string) => ['backupRestore', 'policies', scope ?? 'default'] as const,
+    restorePoints: (scope?: string) =>
+      ['backupRestore', 'restorePoints', scope ?? 'default'] as const,
+    restoreJobs: (scope?: string) =>
+      ['backupRestore', 'restoreJobs', scope ?? 'default'] as const,
+    drillPlans: (scope?: string) =>
+      ['backupRestore', 'drillPlans', scope ?? 'default'] as const,
+    drillRecord: (recordId?: number | string) =>
+      ['backupRestore', 'drillRecord', recordId ?? 'unknown'] as const,
+    audit: (scope?: string) => ['backupRestore', 'audit', scope ?? 'default'] as const
   }
 };
 

@@ -95,6 +95,17 @@ const (
 	ClusterLifecycleAuditActionRetireSubmit   = "clusterlifecycle.retire.submit"
 	ClusterLifecycleAuditActionDriverUpsert   = "clusterlifecycle.driver.upsert"
 	ClusterLifecycleAuditActionTemplateUpsert = "clusterlifecycle.template.upsert"
+
+	BackupRestoreAuditResourceType          = "backuprestore"
+	BackupRestoreAuditActionPolicyCreate    = "backuprestore.policy.create"
+	BackupRestoreAuditActionPolicyUpdate    = "backuprestore.policy.update"
+	BackupRestoreAuditActionBackupRun       = "backuprestore.backup.run"
+	BackupRestoreAuditActionRestoreSubmit   = "backuprestore.restore.submit"
+	BackupRestoreAuditActionRestoreValidate = "backuprestore.restore.validate"
+	BackupRestoreAuditActionMigrationCreate = "backuprestore.migration.create"
+	BackupRestoreAuditActionDrillPlanCreate = "backuprestore.drill-plan.create"
+	BackupRestoreAuditActionDrillRun        = "backuprestore.drill.run"
+	BackupRestoreAuditActionReportCreate    = "backuprestore.drill-report.create"
 )
 
 type EventWriter struct {
@@ -274,6 +285,21 @@ func (w *EventWriter) WriteClusterLifecycleEvent(
 		details = map[string]any{}
 	}
 	return w.Write(ctx, requestID, actorID, action, ClusterLifecycleAuditResourceType, strings.TrimSpace(resourceID), outcome, details)
+}
+
+func (w *EventWriter) WriteBackupRestoreEvent(
+	ctx context.Context,
+	requestID string,
+	actorID *uint64,
+	action string,
+	resourceID string,
+	outcome domain.AuditOutcome,
+	details map[string]any,
+) error {
+	if details == nil {
+		details = map[string]any{}
+	}
+	return w.Write(ctx, requestID, actorID, action, BackupRestoreAuditResourceType, strings.TrimSpace(resourceID), outcome, details)
 }
 
 func (w *EventWriter) WriteSecurityPolicyEvent(

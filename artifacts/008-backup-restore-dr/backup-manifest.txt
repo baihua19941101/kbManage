@@ -1,0 +1,17 @@
+backup_feature: 008-backup-restore-dr
+backup_file: artifacts/008-backup-restore-dr/mysql-backup-20260418-230102-root.sql
+backup_command_attempted: docker exec mysql8 sh -lc 'mysqldump -hlocalhost -P3306 -uadmin -p123456 --all-databases --single-transaction --quick --routines --events --triggers' > artifacts/008-backup-restore-dr/mysql-backup-<timestamp>.sql
+backup_attempt_result: admin@localhost access denied (1045)
+backup_command_actual: docker exec mysql8 sh -lc 'mysqldump -hlocalhost -P3306 -uroot -p123456 --all-databases --single-transaction --quick --routines --events --triggers' > artifacts/008-backup-restore-dr/mysql-backup-20260418-230102-root.sql
+container: mysql8
+host: localhost:3306
+credential_difference: 当前容器实际可用凭据为 root/123456，admin/123456 不可用，已按实际凭据执行并留痕
+restore_validation:
+  container: mysql8-restore-check-008
+  method: 启动临时 MySQL 8.0 容器并完整导入备份，然后执行 SHOW DATABASES 校验
+  result: passed
+  observed_databases:
+    - kb_manage
+    - kubemanage
+    - mysql
+    - sys

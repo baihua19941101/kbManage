@@ -2,6 +2,7 @@ import { Spin } from 'antd';
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import {
+  canReadBackupRestore,
   canReadCompliance,
   canReadClusterLifecycle,
   canReadGitOps,
@@ -42,6 +43,10 @@ const routeGuards: RouteGuard[] = [
   {
     pathPrefix: '/cluster-lifecycle',
     canAccess: canReadClusterLifecycle
+  },
+  {
+    pathPrefix: '/backup-restore',
+    canAccess: canReadBackupRestore
   },
   {
     pathPrefix: '/compliance-hardening',

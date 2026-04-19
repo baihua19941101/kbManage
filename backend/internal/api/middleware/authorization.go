@@ -53,6 +53,12 @@ const (
 	PermissionClusterLifecycleManageNodePool = "clusterlifecycle:manage-nodepool"
 	PermissionClusterLifecycleRetire         = "clusterlifecycle:retire"
 	PermissionClusterLifecycleManageDriver   = "clusterlifecycle:manage-driver"
+	PermissionBackupRestoreRead              = "backuprestore:read"
+	PermissionBackupRestoreManagePolicy      = "backuprestore:manage-policy"
+	PermissionBackupRestoreBackup            = "backuprestore:backup"
+	PermissionBackupRestoreRestore           = "backuprestore:restore"
+	PermissionBackupRestoreMigrate           = "backuprestore:migrate"
+	PermissionBackupRestoreDrill             = "backuprestore:drill"
 )
 
 func RequireWorkspaceScope(scopeAccess *auth.ScopeAccessService, permission string) gin.HandlerFunc {

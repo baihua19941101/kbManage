@@ -1,0 +1,12 @@
+feature: 008-backup-restore-dr
+checked_at: 2026-04-18
+go_proxy: GOPROXY=https://goproxy.cn,direct
+npm_registry: https://registry.npmmirror.com
+backup_or_image_source_policy:
+  - 备份执行器、对象存储联调镜像、快照工具依赖优先使用阿里云、DaoCloud 或已批准的国内代理
+  - 禁止默认境外源直连
+git_remote: git@github.com:baihua19941101/kbManage.git
+pr_workflow:
+  - 推送 008-backup-restore-dr 到 GitHub
+  - 提交中文 PR 摘要与风险说明
+  - 用户明确同意后才允许合并

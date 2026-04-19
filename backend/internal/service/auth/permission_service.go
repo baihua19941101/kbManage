@@ -44,6 +44,12 @@ func NewPermissionService() *PermissionService {
 				"clusterlifecycle:manage-nodepool": {},
 				"clusterlifecycle:retire":          {},
 				"clusterlifecycle:manage-driver":   {},
+				"backuprestore:read":               {},
+				"backuprestore:manage-policy":      {},
+				"backuprestore:backup":             {},
+				"backuprestore:restore":            {},
+				"backuprestore:migrate":            {},
+				"backuprestore:drill":              {},
 			},
 			"auditor": {
 				"audit:read":                {},
@@ -52,6 +58,7 @@ func NewPermissionService() *PermissionService {
 				"compliance:read":           {},
 				"compliance:export-archive": {},
 				"clusterlifecycle:read":     {},
+				"backuprestore:read":        {},
 			},
 			"audit-reader": {
 				"audit:read":                {},
@@ -62,6 +69,7 @@ func NewPermissionService() *PermissionService {
 				"compliance:read":           {},
 				"compliance:export-archive": {},
 				"clusterlifecycle:read":     {},
+				"backuprestore:read":        {},
 			},
 			"operator": {
 				"resource:read":                    {},
@@ -95,6 +103,12 @@ func NewPermissionService() *PermissionService {
 				"clusterlifecycle:manage-nodepool": {},
 				"clusterlifecycle:retire":          {},
 				"clusterlifecycle:manage-driver":   {},
+				"backuprestore:read":               {},
+				"backuprestore:manage-policy":      {},
+				"backuprestore:backup":             {},
+				"backuprestore:restore":            {},
+				"backuprestore:migrate":            {},
+				"backuprestore:drill":              {},
 			},
 			"readonly": {
 				"resource:read":             {},
@@ -106,6 +120,7 @@ func NewPermissionService() *PermissionService {
 				"compliance:read":           {},
 				"compliance:export-archive": {},
 				"clusterlifecycle:read":     {},
+				"backuprestore:read":        {},
 			},
 			"workspace-owner": {
 				"access:workspace:read":            {},
@@ -143,6 +158,12 @@ func NewPermissionService() *PermissionService {
 				"clusterlifecycle:manage-nodepool": {},
 				"clusterlifecycle:retire":          {},
 				"clusterlifecycle:manage-driver":   {},
+				"backuprestore:read":               {},
+				"backuprestore:manage-policy":      {},
+				"backuprestore:backup":             {},
+				"backuprestore:restore":            {},
+				"backuprestore:migrate":            {},
+				"backuprestore:drill":              {},
 			},
 			"workspace-viewer": {
 				"access:workspace:read": {},
@@ -152,6 +173,7 @@ func NewPermissionService() *PermissionService {
 				"workloadops:read":      {},
 				"gitops:read":           {},
 				"securitypolicy:read":   {},
+				"backuprestore:read":    {},
 			},
 			"project-owner": {
 				"access:project:read":              {},
@@ -187,6 +209,12 @@ func NewPermissionService() *PermissionService {
 				"clusterlifecycle:manage-nodepool": {},
 				"clusterlifecycle:retire":          {},
 				"clusterlifecycle:manage-driver":   {},
+				"backuprestore:read":               {},
+				"backuprestore:manage-policy":      {},
+				"backuprestore:backup":             {},
+				"backuprestore:restore":            {},
+				"backuprestore:migrate":            {},
+				"backuprestore:drill":              {},
 			},
 			"project-viewer": {
 				"access:project:read":       {},
@@ -198,6 +226,7 @@ func NewPermissionService() *PermissionService {
 				"compliance:read":           {},
 				"compliance:export-archive": {},
 				"clusterlifecycle:read":     {},
+				"backuprestore:read":        {},
 			},
 		},
 	}

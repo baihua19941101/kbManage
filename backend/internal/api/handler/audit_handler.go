@@ -177,6 +177,52 @@ func (h *AuditHandler) ListClusterLifecycleEvents(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"items": items, "count": len(items)})
 }
 
+func (h *AuditHandler) ListBackupRestoreEvents(c *gin.Context) {
+	startAt, err := parseOptionalRFC3339(firstNonEmptyQuery(c, "startAt", "timeFrom"), "startAt")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	endAt, err := parseOptionalRFC3339(firstNonEmptyQuery(c, "endAt", "timeTo"), "endAt")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	clusterID, err := parseOptionalQueryUint64(c, "clusterId")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	workspaceID, err := parseOptionalQueryUint64(c, "workspaceId")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	projectID, err := parseOptionalQueryUint64(c, "projectId")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	items, err := h.svc.QueryBackupRestoreEvents(c.Request.Context(), auditSvc.QueryEventsRequest{
+		StartAt:     startAt,
+		EndAt:       endAt,
+		ClusterID:   clusterID,
+		WorkspaceID: workspaceID,
+		ProjectID:   projectID,
+		Action:      strings.TrimSpace(c.Query("action")),
+		Outcome:     strings.TrimSpace(c.Query("outcome")),
+		Result:      strings.TrimSpace(c.Query("result")),
+		Resource:    strings.TrimSpace(c.Query("resource")),
+		Limit:       100,
+		ViewerID:    c.GetUint64(middleware.UserIDKey),
+	})
+	if err != nil {
+		writeAuditError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"items": items, "count": len(items)})
+}
+
 func (h *AuditHandler) ListSecurityPolicyEvents(c *gin.Context) {
 	startAt, err := parseOptionalRFC3339(firstNonEmptyQuery(c, "startAt", "timeFrom"), "startAt")
 	if err != nil {
