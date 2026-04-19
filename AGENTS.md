@@ -20,6 +20,8 @@ Auto-generated from all feature plans. Last updated: 2026-04-19
 - MySQL 8.4（备份策略、恢复点、恢复任务、迁移任务、演练计划、演练记录、验证清单、报告索引、审计索引）；Redis 8.x（备份/恢复进度、短时一致性评估缓存、幂等键、互斥锁、演练步骤协调）；实际备份数据与恢复介质由外部对象存储、快照仓库或执行器适配层保存 (008-backup-restore-dr)
 - Go 1.25；TypeScript 5.x；React 19.2 + Gin；client-go；GORM；go-redis；身份源接入抽象（SSO、OIDC、LDAP、本地账号）；组织关系与授权评估抽象；React；Vite 8；Ant Design 6.3.x；React Router；TanStack Query；Zustand (009-identity-tenancy)
 - MySQL 8.4（身份源配置、组织模型、团队/用户组关系、角色定义、授权分配、委派记录、临时授权、会话治理索引、风险快照、审计索引）；Redis 8.x（登录会话、短时授权缓存、权限评估缓存、委派到期索引、会话回收协调）；外部身份目录和组织来源数据由平台外部身份源系统保存 (009-identity-tenancy)
+- Go 1.25；TypeScript 5.x；React 19.2 + Gin；GORM；go-redis；应用目录来源抽象（Git/Helm/OCI 风格目录访问）；扩展注册与兼容性评估抽象；Ant Design 6.3.x；React Router；TanStack Query；Zustand (010-platform-marketplace)
+- MySQL 8.4（目录来源、模板、版本、分发、安装记录、扩展包、兼容性结论、审计索引）；Redis 8.x（目录同步游标、短时模板缓存、分发协调、幂等键、兼容性结果缓存） (010-platform-marketplace)
 
 ## Project Structure
 
@@ -38,9 +40,9 @@ npm test && npm run lint
 Go 1.25；TypeScript 5.x；React 19.2: Follow standard conventions
 
 ## Recent Changes
+- 010-platform-marketplace: Added Go 1.25；TypeScript 5.x；React 19.2 + Gin；GORM；go-redis；应用目录来源抽象（Git/Helm/OCI 风格目录访问）；扩展注册与兼容性评估抽象；Ant Design 6.3.x；React Router；TanStack Query；Zustand
 - 009-identity-tenancy: Added Go 1.25；TypeScript 5.x；React 19.2 + Gin；client-go；GORM；go-redis；身份源接入抽象（SSO、OIDC、LDAP、本地账号）；组织关系与授权评估抽象；React；Vite 8；Ant Design 6.3.x；React Router；TanStack Query；Zustand
 - 008-backup-restore-dr: Added Go 1.25；TypeScript 5.x；React 19.2 + Gin；client-go；GORM；go-redis；平台级备份编排抽象（备份、恢复、迁移、演练执行适配层）；对象范围与一致性评估抽象；React；Vite 8；Ant Design 6.3.x；React Router；TanStack Query；Zustand；Apache ECharts
-- 007-cluster-lifecycle: Added Go 1.25；TypeScript 5.x；React 19.2 + Gin；client-go；GORM；go-redis；集群驱动访问抽象（导入/注册/创建/升级/节点池操作适配层）；模板与能力矩阵建模抽象；React；Vite 8；Ant Design 6.3.x；React Router；TanStack Query；Zustand
 
 <!-- MANUAL ADDITIONS START -->
 ## Configuration Conventions

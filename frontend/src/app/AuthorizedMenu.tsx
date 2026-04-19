@@ -10,8 +10,13 @@ import {
   canManageIdentityOrg,
   canManageIdentityRole,
   canManageIdentitySource,
+  canManagePlatformMarketplaceExtension,
+  canManagePlatformMarketplaceSource,
+  canPublishPlatformMarketplaceTemplate,
   canReadIdentityTenancy,
   canReadIdentityTenancyAudit,
+  canReadPlatformMarketplace,
+  canReadPlatformMarketplaceAudit,
   canBatchWorkloadOps,
   canCreateClusterLifecycle,
   canExportComplianceArchive,
@@ -93,6 +98,11 @@ const allMenuItems: MenuItemConfig[] = [
     key: '/audit-events/identity',
     label: '身份治理审计',
     visibleWhen: canReadIdentityTenancyAudit
+  },
+  {
+    key: '/audit-events/platform-marketplace',
+    label: '市场审计',
+    visibleWhen: canReadPlatformMarketplaceAudit
   },
   {
     key: '/observability',
@@ -208,6 +218,26 @@ const allMenuItems: MenuItemConfig[] = [
     key: '/identity-tenancy/sources',
     label: '身份源',
     visibleWhen: canManageIdentitySource
+  },
+  {
+    key: '/platform-marketplace',
+    label: '应用目录市场',
+    visibleWhen: canReadPlatformMarketplace
+  },
+  {
+    key: '/platform-marketplace/catalog-sources',
+    label: '目录来源',
+    visibleWhen: canManagePlatformMarketplaceSource
+  },
+  {
+    key: '/platform-marketplace/distribution',
+    label: '模板分发',
+    visibleWhen: canPublishPlatformMarketplaceTemplate
+  },
+  {
+    key: '/platform-marketplace/extensions',
+    label: '扩展中心',
+    visibleWhen: canManagePlatformMarketplaceExtension
   },
   {
     key: '/compliance-hardening/baselines',

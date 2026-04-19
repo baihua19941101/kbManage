@@ -233,3 +233,23 @@ identityTenancy:
   audit:
     # 身份治理审计保留天数
     retention_days: 365
+
+platformMarketplace:
+  catalog:
+    # 目录来源同步默认超时
+    sync_timeout: "30s"
+    # 目录缓存 TTL
+    cache_ttl: "10m"
+  distribution:
+    # 模板分发/发布默认超时
+    default_timeout: "2m"
+    # 分发协调幂等窗口
+    idempotency_ttl: "10m"
+  extension:
+    # 扩展注册与兼容性校验默认超时
+    validation_timeout: "20s"
+    # 扩展兼容性缓存 TTL
+    compatibility_cache_ttl: "10m"
+  audit:
+    # 平台市场审计保留天数
+    retention_days: 365

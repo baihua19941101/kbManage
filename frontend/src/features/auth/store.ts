@@ -53,6 +53,12 @@ export type IdentityTenancyPermission =
   | 'identity:delegate'
   | 'identity:session-govern';
 
+export type PlatformMarketplacePermission =
+  | 'marketplace:read'
+  | 'marketplace:manage-source'
+  | 'marketplace:publish-template'
+  | 'marketplace:manage-extension';
+
 type AuthUser = {
   id: string;
   username: string;
@@ -353,6 +359,31 @@ const IDENTITY_TENANCY_SESSION_GOVERN_IDENTIFIERS: readonly string[] = [
   'ops-operator',
   'identity:session-govern'
 ];
+const PLATFORM_MARKETPLACE_READ_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'audit-reader',
+  'readonly',
+  'marketplace:read'
+];
+const PLATFORM_MARKETPLACE_MANAGE_SOURCE_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'marketplace:manage-source'
+];
+const PLATFORM_MARKETPLACE_PUBLISH_TEMPLATE_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'marketplace:publish-template'
+];
+const PLATFORM_MARKETPLACE_MANAGE_EXTENSION_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'marketplace:manage-extension'
+];
+const PLATFORM_MARKETPLACE_AUDIT_READ_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'audit-reader',
+  'marketplace:read'
+];
 const IDENTITY_TENANCY_AUDIT_READ_IDENTIFIERS: readonly string[] = [
   'platform-admin',
   'audit-reader',
@@ -523,6 +554,24 @@ export const canGovernIdentitySession = (user: AuthUser | null | undefined): boo
 
 export const canReadIdentityTenancyAudit = (user: AuthUser | null | undefined): boolean =>
   hasAnyRole(user, IDENTITY_TENANCY_AUDIT_READ_IDENTIFIERS);
+
+export const canReadPlatformMarketplace = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, PLATFORM_MARKETPLACE_READ_IDENTIFIERS);
+
+export const canManagePlatformMarketplaceSource = (
+  user: AuthUser | null | undefined
+): boolean => hasAnyRole(user, PLATFORM_MARKETPLACE_MANAGE_SOURCE_IDENTIFIERS);
+
+export const canPublishPlatformMarketplaceTemplate = (
+  user: AuthUser | null | undefined
+): boolean => hasAnyRole(user, PLATFORM_MARKETPLACE_PUBLISH_TEMPLATE_IDENTIFIERS);
+
+export const canManagePlatformMarketplaceExtension = (
+  user: AuthUser | null | undefined
+): boolean => hasAnyRole(user, PLATFORM_MARKETPLACE_MANAGE_EXTENSION_IDENTIFIERS);
+
+export const canReadPlatformMarketplaceAudit = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, PLATFORM_MARKETPLACE_AUDIT_READ_IDENTIFIERS);
 
 export const useAuthStore = create<AuthState>((set) => ({
   ...initialState,

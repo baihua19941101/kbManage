@@ -85,6 +85,18 @@ func ClusterLifecycleLockKey(parts ...string) string {
 	return prefixedRedisKey("clusterlifecycle:lock", parts...)
 }
 
+func PlatformMarketplaceCatalogKey(parts ...string) string {
+	return prefixedRedisKey("platformmarketplace:catalog", parts...)
+}
+
+func PlatformMarketplaceDistributionKey(parts ...string) string {
+	return prefixedRedisKey("platformmarketplace:distribution", parts...)
+}
+
+func PlatformMarketplaceCompatibilityKey(parts ...string) string {
+	return prefixedRedisKey("platformmarketplace:compatibility", parts...)
+}
+
 func PrefixedRedisKey(prefix string, parts ...string) string {
 	return prefixedRedisKey(prefix, parts...)
 }

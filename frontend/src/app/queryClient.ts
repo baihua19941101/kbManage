@@ -106,6 +106,19 @@ export const queryKeys = {
     sessions: (scope?: string) => ['identityTenancy', 'sessions', scope ?? 'default'] as const,
     risks: (scope?: string) => ['identityTenancy', 'risks', scope ?? 'default'] as const,
     audit: (scope?: string) => ['identityTenancy', 'audit', scope ?? 'default'] as const
+  },
+  platformMarketplace: {
+    all: ['platformMarketplace'] as const,
+    catalogSources: (scope?: string) =>
+      ['platformMarketplace', 'catalogSources', scope ?? 'default'] as const,
+    templates: (scope?: string) => ['platformMarketplace', 'templates', scope ?? 'default'] as const,
+    installations: (scope?: string) =>
+      ['platformMarketplace', 'installations', scope ?? 'default'] as const,
+    extensions: (scope?: string) =>
+      ['platformMarketplace', 'extensions', scope ?? 'default'] as const,
+    compatibility: (scope?: string) =>
+      ['platformMarketplace', 'compatibility', scope ?? 'default'] as const,
+    audit: (scope?: string) => ['platformMarketplace', 'audit', scope ?? 'default'] as const
   }
 };
 

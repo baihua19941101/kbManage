@@ -56,6 +56,10 @@ func NewPermissionService() *PermissionService {
 				"identity:manage-role":             {},
 				"identity:delegate":                {},
 				"identity:session-govern":          {},
+				"marketplace:read":                 {},
+				"marketplace:manage-source":        {},
+				"marketplace:publish-template":     {},
+				"marketplace:manage-extension":     {},
 			},
 			"auditor": {
 				"audit:read":                {},
@@ -66,6 +70,7 @@ func NewPermissionService() *PermissionService {
 				"clusterlifecycle:read":     {},
 				"backuprestore:read":        {},
 				"identity:read":             {},
+				"marketplace:read":          {},
 			},
 			"audit-reader": {
 				"audit:read":                {},
@@ -122,6 +127,10 @@ func NewPermissionService() *PermissionService {
 				"identity:manage-role":             {},
 				"identity:delegate":                {},
 				"identity:session-govern":          {},
+				"marketplace:read":                 {},
+				"marketplace:manage-source":        {},
+				"marketplace:publish-template":     {},
+				"marketplace:manage-extension":     {},
 			},
 			"readonly": {
 				"resource:read":             {},
@@ -135,6 +144,7 @@ func NewPermissionService() *PermissionService {
 				"clusterlifecycle:read":     {},
 				"backuprestore:read":        {},
 				"identity:read":             {},
+				"marketplace:read":          {},
 			},
 			"workspace-owner": {
 				"access:workspace:read":            {},
@@ -183,6 +193,10 @@ func NewPermissionService() *PermissionService {
 				"identity:manage-role":             {},
 				"identity:delegate":                {},
 				"identity:session-govern":          {},
+				"marketplace:read":                 {},
+				"marketplace:manage-source":        {},
+				"marketplace:publish-template":     {},
+				"marketplace:manage-extension":     {},
 			},
 			"workspace-viewer": {
 				"access:workspace:read": {},
@@ -194,6 +208,7 @@ func NewPermissionService() *PermissionService {
 				"securitypolicy:read":   {},
 				"backuprestore:read":    {},
 				"identity:read":         {},
+				"marketplace:read":      {},
 			},
 			"project-owner": {
 				"access:project:read":              {},
@@ -238,6 +253,8 @@ func NewPermissionService() *PermissionService {
 				"identity:read":                    {},
 				"identity:manage-role":             {},
 				"identity:delegate":                {},
+				"marketplace:read":                 {},
+				"marketplace:publish-template":     {},
 			},
 			"project-viewer": {
 				"access:project:read":       {},
@@ -251,6 +268,7 @@ func NewPermissionService() *PermissionService {
 				"clusterlifecycle:read":     {},
 				"backuprestore:read":        {},
 				"identity:read":             {},
+				"marketplace:read":          {},
 			},
 		},
 	}

@@ -65,6 +65,10 @@ const (
 	PermissionIdentityManageRole             = "identity:manage-role"
 	PermissionIdentityDelegate               = "identity:delegate"
 	PermissionIdentitySessionGovern          = "identity:session-govern"
+	PermissionMarketplaceRead                = "marketplace:read"
+	PermissionMarketplaceManageSource        = "marketplace:manage-source"
+	PermissionMarketplacePublishTemplate     = "marketplace:publish-template"
+	PermissionMarketplaceManageExtension     = "marketplace:manage-extension"
 )
 
 func RequireWorkspaceScope(scopeAccess *auth.ScopeAccessService, permission string) gin.HandlerFunc {

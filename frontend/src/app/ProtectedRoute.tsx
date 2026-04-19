@@ -7,6 +7,7 @@ import {
   canReadClusterLifecycle,
   canReadGitOps,
   canReadIdentityTenancy,
+  canReadPlatformMarketplace,
   canReadObservability,
   canReadWorkloadOps,
   hasAnyRole,
@@ -52,6 +53,10 @@ const routeGuards: RouteGuard[] = [
   {
     pathPrefix: '/identity-tenancy',
     canAccess: canReadIdentityTenancy
+  },
+  {
+    pathPrefix: '/platform-marketplace',
+    canAccess: canReadPlatformMarketplace
   },
   {
     pathPrefix: '/compliance-hardening',

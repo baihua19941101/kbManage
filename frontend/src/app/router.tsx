@@ -111,6 +111,15 @@ export const router = createBrowserRouter([
             }
           },
           {
+            path: '/audit-events/platform-marketplace',
+            lazy: async () => {
+              const { PlatformMarketplaceAuditPage } = await import(
+                '@/features/audit/pages/PlatformMarketplaceAuditPage'
+              );
+              return { Component: PlatformMarketplaceAuditPage };
+            }
+          },
+          {
             path: '/observability',
             lazy: async () => {
               const { ObservabilityOverviewPage } = await import(
@@ -503,6 +512,82 @@ export const router = createBrowserRouter([
           {
             path: '/identity-tenancy/*',
             element: <Navigate to="/identity-tenancy" replace />
+          },
+          {
+            path: '/platform-marketplace',
+            lazy: async () => {
+              const { TemplateCatalogPage } = await import(
+                '@/features/platform-marketplace/pages/TemplateCatalogPage'
+              );
+              return { Component: TemplateCatalogPage };
+            }
+          },
+          {
+            path: '/platform-marketplace/catalog-sources',
+            lazy: async () => {
+              const { CatalogSourcePage } = await import(
+                '@/features/platform-marketplace/pages/CatalogSourcePage'
+              );
+              return { Component: CatalogSourcePage };
+            }
+          },
+          {
+            path: '/platform-marketplace/templates',
+            lazy: async () => {
+              const { TemplateCatalogPage } = await import(
+                '@/features/platform-marketplace/pages/TemplateCatalogPage'
+              );
+              return { Component: TemplateCatalogPage };
+            }
+          },
+          {
+            path: '/platform-marketplace/templates/:templateId',
+            lazy: async () => {
+              const { TemplateDetailPage } = await import(
+                '@/features/platform-marketplace/pages/TemplateDetailPage'
+              );
+              return { Component: TemplateDetailPage };
+            }
+          },
+          {
+            path: '/platform-marketplace/distribution',
+            lazy: async () => {
+              const { TemplateDistributionPage } = await import(
+                '@/features/platform-marketplace/pages/TemplateDistributionPage'
+              );
+              return { Component: TemplateDistributionPage };
+            }
+          },
+          {
+            path: '/platform-marketplace/installations',
+            lazy: async () => {
+              const { InstallationRecordPage } = await import(
+                '@/features/platform-marketplace/pages/InstallationRecordPage'
+              );
+              return { Component: InstallationRecordPage };
+            }
+          },
+          {
+            path: '/platform-marketplace/extensions',
+            lazy: async () => {
+              const { ExtensionCenterPage } = await import(
+                '@/features/platform-marketplace/pages/ExtensionCenterPage'
+              );
+              return { Component: ExtensionCenterPage };
+            }
+          },
+          {
+            path: '/platform-marketplace/compatibility',
+            lazy: async () => {
+              const { ExtensionCompatibilityPage } = await import(
+                '@/features/platform-marketplace/pages/ExtensionCompatibilityPage'
+              );
+              return { Component: ExtensionCompatibilityPage };
+            }
+          },
+          {
+            path: '/platform-marketplace/*',
+            element: <Navigate to="/platform-marketplace" replace />
           },
           {
             path: '/compliance-hardening/baselines',

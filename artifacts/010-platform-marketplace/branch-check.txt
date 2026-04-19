@@ -1,0 +1,4 @@
+branch=010-platform-marketplace
+forbid_main=true
+previous_feature=009-identity-tenancy merged_to_main=true
+merge_requires_user_approval=true

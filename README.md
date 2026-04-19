@@ -83,6 +83,10 @@ npm config set registry https://registry.npmmirror.com
 - `identityTenancy.session.session_cache_ttl / revocation_ttl`
 - `identityTenancy.organization.membership_cache_ttl`
 - `identityTenancy.audit.retention_days`
+- `platformMarketplace.catalog.sync_timeout / cache_ttl`
+- `platformMarketplace.distribution.default_timeout / idempotency_ttl`
+- `platformMarketplace.extension.validation_timeout / compatibility_cache_ttl`
+- `platformMarketplace.audit.retention_days`
 
 说明：
 
@@ -107,6 +111,7 @@ npm config set registry https://registry.npmmirror.com
 - `VITE_CLUSTER_LIFECYCLE_REFRESH_INTERVAL`：集群生命周期页面刷新间隔（毫秒）
 - `VITE_BACKUP_RESTORE_REFRESH_INTERVAL`：备份恢复与演练页面刷新间隔（毫秒）
 - `VITE_IDENTITY_TENANCY_REFRESH_INTERVAL`：身份与多租户治理页面刷新间隔（毫秒）
+- `VITE_PLATFORM_MARKETPLACE_REFRESH_INTERVAL`：平台应用目录与扩展市场页面刷新间隔（毫秒）
 
 ## 启动方式
 
@@ -170,6 +175,7 @@ npm run build
 - 007-cluster-lifecycle 已完成规格、规划和任务拆解，当前进入 implement 阶段。
 - 008-backup-restore-dr 已完成规格、规划和任务拆解，当前进入 implement 阶段。
 - 009-identity-tenancy 已完成规格、规划、任务拆解与实现，当前等待审查与后续 GitHub 提交流程。
+- 010-platform-marketplace 已完成应用目录、模板分发、扩展注册与市场审计主干，当前等待审查与后续 GitHub 提交流程。
 
 ## 002 可观测联调要点
 
@@ -265,6 +271,31 @@ bash artifacts/002-observability-center/repro-observability-smoke.sh
   - `identityTenancy.session.revocation_ttl`
   - `identityTenancy.organization.membership_cache_ttl`
   - `identityTenancy.audit.retention_days`
+
+## 010 平台应用目录与扩展市场联调要点
+
+- 后端默认读取以下配置：
+  - `platformMarketplace.catalog.sync_timeout`
+  - `platformMarketplace.catalog.cache_ttl`
+  - `platformMarketplace.distribution.default_timeout`
+  - `platformMarketplace.distribution.idempotency_ttl`
+  - `platformMarketplace.extension.validation_timeout`
+  - `platformMarketplace.extension.compatibility_cache_ttl`
+  - `platformMarketplace.audit.retention_days`
+- 前端入口：
+  - `/platform-marketplace`
+  - `/platform-marketplace/catalog-sources`
+  - `/platform-marketplace/templates`
+  - `/platform-marketplace/distribution`
+  - `/platform-marketplace/installations`
+  - `/platform-marketplace/extensions`
+  - `/platform-marketplace/compatibility`
+  - `/audit-events/platform-marketplace`
+- 如需复现实验基线，执行：
+
+```bash
+bash artifacts/010-platform-marketplace/repro-platform-marketplace-smoke.sh
+```
 - 前端入口：
   - `/identity-tenancy`
   - `/identity-tenancy/sources`
