@@ -65,6 +65,12 @@ export type SREScalePermission =
   | 'sre:manage-upgrade'
   | 'sre:manage-scale';
 
+export type EnterprisePolishPermission =
+  | 'enterprise:read'
+  | 'enterprise:manage-audit'
+  | 'enterprise:manage-reports'
+  | 'enterprise:manage-delivery';
+
 type AuthUser = {
   id: string;
   username: string;
@@ -417,6 +423,33 @@ const SRE_SCALE_AUDIT_READ_IDENTIFIERS: readonly string[] = [
   'audit-reader',
   'sre:read'
 ];
+const ENTERPRISE_POLISH_READ_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'audit-reader',
+  'readonly',
+  'enterprise:read'
+];
+const ENTERPRISE_POLISH_MANAGE_AUDIT_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'enterprise:manage-audit'
+];
+const ENTERPRISE_POLISH_MANAGE_REPORTS_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'enterprise:manage-reports'
+];
+const ENTERPRISE_POLISH_MANAGE_DELIVERY_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'ops-operator',
+  'enterprise:manage-delivery'
+];
+const ENTERPRISE_POLISH_AUDIT_READ_IDENTIFIERS: readonly string[] = [
+  'platform-admin',
+  'audit-reader',
+  'enterprise:read'
+];
 const IDENTITY_TENANCY_AUDIT_READ_IDENTIFIERS: readonly string[] = [
   'platform-admin',
   'audit-reader',
@@ -620,6 +653,21 @@ export const canManageSREScale = (user: AuthUser | null | undefined): boolean =>
 
 export const canReadSREAudit = (user: AuthUser | null | undefined): boolean =>
   hasAnyRole(user, SRE_SCALE_AUDIT_READ_IDENTIFIERS);
+
+export const canReadEnterprisePolish = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, ENTERPRISE_POLISH_READ_IDENTIFIERS);
+
+export const canManageEnterpriseAudit = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, ENTERPRISE_POLISH_MANAGE_AUDIT_IDENTIFIERS);
+
+export const canManageEnterpriseReports = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, ENTERPRISE_POLISH_MANAGE_REPORTS_IDENTIFIERS);
+
+export const canManageEnterpriseDelivery = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, ENTERPRISE_POLISH_MANAGE_DELIVERY_IDENTIFIERS);
+
+export const canReadEnterpriseAudit = (user: AuthUser | null | undefined): boolean =>
+  hasAnyRole(user, ENTERPRISE_POLISH_AUDIT_READ_IDENTIFIERS);
 
 export const useAuthStore = create<AuthState>((set) => ({
   ...initialState,

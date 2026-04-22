@@ -73,6 +73,10 @@ const (
 	PermissionSREManageHA                    = "sre:manage-ha"
 	PermissionSREManageUpgrade               = "sre:manage-upgrade"
 	PermissionSREManageScale                 = "sre:manage-scale"
+	PermissionEnterpriseRead                 = "enterprise:read"
+	PermissionEnterpriseManageAudit          = "enterprise:manage-audit"
+	PermissionEnterpriseManageReports        = "enterprise:manage-reports"
+	PermissionEnterpriseManageDelivery       = "enterprise:manage-delivery"
 )
 
 func RequireWorkspaceScope(scopeAccess *auth.ScopeAccessService, permission string) gin.HandlerFunc {

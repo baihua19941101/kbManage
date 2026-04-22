@@ -92,6 +92,11 @@ npm config set registry https://registry.npmmirror.com
 - `sreScale.upgrade.precheck_timeout / rollout_timeout / idempotency_ttl`
 - `sreScale.scale.forecast_cache_ttl / analysis_timeout`
 - `sreScale.audit.retention_days`
+- `enterprisePolish.audit.query_timeout / trail_cache_ttl`
+- `enterprisePolish.report.generation_timeout / snapshot_cache_ttl`
+- `enterprisePolish.export.default_timeout / idempotency_ttl`
+- `enterprisePolish.delivery.readiness_cache_ttl / scope_timeout`
+- `enterprisePolish.auditRetention.retention_days`
 
 说明：
 
@@ -118,6 +123,7 @@ npm config set registry https://registry.npmmirror.com
 - `VITE_IDENTITY_TENANCY_REFRESH_INTERVAL`：身份与多租户治理页面刷新间隔（毫秒）
 - `VITE_PLATFORM_MARKETPLACE_REFRESH_INTERVAL`：平台应用目录与扩展市场页面刷新间隔（毫秒）
 - `VITE_SRE_SCALE_REFRESH_INTERVAL`：平台 SRE 与规模化治理页面刷新间隔（毫秒）
+- `VITE_ENTERPRISE_POLISH_REFRESH_INTERVAL`：企业治理报表与产品化交付页面刷新间隔（毫秒）
 
 ## 启动方式
 
@@ -183,6 +189,7 @@ npm run build
 - 009-identity-tenancy 已完成规格、规划、任务拆解与实现，当前等待审查与后续 GitHub 提交流程。
 - 010-platform-marketplace 已完成应用目录、模板分发、扩展注册与市场审计主干，当前等待审查与后续 GitHub 提交流程。
 - 011-sre-scale 已完成规格、规划、任务拆解，当前进入 implement 阶段。
+- 012-enterprise-polish 已完成规格、规划、任务拆解与实现，当前等待审查与后续 GitHub 提交流程。
 
 ## 002 可观测联调要点
 

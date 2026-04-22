@@ -109,6 +109,18 @@ func PlatformSREScaleKey(parts ...string) string {
 	return prefixedRedisKey("platformsre:scale", parts...)
 }
 
+func EnterpriseAuditKey(parts ...string) string {
+	return prefixedRedisKey("enterprise:audit", parts...)
+}
+
+func EnterpriseReportKey(parts ...string) string {
+	return prefixedRedisKey("enterprise:report", parts...)
+}
+
+func EnterpriseDeliveryKey(parts ...string) string {
+	return prefixedRedisKey("enterprise:delivery", parts...)
+}
+
 func PrefixedRedisKey(prefix string, parts ...string) string {
 	return prefixedRedisKey(prefix, parts...)
 }

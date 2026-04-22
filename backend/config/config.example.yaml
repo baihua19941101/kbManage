@@ -280,3 +280,28 @@ sreScale:
   audit:
     # SRE 与规模化治理审计保留天数
     retention_days: 365
+
+enterprisePolish:
+  audit:
+    # 深度权限审计与关键操作聚合默认超时
+    query_timeout: "30s"
+    # 审计链路聚合缓存 TTL
+    trail_cache_ttl: "5m"
+  report:
+    # 治理报表生成默认超时
+    generation_timeout: "2m"
+    # 报表快照缓存 TTL
+    snapshot_cache_ttl: "10m"
+  export:
+    # 导出任务默认超时
+    default_timeout: "5m"
+    # 导出协调幂等窗口
+    idempotency_ttl: "15m"
+  delivery:
+    # 交付清单与就绪检查缓存 TTL
+    readiness_cache_ttl: "10m"
+    # 版本差异分析默认超时
+    scope_timeout: "30s"
+  auditRetention:
+    # 企业治理与交付审计保留天数
+    retention_days: 365

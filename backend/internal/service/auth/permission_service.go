@@ -64,6 +64,10 @@ func NewPermissionService() *PermissionService {
 				"sre:manage-ha":                    {},
 				"sre:manage-upgrade":               {},
 				"sre:manage-scale":                 {},
+				"enterprise:read":                  {},
+				"enterprise:manage-audit":          {},
+				"enterprise:manage-reports":        {},
+				"enterprise:manage-delivery":       {},
 			},
 			"auditor": {
 				"audit:read":                {},
@@ -76,6 +80,7 @@ func NewPermissionService() *PermissionService {
 				"identity:read":             {},
 				"marketplace:read":          {},
 				"sre:read":                  {},
+				"enterprise:read":           {},
 			},
 			"audit-reader": {
 				"audit:read":                {},
@@ -140,6 +145,10 @@ func NewPermissionService() *PermissionService {
 				"sre:manage-ha":                    {},
 				"sre:manage-upgrade":               {},
 				"sre:manage-scale":                 {},
+				"enterprise:read":                  {},
+				"enterprise:manage-audit":          {},
+				"enterprise:manage-reports":        {},
+				"enterprise:manage-delivery":       {},
 			},
 			"readonly": {
 				"resource:read":             {},
@@ -211,6 +220,10 @@ func NewPermissionService() *PermissionService {
 				"sre:manage-ha":                    {},
 				"sre:manage-upgrade":               {},
 				"sre:manage-scale":                 {},
+				"enterprise:read":                  {},
+				"enterprise:manage-audit":          {},
+				"enterprise:manage-reports":        {},
+				"enterprise:manage-delivery":       {},
 			},
 			"workspace-viewer": {
 				"access:workspace:read": {},
@@ -224,6 +237,7 @@ func NewPermissionService() *PermissionService {
 				"identity:read":         {},
 				"marketplace:read":      {},
 				"sre:read":              {},
+				"enterprise:read":       {},
 			},
 			"project-owner": {
 				"access:project:read":              {},
@@ -272,6 +286,10 @@ func NewPermissionService() *PermissionService {
 				"marketplace:publish-template":     {},
 				"sre:read":                         {},
 				"sre:manage-upgrade":               {},
+				"enterprise:read":                  {},
+				"enterprise:manage-audit":          {},
+				"enterprise:manage-reports":        {},
+				"enterprise:manage-delivery":       {},
 			},
 			"project-viewer": {
 				"access:project:read":       {},
@@ -287,6 +305,7 @@ func NewPermissionService() *PermissionService {
 				"identity:read":             {},
 				"marketplace:read":          {},
 				"sre:read":                  {},
+				"enterprise:read":           {},
 			},
 		},
 	}

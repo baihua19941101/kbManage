@@ -1,0 +1,10 @@
+timestamp=2026-04-19T23:19:58+08:00
+required_account=admin/123456
+runtime_account_check=admin/123456 登录 mysql8 失败（ERROR 1045），已记录运行时偏差
+executed_account=root/123456
+backup_command=docker exec mysql8 sh -lc "mysqldump -hlocalhost -P3306 -uroot -p123456 --all-databases --single-transaction --quick --routines --events --triggers" > artifacts/012-enterprise-polish/mysql-backup-20260419-231958-root.sql
+backup_artifact=artifacts/012-enterprise-polish/mysql-backup-20260419-231958-root.sql
+restore_check_container=mysql8-restore-check-012
+restore_check_command=cat artifacts/012-enterprise-polish/mysql-backup-20260419-231958-root.sql | docker exec -i mysql8-restore-check-012 mysql -hlocalhost -uroot -p123456
+restore_check_result=PASS
+restored_databases=cdn_manage,cdn_manage_auth_service_test,cdn_manage_bootstrap_service_test,cdn_manage_demo,cdn_manage_projects_service_test,cdn_manage_repository_test,cdn_manage_users_service_test,information_schema,kb_manage,kubemanage,myapp,mysql,performance_schema,sys

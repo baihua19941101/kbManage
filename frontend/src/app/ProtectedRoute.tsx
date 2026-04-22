@@ -7,6 +7,7 @@ import {
   canReadClusterLifecycle,
   canReadGitOps,
   canReadIdentityTenancy,
+  canReadEnterprisePolish,
   canReadPlatformMarketplace,
   canReadSREScale,
   canReadObservability,
@@ -58,6 +59,10 @@ const routeGuards: RouteGuard[] = [
   {
     pathPrefix: '/platform-marketplace',
     canAccess: canReadPlatformMarketplace
+  },
+  {
+    pathPrefix: '/enterprise-polish',
+    canAccess: canReadEnterprisePolish
   },
   {
     pathPrefix: '/sre-scale',

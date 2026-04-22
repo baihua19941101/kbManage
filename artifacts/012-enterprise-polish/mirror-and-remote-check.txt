@@ -1,0 +1,5 @@
+go_proxy=GOPROXY=https://goproxy.cn,direct
+npm_registry=https://registry.npmmirror.com
+additional_policy=新增报表/导出相关依赖时优先使用国内镜像或已批准代理
+git_remote=git@github.com:baihua19941101/kbManage.git
+pr_workflow=功能分支推送 GitHub，使用中文 PR 摘要，待用户明确同意后方可合并 main

@@ -64,6 +64,10 @@ func RegisterAuditRoutes(group *gin.RouterGroup, db *gorm.DB) {
 		"/audit/sre/events",
 		h.ListSREEvents,
 	)
+	group.GET(
+		"/audit/enterprise/events",
+		h.ListEnterpriseEvents,
+	)
 	group.POST("/audits/exports", h.SubmitExport)
 	group.GET("/audits/exports/:taskId", h.GetExportStatus)
 	group.GET("/audits/exports/:taskId/download", h.DownloadExport)

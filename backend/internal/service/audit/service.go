@@ -152,6 +152,12 @@ func (s *Service) QuerySREEvents(ctx context.Context, req QueryEventsRequest) ([
 	return s.QueryEvents(ctx, req)
 }
 
+func (s *Service) QueryEnterpriseEvents(ctx context.Context, req QueryEventsRequest) ([]domain.AuditEvent, error) {
+	req.ActionPrefix = "enterprise."
+	req.ResourceType = EnterpriseAuditResourceType
+	return s.QueryEvents(ctx, req)
+}
+
 func (s *Service) QuerySecurityPolicyEvents(ctx context.Context, req QueryEventsRequest) ([]domain.AuditEvent, error) {
 	req.ActionPrefix = "securitypolicy."
 	req.ResourceType = SecurityPolicyAuditResourceType

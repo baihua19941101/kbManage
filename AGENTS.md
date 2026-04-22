@@ -24,6 +24,8 @@ Auto-generated from all feature plans. Last updated: 2026-04-19
 - MySQL 8.4（目录来源、模板、版本、分发、安装记录、扩展包、兼容性结论、审计索引）；Redis 8.x（目录同步游标、短时模板缓存、分发协调、幂等键、兼容性结果缓存） (010-platform-marketplace)
 - Go 1.25；TypeScript 5.x；React 19.2 + Gin；GORM；go-redis；平台运行健康聚合抽象；升级前检查与版本兼容性评估抽象；容量预测与压测证据接入抽象；Ant Design 6.3.x；React Router；TanStack Query；Zustand；Apache ECharts (011-sre-scale)
 - MySQL 8.4（高可用策略、维护窗口、平台组件健康快照索引、容量基线、升级计划、回退验证、运行手册、告警基线、自诊断摘要、审计索引）；Redis 8.x（健康聚合缓存、任务积压短时状态、升级协调、限流状态、幂等键、容量预测缓存） (011-sre-scale)
+- Go 1.25；TypeScript 5.x；React 19.2 + Gin；GORM；go-redis；现有权限审计聚合抽象；治理覆盖率快照与报表生成抽象；导出记录与交付包编排抽象；Ant Design 6.3.x；React Router；TanStack Query；Zustand；Apache ECharts (012-enterprise-polish)
+- MySQL 8.4（权限变更链路、关键操作追踪索引、跨团队授权分布快照、治理覆盖率快照、治理报表、导出记录、交付材料目录、交付检查清单、审计索引）；Redis 8.x（报表生成上下文、导出任务短时状态、权限风险聚合缓存、幂等键、趋势查询缓存） (012-enterprise-polish)
 
 ## Project Structure
 
@@ -42,9 +44,9 @@ npm test && npm run lint
 Go 1.25；TypeScript 5.x；React 19.2: Follow standard conventions
 
 ## Recent Changes
+- 012-enterprise-polish: Added Go 1.25；TypeScript 5.x；React 19.2 + Gin；GORM；go-redis；现有权限审计聚合抽象；治理覆盖率快照与报表生成抽象；导出记录与交付包编排抽象；Ant Design 6.3.x；React Router；TanStack Query；Zustand；Apache ECharts
 - 011-sre-scale: Added Go 1.25；TypeScript 5.x；React 19.2 + Gin；GORM；go-redis；平台运行健康聚合抽象；升级前检查与版本兼容性评估抽象；容量预测与压测证据接入抽象；Ant Design 6.3.x；React Router；TanStack Query；Zustand；Apache ECharts
 - 010-platform-marketplace: Added Go 1.25；TypeScript 5.x；React 19.2 + Gin；GORM；go-redis；应用目录来源抽象（Git/Helm/OCI 风格目录访问）；扩展注册与兼容性评估抽象；Ant Design 6.3.x；React Router；TanStack Query；Zustand
-- 009-identity-tenancy: Added Go 1.25；TypeScript 5.x；React 19.2 + Gin；client-go；GORM；go-redis；身份源接入抽象（SSO、OIDC、LDAP、本地账号）；组织关系与授权评估抽象；React；Vite 8；Ant Design 6.3.x；React Router；TanStack Query；Zustand
 
 <!-- MANUAL ADDITIONS START -->
 ## Configuration Conventions

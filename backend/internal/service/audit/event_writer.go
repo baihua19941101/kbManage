@@ -139,6 +139,13 @@ const (
 	SREAuditActionRollbackValidate        = "sre.rollback.validate"
 	SREAuditActionScaleEvidenceRead       = "sre.scale-evidence.read"
 	SREAuditActionRunbookRead             = "sre.runbook.read"
+
+	EnterpriseAuditResourceType                = "enterprise"
+	EnterpriseAuditActionPermissionTrailRead   = "enterprise.permission-trail.read"
+	EnterpriseAuditActionKeyOperationRead      = "enterprise.key-operation.read"
+	EnterpriseAuditActionReportCreate          = "enterprise.report.create"
+	EnterpriseAuditActionExportCreate          = "enterprise.export.create"
+	EnterpriseAuditActionDeliveryChecklistRead = "enterprise.delivery-checklist.read"
 )
 
 type EventWriter struct {
