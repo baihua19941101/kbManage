@@ -127,6 +127,13 @@ export const router = createBrowserRouter([
             }
           },
           {
+            path: '/audit-events/enterprise',
+            lazy: async () => {
+              const { EnterpriseAuditPage } = await import('@/features/audit/pages/EnterpriseAuditPage');
+              return { Component: EnterpriseAuditPage };
+            }
+          },
+          {
             path: '/observability',
             lazy: async () => {
               const { ObservabilityOverviewPage } = await import(
@@ -641,6 +648,59 @@ export const router = createBrowserRouter([
           {
             path: '/sre-scale/*',
             element: <Navigate to="/sre-scale" replace />
+          },
+          {
+            path: '/enterprise-polish',
+            lazy: async () => {
+              const { PermissionAuditPage } = await import('@/features/enterprise-polish/pages/PermissionAuditPage');
+              return { Component: PermissionAuditPage };
+            }
+          },
+          {
+            path: '/enterprise-polish/audit',
+            lazy: async () => {
+              const { PermissionAuditPage } = await import('@/features/enterprise-polish/pages/PermissionAuditPage');
+              return { Component: PermissionAuditPage };
+            }
+          },
+          {
+            path: '/enterprise-polish/risks',
+            lazy: async () => {
+              const { RiskTrackingPage } = await import('@/features/enterprise-polish/pages/RiskTrackingPage');
+              return { Component: RiskTrackingPage };
+            }
+          },
+          {
+            path: '/enterprise-polish/reports',
+            lazy: async () => {
+              const { GovernanceReportsPage } = await import('@/features/enterprise-polish/pages/GovernanceReportsPage');
+              return { Component: GovernanceReportsPage };
+            }
+          },
+          {
+            path: '/enterprise-polish/exports',
+            lazy: async () => {
+              const { ExportCenterPage } = await import('@/features/enterprise-polish/pages/ExportCenterPage');
+              return { Component: ExportCenterPage };
+            }
+          },
+          {
+            path: '/enterprise-polish/artifacts',
+            lazy: async () => {
+              const { DeliveryArtifactsPage } = await import('@/features/enterprise-polish/pages/DeliveryArtifactsPage');
+              return { Component: DeliveryArtifactsPage };
+            }
+          },
+          {
+            path: '/enterprise-polish/delivery',
+            lazy: async () => {
+              const { DeliveryReadinessPage } = await import('@/features/enterprise-polish/pages/DeliveryReadinessPage');
+              return { Component: DeliveryReadinessPage };
+            }
+          },
+          {
+            path: '/enterprise-polish/*',
+            element: <Navigate to="/enterprise-polish" replace />
           },
           {
             path: '/compliance-hardening/baselines',

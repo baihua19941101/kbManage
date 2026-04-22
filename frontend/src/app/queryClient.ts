@@ -131,6 +131,23 @@ export const queryKeys = {
     scaleEvidence: (scope?: string) => ['sreScale', 'scaleEvidence', scope ?? 'default'] as const,
     runbooks: (scope?: string) => ['sreScale', 'runbooks', scope ?? 'default'] as const,
     audit: (scope?: string) => ['sreScale', 'audit', scope ?? 'default'] as const
+  },
+  enterprisePolish: {
+    all: ['enterprisePolish'] as const,
+    permissionTrails: (scope?: string) =>
+      ['enterprisePolish', 'permissionTrails', scope ?? 'default'] as const,
+    keyOperations: (scope?: string) =>
+      ['enterprisePolish', 'keyOperations', scope ?? 'default'] as const,
+    coverage: (scope?: string) => ['enterprisePolish', 'coverage', scope ?? 'default'] as const,
+    actionItems: (scope?: string) => ['enterprisePolish', 'actionItems', scope ?? 'default'] as const,
+    reports: (scope?: string) => ['enterprisePolish', 'reports', scope ?? 'default'] as const,
+    deliveryArtifacts: (scope?: string) =>
+      ['enterprisePolish', 'deliveryArtifacts', scope ?? 'default'] as const,
+    deliveryBundles: (scope?: string) =>
+      ['enterprisePolish', 'deliveryBundles', scope ?? 'default'] as const,
+    deliveryChecklist: (bundleId?: string) =>
+      ['enterprisePolish', 'deliveryChecklist', bundleId ?? 'unknown'] as const,
+    audit: (scope?: string) => ['enterprisePolish', 'audit', scope ?? 'default'] as const
   }
 };
 

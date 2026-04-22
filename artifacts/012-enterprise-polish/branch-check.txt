@@ -1,0 +1,4 @@
+branch=012-enterprise-polish
+forbidden_branches=main,master
+previous_feature_merged=011-sre-scale -> origin/main@0523029
+merge_gate=未获用户明确同意前不得合并 main

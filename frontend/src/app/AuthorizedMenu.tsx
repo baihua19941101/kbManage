@@ -8,6 +8,9 @@ import {
   canReadBackupRestore,
   canReadBackupRestoreAudit,
   canManageIdentityOrg,
+  canManageEnterpriseAudit,
+  canManageEnterpriseDelivery,
+  canManageEnterpriseReports,
   canManageIdentityRole,
   canManageIdentitySource,
   canManagePlatformMarketplaceExtension,
@@ -17,6 +20,8 @@ import {
   canManageSREUpgrade,
   canPublishPlatformMarketplaceTemplate,
   canReadIdentityTenancy,
+  canReadEnterpriseAudit,
+  canReadEnterprisePolish,
   canReadIdentityTenancyAudit,
   canReadPlatformMarketplace,
   canReadPlatformMarketplaceAudit,
@@ -113,6 +118,11 @@ const allMenuItems: MenuItemConfig[] = [
     key: '/audit-events/sre',
     label: 'SRE审计',
     visibleWhen: canReadSREAudit
+  },
+  {
+    key: '/audit-events/enterprise',
+    label: '企业治理审计',
+    visibleWhen: canReadEnterpriseAudit
   },
   {
     key: '/observability',
@@ -258,6 +268,26 @@ const allMenuItems: MenuItemConfig[] = [
     key: '/sre-scale/ha',
     label: '高可用治理',
     visibleWhen: canManageSREHA
+  },
+  {
+    key: '/enterprise-polish',
+    label: '企业治理收尾',
+    visibleWhen: canReadEnterprisePolish
+  },
+  {
+    key: '/enterprise-polish/reports',
+    label: '治理报表',
+    visibleWhen: canManageEnterpriseReports
+  },
+  {
+    key: '/enterprise-polish/delivery',
+    label: '交付就绪',
+    visibleWhen: canManageEnterpriseDelivery
+  },
+  {
+    key: '/enterprise-polish/audit',
+    label: '深度审计',
+    visibleWhen: canManageEnterpriseAudit
   },
   {
     key: '/sre-scale/upgrades',

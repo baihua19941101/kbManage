@@ -1,0 +1,545 @@
+openapi: 3.0.3
+info:
+  title: kbManage Enterprise Polish API
+  version: 0.1.0
+  description: >
+    012 企业级治理报表与产品化交付收尾首期接口契约，覆盖深度权限审计、
+    治理报表、导出记录、交付材料目录和交付检查清单能力。
+servers:
+  - url: /api/v1
+paths:
+  /enterprise/audit/permission-trails:
+    get:
+      summary: 查询权限变更链路
+      parameters:
+        - in: query
+          name: subjectType
+          schema:
+            type: string
+        - in: query
+          name: riskLevel
+          schema:
+            type: string
+        - in: query
+          name: timeRange
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PermissionTrail'
+
+  /enterprise/audit/key-operations:
+    get:
+      summary: 查询关键操作追踪
+      parameters:
+        - in: query
+          name: operationType
+          schema:
+            type: string
+        - in: query
+          name: severity
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/KeyOperationTrace'
+
+  /enterprise/governance/coverage:
+    get:
+      summary: 查询治理覆盖率与状态分布
+      parameters:
+        - in: query
+          name: domain
+          schema:
+            type: string
+        - in: query
+          name: environment
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GovernanceCoverageSnapshot'
+
+  /enterprise/governance/action-items:
+    get:
+      summary: 查询统一治理待办
+      parameters:
+        - in: query
+          name: priority
+          schema:
+            type: string
+        - in: query
+          name: owner
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GovernanceActionItem'
+
+  /enterprise/reports:
+    get:
+      summary: 查询治理报表包
+      parameters:
+        - in: query
+          name: reportType
+          schema:
+            type: string
+        - in: query
+          name: audienceType
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GovernanceReportPackage'
+    post:
+      summary: 生成治理报表包
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GovernanceReportInput'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GovernanceReportPackage'
+
+  /enterprise/reports/{reportId}/exports:
+    post:
+      summary: 导出治理报表或交付材料
+      parameters:
+        - in: path
+          name: reportId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportRecordInput'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportRecord'
+
+  /enterprise/delivery/artifacts:
+    get:
+      summary: 查询交付材料目录
+      parameters:
+        - in: query
+          name: artifactType
+          schema:
+            type: string
+        - in: query
+          name: versionScope
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DeliveryArtifact'
+
+  /enterprise/delivery/bundles:
+    get:
+      summary: 查询交付就绪包
+      parameters:
+        - in: query
+          name: targetEnvironment
+          schema:
+            type: string
+        - in: query
+          name: readinessConclusion
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DeliveryReadinessBundle'
+
+  /enterprise/delivery/bundles/{bundleId}/checklists:
+    get:
+      summary: 查询交付检查清单
+      parameters:
+        - in: path
+          name: bundleId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DeliveryChecklistItem'
+
+  /audit/enterprise/events:
+    get:
+      summary: 查询企业治理与交付审计事件
+      parameters:
+        - in: query
+          name: action
+          schema:
+            type: string
+        - in: query
+          name: result
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuditEvent'
+
+components:
+  schemas:
+    PermissionTrail:
+      type: object
+      properties:
+        id:
+          type: string
+        subjectType:
+          type: string
+        subjectRef:
+          type: string
+        sourceIdentity:
+          type: string
+        changeType:
+          type: string
+        beforeState:
+          type: string
+        afterState:
+          type: string
+        authorizationBasis:
+          type: string
+        approvalReference:
+          type: string
+        scopeSummary:
+          type: string
+        changedAt:
+          type: string
+          format: date-time
+        changedBy:
+          type: string
+        evidenceCompleteness:
+          type: string
+
+    KeyOperationTrace:
+      type: object
+      properties:
+        id:
+          type: string
+        actorType:
+          type: string
+        actorRef:
+          type: string
+        operationType:
+          type: string
+        targetType:
+          type: string
+        targetRef:
+          type: string
+        contextSummary:
+          type: string
+        riskLevel:
+          type: string
+        outcome:
+          type: string
+        occurredAt:
+          type: string
+          format: date-time
+
+    GovernanceCoverageSnapshot:
+      type: object
+      properties:
+        id:
+          type: string
+        coverageDomain:
+          type: string
+        coverageRate:
+          type: number
+        statusBreakdown:
+          type: array
+          items:
+            type: string
+        missingReasonSummary:
+          type: string
+        confidenceLevel:
+          type: string
+        trendSummary:
+          type: string
+        snapshotAt:
+          type: string
+          format: date-time
+
+    GovernanceActionItem:
+      type: object
+      properties:
+        id:
+          type: string
+        sourceType:
+          type: string
+        sourceRef:
+          type: string
+        title:
+          type: string
+        priority:
+          type: string
+        owner:
+          type: string
+        dueAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+        resolutionSummary:
+          type: string
+
+    GovernanceReportInput:
+      type: object
+      required:
+        - reportType
+        - title
+        - audienceType
+      properties:
+        reportType:
+          type: string
+        title:
+          type: string
+        audienceType:
+          type: string
+        timeRange:
+          type: string
+        visibilityPolicy:
+          type: string
+
+    GovernanceReportPackage:
+      type: object
+      properties:
+        id:
+          type: string
+        reportType:
+          type: string
+        title:
+          type: string
+        audienceType:
+          type: string
+        timeRange:
+          type: string
+        summarySection:
+          type: string
+        detailSection:
+          type: string
+        attachmentCatalog:
+          type: array
+          items:
+            type: string
+        visibilityPolicy:
+          type: string
+        generatedAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+
+    ExportRecordInput:
+      type: object
+      required:
+        - exportType
+        - audienceScope
+        - contentLevel
+      properties:
+        exportType:
+          type: string
+        audienceScope:
+          type: string
+        contentLevel:
+          type: string
+
+    ExportRecord:
+      type: object
+      properties:
+        id:
+          type: string
+        exportType:
+          type: string
+        audienceScope:
+          type: string
+        contentLevel:
+          type: string
+        exportedAt:
+          type: string
+          format: date-time
+        exportedBy:
+          type: string
+        result:
+          type: string
+
+    DeliveryArtifact:
+      type: object
+      properties:
+        id:
+          type: string
+        artifactType:
+          type: string
+        title:
+          type: string
+        versionScope:
+          type: string
+        environmentScope:
+          type: string
+        ownerRole:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+        applicabilityNote:
+          type: string
+
+    DeliveryReadinessBundle:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        targetEnvironment:
+          type: string
+        targetAudience:
+          type: string
+        artifactSummary:
+          type: string
+        checklistStatus:
+          type: string
+        missingItems:
+          type: array
+          items:
+            type: string
+        readinessConclusion:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+
+    DeliveryChecklistItem:
+      type: object
+      properties:
+        id:
+          type: string
+        checkItem:
+          type: string
+        category:
+          type: string
+        owner:
+          type: string
+        evidenceRequirement:
+          type: string
+        status:
+          type: string
+        completedAt:
+          type: string
+          format: date-time
+        remark:
+          type: string
+
+    AuditEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        action:
+          type: string
+        actor:
+          type: string
+        resourceType:
+          type: string
+        resourceRef:
+          type: string
+        result:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
